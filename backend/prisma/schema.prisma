@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  walletAddress String   @unique @map("wallet_address") @db.VarChar(42)
+  email         String?  @unique @db.VarChar(255)
+  preferences   Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  portfolios Portfolio[]
+  alerts     Alert[]
+
+  @@map("users")
+}
+
+model Coin {
+  id               Int      @id @default(autoincrement())
+  address          String   @unique @db.VarChar(42)
+  symbol           String   @db.VarChar(20)
+  name             String   @db.VarChar(100)
+  network          String   @db.VarChar(20)
+  contractVerified Boolean  @default(false) @map("contract_verified")
+  logoUrl          String?  @map("logo_url") @db.VarChar(500)
+  description      String?  @db.Text
+  website          String?  @db.VarChar(500)
+  socialLinks      Json     @default("{}") @map("social_links")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  priceData        PriceData[]
+  socialMetrics    SocialMetrics[]
+  riskAssessments  RiskAssessment[]
+  portfolios       Portfolio[]
+  alerts           Alert[]
+  whaleTransactions WhaleTransaction[]
+
+  @@map("coins")
+}
+
+model PriceData {
+  id              Int      @id @default(autoincrement())
+  coinId          Int      @map("coin_id")
+  price           Decimal  @db.Decimal(20, 10)
+  marketCap       BigInt   @map("market_cap")
+  volume24h       BigInt   @map("volume_24h")
+  liquidity       BigInt
+  priceChange24h  Decimal  @map("price_change_24h") @db.Decimal(10, 4)
+  volumeChange24h Decimal  @map("volume_change_24h") @db.Decimal(10, 4)
+  timestamp       DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@index([coinId, timestamp])
+  @@map("price_data")
+}
+
+model SocialMetrics {
+  id                 Int      @id @default(autoincrement())
+  coinId             Int      @map("coin_id")
+  platform           String   @db.VarChar(20)
+  followers          Int      @default(0)
+  mentions24h        Int      @default(0) @map("mentions_24h")
+  sentimentScore     Decimal  @map("sentiment_score") @db.Decimal(3, 2)
+  trendingScore      Decimal  @map("trending_score") @db.Decimal(3, 2)
+  influencerMentions Int      @default(0) @map("influencer_mentions")
+  timestamp          DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@index([coinId, platform, timestamp])
+  @@map("social_metrics")
+}
+
+model RiskAssessment {
+  id                        Int      @id @default(autoincrement())
+  coinId                    Int      @map("coin_id")
+  overallScore              Int      @map("overall_score") @db.SmallInt
+  liquidityScore            Int      @map("liquidity_score") @db.SmallInt
+  holderDistributionScore   Int      @map("holder_distribution_score") @db.SmallInt
+  contractSecurityScore     Int      @map("contract_security_score") @db.SmallInt
+  socialScore               Int      @map("social_score") @db.SmallInt
+  factors                   Json     @default("{}")
+  timestamp                 DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@index([coinId, timestamp])
+  @@map("risk_assessments")
+}
+
+model Portfolio {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @map("user_id")
+  coinId               Int      @map("coin_id")
+  amount               Decimal  @db.Decimal(20, 10)
+  avgPrice             Decimal  @map("avg_price") @db.Decimal(20, 10)
+  currentValue         Decimal  @default(0) @map("current_value") @db.Decimal(15, 2)
+  profitLoss           Decimal  @default(0) @map("profit_loss") @db.Decimal(15, 2)
+  profitLossPercentage Decimal  @default(0) @map("profit_loss_percentage") @db.Decimal(10, 4)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coinId])
+  @@map("portfolios")
+}
+
+model Alert {
+  id                  Int       @id @default(autoincrement())
+  userId              Int       @map("user_id")
+  coinId              Int       @map("coin_id")
+  type                String    @db.VarChar(20)
+  condition           Json      @default("{}")
+  notificationMethods Json      @default("[]") @map("notification_methods")
+  isActive            Boolean   @default(true) @map("is_active")
+  lastTriggered       DateTime? @map("last_triggered")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([coinId, type])
+  @@map("alerts")
+}
+
+model WhaleTransaction {
+  id          Int      @id @default(autoincrement())
+  coinId      Int      @map("coin_id")
+  txHash      String   @unique @map("tx_hash") @db.VarChar(66)
+  fromAddress String   @map("from_address") @db.VarChar(42)
+  toAddress   String   @map("to_address") @db.VarChar(42)
+  amount      Decimal  @db.Decimal(20, 10)
+  usdValue    Decimal  @map("usd_value") @db.Decimal(15, 2)
+  timestamp   DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@index([coinId, timestamp])
+  @@index([fromAddress])
+  @@index([toAddress])
+  @@map("whale_transactions")
+}

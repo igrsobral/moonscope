@@ -6,6 +6,7 @@ import fastifyCors from '@fastify/cors';
 import { envOptions } from './config/env.js';
 import { getLoggerConfig } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
+import databasePlugin from './plugins/database.js';
 
 export interface AppOptions {
   logger?: boolean;
@@ -28,13 +29,15 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     genReqId: (req) => {
       // Use existing request ID or generate a new one
       return req.headers['x-request-id'] as string || 
-             `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+             `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     },
   };
 
   const fastify = Fastify(fastifyOptions);
 
   await fastify.register(fastifyEnv, envOptions);
+
+  await fastify.register(databasePlugin);
 
   await fastify.register(fastifyHelmet, {
     contentSecurityPolicy: {

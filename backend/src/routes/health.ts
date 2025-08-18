@@ -30,6 +30,23 @@ const healthResponseSchema = z.object({
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
 
 /**
+ * Check database connection health
+ */
+async function checkDatabaseHealth(fastify: FastifyInstance): Promise<'connected' | 'disconnected' | 'unknown'> {
+  try {
+    if (!fastify.prisma) {
+      return 'unknown';
+    }
+    
+    await fastify.prisma.$queryRaw`SELECT 1`;
+    return 'connected';
+  } catch (error) {
+    fastify.log.error({ error }, 'Database health check failed');
+    return 'disconnected';
+  }
+}
+
+/**
  * Health check plugin for monitoring application status
  */
 export async function healthRoutes(
@@ -117,10 +134,10 @@ export async function healthRoutes(
     // Get CPU usage
     const cpuUsage = process.cpuUsage();
 
-    // Check service health (placeholder for now - will be implemented in later tasks)
+    // Check service health
     const services = {
-      database: 'unknown' as 'connected' | 'disconnected' | 'unknown',
-      redis: 'unknown' as 'connected' | 'disconnected' | 'unknown',
+      database: await checkDatabaseHealth(fastify),
+      redis: 'unknown' as 'connected' | 'disconnected' | 'unknown', // Will be implemented in task 4
     };
 
     // Determine overall status
@@ -205,8 +222,8 @@ export async function healthRoutes(
     },
   }, async (_request, reply) => {
     // Check if application is ready to serve requests
-    // This will be enhanced when database and redis connections are added
-    const isReady = true; // Placeholder
+    const dbHealth = await checkDatabaseHealth(fastify);
+    const isReady = dbHealth === 'connected';
 
     if (!isReady) {
       reply.code(503);

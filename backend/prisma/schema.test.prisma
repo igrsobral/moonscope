@@ -1,0 +1,156 @@
+// Test Prisma schema using SQLite for easier testing
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/test-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./test.db"
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  walletAddress String   @unique @map("wallet_address")
+  email         String?  @unique
+  preferences   String   @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  portfolios Portfolio[]
+  alerts     Alert[]
+
+  @@map("users")
+}
+
+model Coin {
+  id               Int      @id @default(autoincrement())
+  address          String   @unique
+  symbol           String
+  name             String
+  network          String
+  contractVerified Boolean  @default(false) @map("contract_verified")
+  logoUrl          String?  @map("logo_url")
+  description      String?
+  website          String?
+  socialLinks      String   @default("{}") @map("social_links")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  priceData        PriceData[]
+  socialMetrics    SocialMetrics[]
+  riskAssessments  RiskAssessment[]
+  portfolios       Portfolio[]
+  alerts           Alert[]
+  whaleTransactions WhaleTransaction[]
+
+  @@map("coins")
+}
+
+model PriceData {
+  id              Int      @id @default(autoincrement())
+  coinId          Int      @map("coin_id")
+  price           Real
+  marketCap       Int      @map("market_cap")
+  volume24h       Int      @map("volume_24h")
+  liquidity       Int
+  priceChange24h  Real     @map("price_change_24h")
+  volumeChange24h Real     @map("volume_change_24h")
+  timestamp       DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@map("price_data")
+}
+
+model SocialMetrics {
+  id                 Int      @id @default(autoincrement())
+  coinId             Int      @map("coin_id")
+  platform           String
+  followers          Int      @default(0)
+  mentions24h        Int      @default(0) @map("mentions_24h")
+  sentimentScore     Real     @map("sentiment_score")
+  trendingScore      Real     @map("trending_score")
+  influencerMentions Int      @default(0) @map("influencer_mentions")
+  timestamp          DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@map("social_metrics")
+}
+
+model RiskAssessment {
+  id                        Int      @id @default(autoincrement())
+  coinId                    Int      @map("coin_id")
+  overallScore              Int      @map("overall_score")
+  liquidityScore            Int      @map("liquidity_score")
+  holderDistributionScore   Int      @map("holder_distribution_score")
+  contractSecurityScore     Int      @map("contract_security_score")
+  socialScore               Int      @map("social_score")
+  factors                   String   @default("{}")
+  timestamp                 DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@map("risk_assessments")
+}
+
+model Portfolio {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @map("user_id")
+  coinId               Int      @map("coin_id")
+  amount               Real
+  avgPrice             Real     @map("avg_price")
+  currentValue         Real     @default(0) @map("current_value")
+  profitLoss           Real     @default(0) @map("profit_loss")
+  profitLossPercentage Real     @default(0) @map("profit_loss_percentage")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coinId])
+  @@map("portfolios")
+}
+
+model Alert {
+  id                  Int       @id @default(autoincrement())
+  userId              Int       @map("user_id")
+  coinId              Int       @map("coin_id")
+  type                String
+  condition           String    @default("{}")
+  notificationMethods String    @default("[]") @map("notification_methods")
+  isActive            Boolean   @default(true) @map("is_active")
+  lastTriggered       DateTime? @map("last_triggered")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@map("alerts")
+}
+
+model WhaleTransaction {
+  id          Int      @id @default(autoincrement())
+  coinId      Int      @map("coin_id")
+  txHash      String   @unique @map("tx_hash")
+  fromAddress String   @map("from_address")
+  toAddress   String   @map("to_address")
+  amount      Real
+  usdValue    Real     @map("usd_value")
+  timestamp   DateTime
+
+  // Relations
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@map("whale_transactions")
+}
