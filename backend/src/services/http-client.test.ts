@@ -219,26 +219,15 @@ describe('HttpClient', () => {
       };
       mockRequest.mockResolvedValue(mockResponse as any);
 
-      try {
-        await httpClient.get('/error');
-        expect.fail('Should have thrown an error');
-      } catch (error) {
-        expect(error).toBeInstanceOf(HttpError);
-        expect((error as HttpError).message).toBe('HTTP 500: Server Error');
-      }
+      await expect(httpClient.get('/error')).rejects.toThrow(HttpError);
+      await expect(httpClient.get('/error')).rejects.toThrow('HTTP 500: Server Error');
     });
 
     it('should handle network errors', async () => {
       const networkError = new Error('Network error');
       mockRequest.mockRejectedValue(networkError);
 
-      try {
-        await httpClient.get('/test');
-        expect.fail('Should have thrown an error');
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toBe('Network error');
-      }
+      await expect(httpClient.get('/test')).rejects.toThrow('Network error');
     });
   });
 
@@ -381,23 +370,16 @@ describe('HttpClient', () => {
       mockRequest.mockResolvedValue(serverError as any);
 
       // Make enough requests to open the circuit breaker
-      const promises = [];
       for (let i = 0; i < 3; i++) {
-        promises.push(
-          httpClient.get('/test').catch(() => {
-            // Expected to fail
-          })
-        );
+        try {
+          await httpClient.get('/test');
+        } catch {
+          // Expected to fail
+        }
       }
-      await Promise.all(promises);
 
       // Next request should fail immediately due to open circuit
-      try {
-        await httpClient.get('/test');
-        expect.fail('Should have thrown circuit breaker error');
-      } catch (error) {
-        expect((error as Error).message).toContain('Circuit breaker is OPEN');
-      }
+      await expect(httpClient.get('/test')).rejects.toThrow('Circuit breaker is OPEN');
 
       const status = httpClient.getCircuitBreakerState();
       expect(status.state).toBe('OPEN');

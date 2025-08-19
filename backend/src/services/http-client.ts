@@ -1,4 +1,5 @@
-import { request, RequestOptions } from 'undici';
+import { request } from 'undici';
+import type { Dispatcher } from 'undici';
 import { FastifyBaseLogger } from 'fastify';
 
 export interface HttpClientOptions {
@@ -97,26 +98,26 @@ export class HttpClient {
     };
   }
 
-  async get<T = any>(path: string, options?: Partial<RequestOptions>): Promise<T> {
+  async get<T = any>(path: string, options?: Partial<Dispatcher.RequestOptions>): Promise<T> {
     return this.request<T>('GET', path, options);
   }
 
-  async post<T = any>(path: string, body?: any, options?: Partial<RequestOptions>): Promise<T> {
+  async post<T = any>(path: string, body?: any, options?: Partial<Dispatcher.RequestOptions>): Promise<T> {
     return this.request<T>('POST', path, { ...options, body: JSON.stringify(body) });
   }
 
-  async put<T = any>(path: string, body?: any, options?: Partial<RequestOptions>): Promise<T> {
+  async put<T = any>(path: string, body?: any, options?: Partial<Dispatcher.RequestOptions>): Promise<T> {
     return this.request<T>('PUT', path, { ...options, body: JSON.stringify(body) });
   }
 
-  async delete<T = any>(path: string, options?: Partial<RequestOptions>): Promise<T> {
+  async delete<T = any>(path: string, options?: Partial<Dispatcher.RequestOptions>): Promise<T> {
     return this.request<T>('DELETE', path, options);
   }
 
   private async request<T>(
     method: string,
     path: string,
-    options?: Partial<RequestOptions>
+    options?: Partial<Dispatcher.RequestOptions>
   ): Promise<T> {
     const url = `${this.options.baseUrl}${path}`;
     
@@ -128,13 +129,13 @@ export class HttpClient {
   private async executeWithRetry<T>(
     method: string,
     url: string,
-    options?: Partial<RequestOptions>
+    options?: Partial<Dispatcher.RequestOptions>
   ): Promise<T> {
     let lastError: Error;
 
     for (let attempt = 0; attempt <= this.retryOptions.maxRetries; attempt++) {
       try {
-        const requestOptions: RequestOptions = {
+        const requestOptions: Dispatcher.RequestOptions = {
           method,
           headers: {
             'Content-Type': 'application/json',
