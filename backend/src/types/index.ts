@@ -26,8 +26,9 @@ export interface PaginationMeta {
 
 export interface User {
   id: number;
-  walletAddress: string;
-  email?: string;
+  walletAddress?: string;
+  email: string;
+  password: string;
   preferences: UserPreferences;
   createdAt: Date;
   updatedAt: Date;

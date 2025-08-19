@@ -12,8 +12,9 @@ datasource db {
 
 model User {
   id            Int      @id @default(autoincrement())
-  walletAddress String   @unique @map("wallet_address") @db.VarChar(42)
-  email         String?  @unique @db.VarChar(255)
+  walletAddress String?  @unique @map("wallet_address") @db.VarChar(42)
+  email         String   @unique @db.VarChar(255)
+  password      String   @db.VarChar(255)
   preferences   Json     @default("{}")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")

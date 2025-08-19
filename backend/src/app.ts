@@ -6,7 +6,11 @@ import fastifyCors from '@fastify/cors';
 import { envOptions } from './config/env.js';
 import { getLoggerConfig } from './config/logger.js';
 import { healthRoutes } from './routes/health.js';
+import { authRoutes } from './routes/auth.js';
 import databasePlugin from './plugins/database.js';
+import redisPlugin from './plugins/redis.js';
+import cachePlugin from './plugins/cache.js';
+import jwtPlugin from './plugins/jwt.js';
 
 export interface AppOptions {
   logger?: boolean;
@@ -38,6 +42,9 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(fastifyEnv, envOptions);
 
   await fastify.register(databasePlugin);
+  await fastify.register(redisPlugin);
+  await fastify.register(cachePlugin);
+  await fastify.register(jwtPlugin);
 
   await fastify.register(fastifyHelmet, {
     contentSecurityPolicy: {
@@ -151,6 +158,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   await fastify.register(healthRoutes);
+  await fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 
   fastify.addHook('onClose', async (instance) => {
     instance.log.info('Application shutting down...');

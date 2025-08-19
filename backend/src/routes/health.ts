@@ -47,6 +47,23 @@ async function checkDatabaseHealth(fastify: FastifyInstance): Promise<'connected
 }
 
 /**
+ * Check Redis connection health
+ */
+async function checkRedisHealth(fastify: FastifyInstance): Promise<'connected' | 'disconnected' | 'unknown'> {
+  try {
+    if (!fastify.redis) {
+      return 'unknown';
+    }
+    
+    const result = await fastify.redis.ping();
+    return result === 'PONG' ? 'connected' : 'disconnected';
+  } catch (error) {
+    fastify.log.error({ error }, 'Redis health check failed');
+    return 'disconnected';
+  }
+}
+
+/**
  * Health check plugin for monitoring application status
  */
 export async function healthRoutes(
@@ -137,7 +154,7 @@ export async function healthRoutes(
     // Check service health
     const services = {
       database: await checkDatabaseHealth(fastify),
-      redis: 'unknown' as 'connected' | 'disconnected' | 'unknown', // Will be implemented in task 4
+      redis: await checkRedisHealth(fastify),
     };
 
     // Determine overall status
@@ -223,14 +240,19 @@ export async function healthRoutes(
   }, async (_request, reply) => {
     // Check if application is ready to serve requests
     const dbHealth = await checkDatabaseHealth(fastify);
-    const isReady = dbHealth === 'connected';
+    const redisHealth = await checkRedisHealth(fastify);
+    const isReady = dbHealth === 'connected' && redisHealth === 'connected';
 
     if (!isReady) {
       reply.code(503);
+      const reasons = [];
+      if (dbHealth !== 'connected') reasons.push('database');
+      if (redisHealth !== 'connected') reasons.push('redis');
+      
       return {
         ready: false,
         timestamp: new Date().toISOString(),
-        reason: 'Application not ready',
+        reason: `Services not ready: ${reasons.join(', ')}`,
       };
     }
 
