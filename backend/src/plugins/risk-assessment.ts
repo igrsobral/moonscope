@@ -11,19 +11,16 @@ declare module 'fastify' {
 }
 
 export default fp(async function (fastify: FastifyInstance) {
-  // Create Moralis client
   const moralisClient = new MoralisClient({
     apiKey: fastify.config.MORALIS_API_KEY || 'dummy-key',
     logger: fastify.log,
   });
 
-  // Create CoinGecko client
   const coinGeckoClient = new CoinGeckoClient({
-    apiKey: fastify.config.COINGECKO_API_KEY,
+    apiKey: fastify.config.COINGECKO_API_KEY!,
     logger: fastify.log,
   });
 
-  // Default risk assessment configuration
   const defaultConfig = {
     weights: {
       liquidity: 0.35,
@@ -54,7 +51,6 @@ export default fp(async function (fastify: FastifyInstance) {
     },
   };
 
-  // Create risk assessment service
   const riskAssessmentService = new RiskAssessmentService(
     fastify.prisma,
     fastify.log,

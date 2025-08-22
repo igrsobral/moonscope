@@ -10,7 +10,6 @@ import { ApiResponse } from '../types/index.js';
 export default async function riskAssessmentRoutes(fastify: FastifyInstance) {
   const riskService = fastify.riskAssessmentService as RiskAssessmentService;
 
-  // Get risk assessment for a specific coin
   fastify.get<{
     Params: { id: number };
     Querystring: { forceRefresh?: boolean };
