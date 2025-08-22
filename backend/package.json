@@ -40,13 +40,18 @@
     "fastify": "^4.25.2",
     "fastify-plugin": "^5.0.1",
     "ioredis": "^5.3.2",
+    "natural": "^8.1.0",
+    "node-fetch": "^3.3.2",
     "pino": "^8.17.2",
+    "sentiment": "^5.0.2",
     "undici": "^7.14.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/natural": "^5.1.5",
     "@types/node": "^20.10.6",
+    "@types/sentiment": "^5.0.4",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
