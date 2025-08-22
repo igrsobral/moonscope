@@ -22,7 +22,10 @@
     "db:studio": "prisma studio",
     "db:setup": "tsx scripts/db-setup.ts --all",
     "db:seed": "tsx scripts/db-setup.ts --seed",
-    "db:reset": "prisma migrate reset --force && npm run db:seed"
+    "db:reset": "prisma migrate reset --force && npm run db:seed",
+    "demo:jobs": "tsx scripts/demo-job-system.ts",
+    "demo:jobs-simple": "tsx scripts/demo-job-system-simple.ts",
+    "demo:jobs-mock": "tsx scripts/demo-job-system-mock.ts"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

@@ -24,6 +24,9 @@ export const envSchema = z.object({
   REDDIT_CLIENT_ID: z.string().optional(),
   REDDIT_CLIENT_SECRET: z.string().optional(),
 
+  // Job Processing
+  ENABLE_SCHEDULED_JOBS: z.string().default('false'),
+
   // Notification Services
   SENDGRID_API_KEY: z.string().optional(),
   TWILIO_ACCOUNT_SID: z.string().optional(),
@@ -108,6 +111,10 @@ export const envOptions = {
         type: 'number',
         minimum: 1000,
         default: 60000,
+      },
+      ENABLE_SCHEDULED_JOBS: {
+        type: 'string',
+        default: 'false',
       },
     },
   },
