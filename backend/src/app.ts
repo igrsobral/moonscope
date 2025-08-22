@@ -11,6 +11,7 @@ import { coinsRoutes } from './routes/coins-simple.js';
 import { websocketRoutes } from './routes/websocket.js';
 import riskAssessmentRoutes from './routes/risk-assessment.js';
 import socialRoutes from './routes/social.js';
+import jobsRoutes from './routes/jobs.js';
 import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import cachePlugin from './plugins/cache.js';
@@ -19,6 +20,8 @@ import externalApiPlugin from './plugins/external-api.js';
 import websocketPlugin from './plugins/websocket.js';
 import realtimePlugin from './plugins/realtime.js';
 import riskAssessmentPlugin from './plugins/risk-assessment.js';
+import queuePlugin from './plugins/queue.js';
+import jobsPlugin from './plugins/jobs.js';
 
 export interface AppOptions {
   logger?: boolean;
@@ -57,6 +60,8 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(websocketPlugin);
   await fastify.register(realtimePlugin);
   await fastify.register(riskAssessmentPlugin);
+  await fastify.register(queuePlugin);
+  await fastify.register(jobsPlugin);
 
   await fastify.register(fastifyHelmet, {
     contentSecurityPolicy: {
@@ -174,6 +179,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(coinsRoutes, { prefix: '/api/v1' });
   await fastify.register(riskAssessmentRoutes, { prefix: '/api/v1' });
   await fastify.register(socialRoutes, { prefix: '/api/v1/social' });
+  await fastify.register(jobsRoutes, { prefix: '/api/v1' });
   await fastify.register(websocketRoutes);
 
   fastify.addHook('onClose', async (instance) => {
