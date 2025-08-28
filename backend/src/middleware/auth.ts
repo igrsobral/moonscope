@@ -38,7 +38,7 @@ export async function optionalAuthMiddleware(
     await request.jwtVerify();
   } catch (error) {
     // Silently continue without authentication
-    request.user = undefined;
+    delete (request as any).user;
   }
 }
 
