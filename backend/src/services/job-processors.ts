@@ -89,6 +89,19 @@ export class JobProcessors {
       }
     );
 
+    const portfolioWorker = new Worker(
+      'portfolio-updates',
+      async (job: Job) => await this.processPortfolioUpdateJob(job),
+      {
+        connection: redis,
+        concurrency: 5,
+        limiter: {
+          max: 50,
+          duration: 60000, // 50 jobs per minute
+        },
+      }
+    );
+
     // Maintenance jobs
     const maintenanceWorker = new Worker(
       'maintenance',
@@ -108,6 +121,7 @@ export class JobProcessors {
     this.workers.set('social-scraping', socialWorker);
     this.workers.set('alert-processing', alertWorker);
     this.workers.set('risk-assessment', riskWorker);
+    this.workers.set('portfolio-updates', portfolioWorker);
     this.workers.set('maintenance', maintenanceWorker);
 
     // Set up error handlers
@@ -182,6 +196,9 @@ export class JobProcessors {
         volumeChange24h: priceData.volumeChange24h || 0,
         timestamp: new Date(),
       });
+
+
+      logger.debug({ coinId }, 'Portfolio value update should be triggered');
 
       // Update job progress
       await job.updateProgress(100);
@@ -621,6 +638,124 @@ export class JobProcessors {
   }
 
   /**
+   * Process portfolio update jobs
+   */
+  private async processPortfolioUpdateJob(job: Job): Promise<any> {
+    const { coinId, userId } = job.data;
+    const { logger, prisma, realtimeService } = this.dependencies;
+
+    try {
+      logger.info({ jobId: job.id, coinId, userId }, 'Processing portfolio update job');
+
+      const latestPrice = await prisma.priceData.findFirst({
+        where: { coinId },
+        orderBy: { timestamp: 'desc' },
+      });
+
+      if (!latestPrice) {
+        logger.warn({ coinId }, 'No price data found for coin');
+        return { success: false, reason: 'No price data' };
+      }
+
+      await job.updateProgress(25);
+
+      const where: any = { coinId };
+      if (userId) {
+        where.userId = userId;
+      }
+
+      const holdings = await prisma.portfolio.findMany({
+        where,
+        include: {
+          user: true,
+          coin: true,
+        },
+      });
+
+      if (holdings.length === 0) {
+        logger.debug({ coinId, userId }, 'No portfolio holdings found');
+        return { success: true, updatedCount: 0 };
+      }
+
+      await job.updateProgress(50);
+
+      const currentPrice = Number(latestPrice.price);
+      const updatedHoldings = [];
+
+      for (const holding of holdings) {
+        const amount = Number(holding.amount);
+        const avgPrice = Number(holding.avgPrice);
+        
+        const currentValue = amount * currentPrice;
+        const invested = amount * avgPrice;
+        const profitLoss = currentValue - invested;
+        const profitLossPercentage = invested > 0 ? (profitLoss / invested) * 100 : 0;
+
+        const updatedHolding = await prisma.portfolio.update({
+          where: { id: holding.id },
+          data: {
+            currentValue,
+            profitLoss,
+            profitLossPercentage,
+          },
+        });
+
+        updatedHoldings.push({
+          ...updatedHolding,
+          coin: holding.coin,
+          previousValue: Number(holding.currentValue),
+        });
+
+        const event = {
+          type: 'portfolio_value_update' as const,
+          data: {
+            userId: holding.userId,
+            coinId: holding.coinId,
+            holdingId: holding.id,
+            currentValue,
+            profitLoss,
+            profitLossPercentage,
+            priceChange: currentPrice - avgPrice,
+            priceChangePercentage: avgPrice > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0,
+          },
+          timestamp: new Date().toISOString(),
+          userId: holding.userId.toString(),
+          coinId: coinId.toString(),
+        };
+
+        realtimeService.broadcastToUser(holding.userId, event);
+      }
+
+      await job.updateProgress(100);
+
+      logger.info({ 
+        jobId: job.id, 
+        coinId, 
+        userId,
+        updatedCount: updatedHoldings.length,
+        currentPrice 
+      }, 'Portfolio update job completed');
+
+      return {
+        success: true,
+        coinId,
+        userId,
+        updatedCount: updatedHoldings.length,
+        currentPrice,
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      logger.error({ 
+        jobId: job.id, 
+        coinId, 
+        userId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'Portfolio update job failed');
+      throw error;
+    }
+  }
+
+  /**
    * Process maintenance jobs
    */
   private async processMaintenanceJob(job: Job): Promise<any> {
@@ -771,7 +906,7 @@ export class JobProcessors {
       let cachedCoins = 0;
       for (const coin of topCoins) {
         const cacheKey = `coin:${coin.id}`;
-        await cacheService.set(cacheKey, coin, 300); // 5 minutes TTL
+        await cacheService.set(cacheKey, coin, { ttl: 300 }); // 5 minutes TTL
         cachedCoins++;
       }
 
@@ -787,13 +922,13 @@ export class JobProcessors {
         timestamp: new Date(),
       };
 
-      await cacheService.set('market:overview', marketData, 600); // 10 minutes TTL
+      await cacheService.set('market:overview', marketData, { ttl: 600 }); // 10 minutes TTL
 
       await job.updateProgress(80);
 
       // Cache trending coins (placeholder)
       const trendingCoins = topCoins.slice(0, 10);
-      await cacheService.set('coins:trending', trendingCoins, 900); // 15 minutes TTL
+      await cacheService.set('coins:trending', trendingCoins, { ttl: 900 }); // 15 minutes TTL
 
       await job.updateProgress(100);
 

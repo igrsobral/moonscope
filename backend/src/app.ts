@@ -12,6 +12,7 @@ import { websocketRoutes } from './routes/websocket.js';
 import riskAssessmentRoutes from './routes/risk-assessment.js';
 import socialRoutes from './routes/social.js';
 import jobsRoutes from './routes/jobs.js';
+import { portfolioRoutes } from './routes/portfolio.js';
 import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import cachePlugin from './plugins/cache.js';
@@ -180,6 +181,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(riskAssessmentRoutes, { prefix: '/api/v1' });
   await fastify.register(socialRoutes, { prefix: '/api/v1/social' });
   await fastify.register(jobsRoutes, { prefix: '/api/v1' });
+  await fastify.register(portfolioRoutes, { prefix: '/api/v1' });
   await fastify.register(websocketRoutes);
 
   fastify.addHook('onClose', async (instance) => {
