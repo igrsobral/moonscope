@@ -28,9 +28,17 @@ export const envSchema = z.object({
   ENABLE_SCHEDULED_JOBS: z.string().default('false'),
 
   // Notification Services
-  SENDGRID_API_KEY: z.string().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  FROM_EMAIL: z.string().optional(),
+  FROM_NAME: z.string().optional(),
+  FCM_SERVER_KEY: z.string().optional(),
+  APNS_CERTIFICATE: z.string().optional(),
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_PHONE: z.string().optional(),
 
   // Rate Limiting
   RATE_LIMIT_MAX: z.coerce.number().min(1).default(100),
@@ -93,13 +101,37 @@ export const envOptions = {
       REDDIT_CLIENT_SECRET: {
         type: 'string',
       },
-      SENDGRID_API_KEY: {
+      SMTP_HOST: {
+        type: 'string',
+      },
+      SMTP_PORT: {
+        type: 'string',
+      },
+      SMTP_USER: {
+        type: 'string',
+      },
+      SMTP_PASSWORD: {
+        type: 'string',
+      },
+      FROM_EMAIL: {
+        type: 'string',
+      },
+      FROM_NAME: {
+        type: 'string',
+      },
+      FCM_SERVER_KEY: {
+        type: 'string',
+      },
+      APNS_CERTIFICATE: {
         type: 'string',
       },
       TWILIO_ACCOUNT_SID: {
         type: 'string',
       },
       TWILIO_AUTH_TOKEN: {
+        type: 'string',
+      },
+      TWILIO_FROM_PHONE: {
         type: 'string',
       },
       RATE_LIMIT_MAX: {

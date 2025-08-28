@@ -13,6 +13,7 @@ import riskAssessmentRoutes from './routes/risk-assessment.js';
 import socialRoutes from './routes/social.js';
 import jobsRoutes from './routes/jobs.js';
 import { portfolioRoutes } from './routes/portfolio.js';
+import { alertRoutes } from './routes/alerts.js';
 import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import cachePlugin from './plugins/cache.js';
@@ -23,6 +24,8 @@ import realtimePlugin from './plugins/realtime.js';
 import riskAssessmentPlugin from './plugins/risk-assessment.js';
 import queuePlugin from './plugins/queue.js';
 import jobsPlugin from './plugins/jobs.js';
+import notificationPlugin from './plugins/notification.js';
+import alertTriggerPlugin from './plugins/alert-trigger.js';
 
 export interface AppOptions {
   logger?: boolean;
@@ -63,6 +66,8 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(riskAssessmentPlugin);
   await fastify.register(queuePlugin);
   await fastify.register(jobsPlugin);
+  await fastify.register(notificationPlugin);
+  await fastify.register(alertTriggerPlugin);
 
   await fastify.register(fastifyHelmet, {
     contentSecurityPolicy: {
@@ -182,6 +187,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(socialRoutes, { prefix: '/api/v1/social' });
   await fastify.register(jobsRoutes, { prefix: '/api/v1' });
   await fastify.register(portfolioRoutes, { prefix: '/api/v1' });
+  await fastify.register(alertRoutes, { prefix: '/api/v1' });
   await fastify.register(websocketRoutes);
 
   fastify.addHook('onClose', async (instance) => {

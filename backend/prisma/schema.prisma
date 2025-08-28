@@ -134,12 +134,15 @@ model Alert {
   notificationMethods Json      @default("[]") @map("notification_methods")
   isActive            Boolean   @default(true) @map("is_active")
   lastTriggered       DateTime? @map("last_triggered")
+  name                String?   @db.VarChar(100)
+  description         String?   @db.VarChar(500)
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+  notificationHistory NotificationHistory[]
 
   @@index([userId, isActive])
   @@index([coinId, type])
@@ -163,4 +166,29 @@ model WhaleTransaction {
   @@index([fromAddress])
   @@index([toAddress])
   @@map("whale_transactions")
+}
+
+model NotificationHistory {
+  id          Int       @id @default(autoincrement())
+  alertId     Int       @map("alert_id")
+  method      String    @db.VarChar(20)
+  recipient   String    @db.VarChar(255)
+  subject     String    @db.VarChar(500)
+  content     String    @db.Text
+  status      String    @db.VarChar(20)
+  messageId   String?   @map("message_id") @db.VarChar(255)
+  error       String?   @db.Text
+  retryCount  Int       @default(0) @map("retry_count")
+  metadata    Json      @default("{}")
+  sentAt      DateTime? @map("sent_at")
+  deliveredAt DateTime? @map("delivered_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@index([alertId, status])
+  @@index([method, status])
+  @@map("notification_history")
 }
