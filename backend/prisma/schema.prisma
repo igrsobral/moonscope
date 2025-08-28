@@ -22,6 +22,7 @@ model User {
   // Relations
   portfolios Portfolio[]
   alerts     Alert[]
+  liquidityAlerts LiquidityAlert[]
 
   @@map("users")
 }
@@ -47,6 +48,8 @@ model Coin {
   portfolios       Portfolio[]
   alerts           Alert[]
   whaleTransactions WhaleTransaction[]
+  liquidityPools   LiquidityPool[]
+  liquidityAlerts  LiquidityAlert[]
 
   @@map("coins")
 }
@@ -191,4 +194,80 @@ model NotificationHistory {
   @@index([alertId, status])
   @@index([method, status])
   @@map("notification_history")
+}
+model LiquidityPool {
+  id              Int      @id @default(autoincrement())
+  coinId          Int      @map("coin_id")
+  exchange        String   @db.VarChar(50)
+  pairAddress     String   @map("pair_address") @db.VarChar(42)
+  baseToken       String   @map("base_token") @db.VarChar(42)
+  quoteToken      String   @map("quote_token") @db.VarChar(42)
+  baseSymbol      String   @map("base_symbol") @db.VarChar(20)
+  quoteSymbol     String   @map("quote_symbol") @db.VarChar(20)
+  totalLiquidity  Decimal  @map("total_liquidity") @db.Decimal(20, 10)
+  baseReserve     Decimal  @map("base_reserve") @db.Decimal(20, 10)
+  quoteReserve    Decimal  @map("quote_reserve") @db.Decimal(20, 10)
+  volume24h       Decimal  @map("volume_24h") @db.Decimal(20, 10)
+  fees24h         Decimal  @map("fees_24h") @db.Decimal(15, 2)
+  apr             Decimal? @db.Decimal(8, 4)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  coin            Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+  liquidityData   LiquidityData[]
+  liquidityAlerts LiquidityAlert[]
+
+  @@unique([exchange, pairAddress])
+  @@index([coinId, exchange])
+  @@index([totalLiquidity])
+  @@map("liquidity_pools")
+}
+
+model LiquidityData {
+  id                    Int           @id @default(autoincrement())
+  poolId                Int           @map("pool_id")
+  totalLiquidity        Decimal       @map("total_liquidity") @db.Decimal(20, 10)
+  baseReserve           Decimal       @map("base_reserve") @db.Decimal(20, 10)
+  quoteReserve          Decimal       @map("quote_reserve") @db.Decimal(20, 10)
+  volume24h             Decimal       @map("volume_24h") @db.Decimal(20, 10)
+  fees24h               Decimal       @map("fees_24h") @db.Decimal(15, 2)
+  liquidityChange24h    Decimal       @map("liquidity_change_24h") @db.Decimal(10, 4)
+  volumeChange24h       Decimal       @map("volume_change_24h") @db.Decimal(10, 4)
+  priceImpact1k         Decimal       @map("price_impact_1k") @db.Decimal(8, 4)
+  priceImpact10k        Decimal       @map("price_impact_10k") @db.Decimal(8, 4)
+  priceImpact100k       Decimal       @map("price_impact_100k") @db.Decimal(8, 4)
+  timestamp             DateTime
+
+  // Relations
+  pool LiquidityPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+
+  @@index([poolId, timestamp])
+  @@map("liquidity_data")
+}
+
+model LiquidityAlert {
+  id                  Int       @id @default(autoincrement())
+  userId              Int       @map("user_id")
+  coinId              Int       @map("coin_id")
+  poolId              Int?      @map("pool_id")
+  type                String    @db.VarChar(30)
+  condition           Json      @default("{}")
+  notificationMethods Json      @default("[]") @map("notification_methods")
+  isActive            Boolean   @default(true) @map("is_active")
+  lastTriggered       DateTime? @map("last_triggered")
+  name                String?   @db.VarChar(100)
+  description         String?   @db.VarChar(500)
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coin Coin @relation(fields: [coinId], references: [id], onDelete: Cascade)
+  pool LiquidityPool? @relation(fields: [poolId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([coinId, type])
+  @@map("liquidity_alerts")
 }
