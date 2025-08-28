@@ -7,6 +7,9 @@ import { SocialService } from './social.js';
 import { ExternalApiService } from './external-api-service.js';
 import { CacheService } from './cache.js';
 import { RealtimeService } from './realtime.js';
+import { WhaleTrackingService } from './whale-tracking.js';
+import { WhaleJobProcessor, type WhaleJobData } from './whale-job-processor.js';
+import { AlertTriggerService } from './alert-trigger.js';
 
 export interface JobProcessorDependencies {
   prisma: PrismaClient;
@@ -17,6 +20,8 @@ export interface JobProcessorDependencies {
   externalApiService: ExternalApiService;
   cacheService: CacheService;
   realtimeService: RealtimeService;
+  whaleTrackingService: WhaleTrackingService;
+  alertTriggerService: AlertTriggerService;
 }
 
 export class JobProcessors {
@@ -89,6 +94,20 @@ export class JobProcessors {
       }
     );
 
+    // Whale tracking jobs
+    const whaleWorker = new Worker(
+      'whale-tracking',
+      async (job: Job) => await this.processWhaleTrackingJob(job),
+      {
+        connection: redis,
+        concurrency: 3,
+        limiter: {
+          max: 15,
+          duration: 60000, // 15 jobs per minute
+        },
+      }
+    );
+
     const portfolioWorker = new Worker(
       'portfolio-updates',
       async (job: Job) => await this.processPortfolioUpdateJob(job),
@@ -121,6 +140,7 @@ export class JobProcessors {
     this.workers.set('social-scraping', socialWorker);
     this.workers.set('alert-processing', alertWorker);
     this.workers.set('risk-assessment', riskWorker);
+    this.workers.set('whale-tracking', whaleWorker);
     this.workers.set('portfolio-updates', portfolioWorker);
     this.workers.set('maintenance', maintenanceWorker);
 
@@ -455,6 +475,39 @@ export class JobProcessors {
         coinId, 
         error: error instanceof Error ? error.message : String(error)
       }, 'Risk assessment job failed');
+      throw error;
+    }
+  }
+
+  /**
+   * Process whale tracking jobs
+   */
+  private async processWhaleTrackingJob(job: Job<WhaleJobData>): Promise<any> {
+    const { logger, whaleTrackingService, alertTriggerService } = this.dependencies;
+    
+    const whaleJobProcessor = new WhaleJobProcessor(
+      whaleTrackingService,
+      alertTriggerService,
+      logger
+    );
+
+    try {
+      logger.info({ jobId: job.id, jobData: job.data }, 'Processing whale tracking job');
+
+      await whaleJobProcessor.processJob(job);
+
+      logger.info({ jobId: job.id }, 'Whale tracking job completed successfully');
+
+      return {
+        success: true,
+        jobId: job.id,
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      logger.error({ 
+        jobId: job.id, 
+        error: error instanceof Error ? error.message : String(error)
+      }, 'Whale tracking job failed');
       throw error;
     }
   }

@@ -45,6 +45,9 @@ export class JobScheduler {
     // Schedule alert processing jobs
     await this.scheduleAlertProcessingJobs();
 
+    // Schedule whale tracking jobs
+    await this.scheduleWhaleTrackingJobs();
+
     // Schedule cleanup jobs
     await this.scheduleCleanupJobs();
 
@@ -175,6 +178,77 @@ export class JobScheduler {
       this.logger.info({ coinCount: coins.length }, 'Risk assessment jobs scheduled');
     } catch (error) {
       this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule risk assessment jobs');
+      throw error;
+    }
+  }
+
+  /**
+   * Schedule whale tracking jobs
+   */
+  private async scheduleWhaleTrackingJobs(): Promise<void> {
+    try {
+      // Get all coins for whale tracking
+      const coins = await this.prisma.coin.findMany({
+        select: { id: true, address: true, network: true, symbol: true },
+      });
+
+      this.logger.info({ coinCount: coins.length }, 'Scheduling whale tracking jobs');
+
+      for (const coin of coins) {
+        // Schedule whale transaction processing every 15 minutes
+        await this.queueManager.addJob(
+          'whale-tracking',
+          'process-whale-transactions',
+          {
+            type: 'process_whale_transactions',
+            coinId: coin.id,
+            contractAddress: coin.address,
+            network: coin.network,
+            options: {
+              minUsdValue: 10000, // $10k minimum for whale transactions
+            }
+          },
+          {
+            repeat: {
+              pattern: '*/15 * * * *', // Every 15 minutes
+            },
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 10000,
+            },
+          }
+        );
+
+        // Schedule whale impact analysis every hour
+        await this.queueManager.addJob(
+          'whale-tracking',
+          'analyze-whale-impact',
+          {
+            type: 'analyze_whale_impact',
+            coinId: coin.id,
+            contractAddress: coin.address,
+            network: coin.network,
+            options: {
+              timeframe: '24h',
+            }
+          },
+          {
+            repeat: {
+              pattern: '0 * * * *', // Every hour
+            },
+            attempts: 2,
+            backoff: {
+              type: 'exponential',
+              delay: 15000,
+            },
+          }
+        );
+      }
+
+      this.logger.info({ coinCount: coins.length }, 'Whale tracking jobs scheduled');
+    } catch (error) {
+      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule whale tracking jobs');
       throw error;
     }
   }
