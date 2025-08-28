@@ -6,6 +6,8 @@ import { JobMonitor } from '../services/job-monitor.js';
 import { CoinService } from '../services/coin.js';
 import { SocialService } from '../services/social.js';
 import { CacheService } from '../services/cache.js';
+import { WhaleTrackingService } from '../services/whale-tracking.js';
+import { AlertTriggerService } from '../services/alert-trigger.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -46,6 +48,18 @@ const jobsPlugin: FastifyPluginAsync = async (fastify) => {
 
   const cacheService = new CacheService(fastify.redis, fastify.log);
 
+  // Initialize whale tracking service
+  const whaleTrackingService = new WhaleTrackingService(
+    fastify.prisma,
+    fastify.externalApi,
+    cacheService,
+    fastify.realtime,
+    fastify.log
+  );
+
+  // Initialize alert trigger service
+  const alertTriggerService = fastify.alertTrigger;
+
   // Initialize job processors
   const jobProcessors = new JobProcessors({
     prisma: fastify.prisma,
@@ -56,6 +70,8 @@ const jobsPlugin: FastifyPluginAsync = async (fastify) => {
     externalApiService: fastify.externalApi,
     cacheService,
     realtimeService: fastify.realtime,
+    whaleTrackingService,
+    alertTriggerService,
   });
 
   // Initialize job scheduler

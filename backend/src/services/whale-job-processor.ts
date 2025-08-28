@@ -106,7 +106,7 @@ export class WhaleJobProcessor {
             usdValue: Number(transaction.usdValue),
             fromAddress: transaction.fromAddress,
             toAddress: transaction.toAddress,
-            timestamp: transaction.timestamp.toISOString(),
+            timestamp: transaction.timestamp,
           });
         }
       }

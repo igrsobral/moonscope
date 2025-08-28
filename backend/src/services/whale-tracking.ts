@@ -108,7 +108,14 @@ export class WhaleTrackingService {
           }
         });
 
-        processedTransactions.push(whaleTransaction);
+        // Convert Prisma Decimal to number for the interface
+        const convertedTransaction = {
+          ...whaleTransaction,
+          amount: Number(whaleTransaction.amount),
+          usdValue: Number(whaleTransaction.usdValue),
+        };
+
+        processedTransactions.push(convertedTransaction);
 
         // Update whale wallet tracking
         await this.updateWhaleWalletTracking(extTx.fromAddress, extTx.usdValue, new Date(extTx.timestamp));
@@ -118,7 +125,7 @@ export class WhaleTrackingService {
         const alert = await this.generateWhaleAlert(coinId, extTx);
         if (alert) {
           // Broadcast whale movement via WebSocket
-          this.realtimeService.broadcastWhaleMovement(coinId.toString(), whaleTransaction);
+          this.realtimeService.broadcastWhaleMovement(coinId.toString(), convertedTransaction);
         }
       }
 
@@ -126,7 +133,7 @@ export class WhaleTrackingService {
       await this.cacheService.set(
         `whale_transactions:${coinId}`,
         processedTransactions,
-        this.cacheService.TTL.WHALE_TRANSACTIONS
+        900 // 15 minutes
       );
 
       this.logger?.info({
@@ -203,7 +210,7 @@ export class WhaleTrackingService {
       }
 
       // Cache updated whale wallet data
-      await this.cacheService.set(cacheKey, whaleWallet, this.cacheService.TTL.WHALE_TRANSACTIONS);
+      await this.cacheService.set(cacheKey, whaleWallet, 900); // 15 minutes
     } catch (error) {
       this.logger?.error({
         address,
@@ -367,7 +374,7 @@ export class WhaleTrackingService {
       await this.cacheService.set(
         `whale_analysis:${coinId}:${timeframe}`,
         analysis,
-        this.cacheService.TTL.WHALE_TRANSACTIONS
+        900 // 15 minutes
       );
 
       this.logger?.info({
@@ -417,7 +424,7 @@ export class WhaleTrackingService {
         where.usdValue = { gte: minUsdValue };
       }
 
-      const [transactions, total] = await Promise.all([
+      const [rawTransactions, total] = await Promise.all([
         this.prisma.whaleTransaction.findMany({
           where,
           orderBy: { timestamp: 'desc' },
@@ -426,6 +433,13 @@ export class WhaleTrackingService {
         }),
         this.prisma.whaleTransaction.count({ where })
       ]);
+
+      // Convert Prisma Decimal to number for the interface
+      const transactions = rawTransactions.map(tx => ({
+        ...tx,
+        amount: Number(tx.amount),
+        usdValue: Number(tx.usdValue),
+      }));
 
       return { transactions, total };
     } catch (error) {
@@ -476,7 +490,7 @@ export class WhaleTrackingService {
           isActive: this.isWalletActive(lastSeen),
         };
 
-        await this.cacheService.set(cacheKey, whaleWallet, this.cacheService.TTL.WHALE_TRANSACTIONS);
+        await this.cacheService.set(cacheKey, whaleWallet, 900); // 15 minutes
       }
 
       return whaleWallet;

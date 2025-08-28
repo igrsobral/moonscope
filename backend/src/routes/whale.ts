@@ -15,9 +15,9 @@ import {
 export default async function whaleRoutes(fastify: FastifyInstance) {
   const whaleTrackingService = new WhaleTrackingService(
     fastify.prisma,
-    fastify.externalApiService,
-    fastify.cacheService,
-    fastify.realtimeService,
+    fastify.externalApi,
+    fastify.cache,
+    fastify.realtime,
     fastify.log
   );
 
@@ -26,8 +26,6 @@ export default async function whaleRoutes(fastify: FastifyInstance) {
     Querystring: WhaleTransactionQuery;
   }>('/transactions', {
     schema: {
-      description: 'Get whale transactions for a specific coin',
-      tags: ['whale'],
       querystring: WhaleTransactionQuerySchema,
       response: {
         200: {
@@ -128,8 +126,6 @@ export default async function whaleRoutes(fastify: FastifyInstance) {
     Querystring: WhaleAnalysisQuery;
   }>('/analysis', {
     schema: {
-      description: 'Get whale movement analysis for a specific coin',
-      tags: ['whale'],
       querystring: WhaleAnalysisQuerySchema,
       response: {
         200: {
@@ -186,8 +182,6 @@ export default async function whaleRoutes(fastify: FastifyInstance) {
     Querystring: WhaleWalletQuery;
   }>('/wallet', {
     schema: {
-      description: 'Get whale wallet information',
-      tags: ['whale'],
       querystring: WhaleWalletQuerySchema,
       response: {
         200: {
@@ -267,8 +261,6 @@ export default async function whaleRoutes(fastify: FastifyInstance) {
     Querystring: TopWhaleWalletsQuery;
   }>('/top-wallets', {
     schema: {
-      description: 'Get top whale wallets for a specific coin',
-      tags: ['whale'],
       querystring: TopWhaleWalletsQuerySchema,
       response: {
         200: {
@@ -328,8 +320,6 @@ export default async function whaleRoutes(fastify: FastifyInstance) {
     Body: { coinId: number; contractAddress: string; network: string };
   }>('/process', {
     schema: {
-      description: 'Process whale transactions for a specific coin',
-      tags: ['whale'],
       body: {
         type: 'object',
         required: ['coinId', 'contractAddress', 'network'],
