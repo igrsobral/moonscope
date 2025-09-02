@@ -23,7 +23,83 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   fastify.post<{
     Body: RegisterRequest;
-  }>('/register', async (request: FastifyRequest<{ Body: RegisterRequest }>, reply: FastifyReply) => {
+  }>('/register', {
+    schema: {
+      description: 'Register a new user account',
+      tags: ['Authentication'],
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: {
+            type: 'string',
+            format: 'email',
+            description: 'User email address',
+            example: 'user@example.com',
+          },
+          password: {
+            type: 'string',
+            minLength: 8,
+            description: 'Password (min 8 chars, must contain uppercase, lowercase, number, and special character)',
+            example: 'SecurePass123!',
+          },
+          walletAddress: {
+            type: 'string',
+            pattern: '^0x[a-fA-F0-9]{40}$',
+            description: 'Optional Ethereum wallet address',
+            example: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b5',
+          },
+          preferences: {
+            type: 'object',
+            properties: {
+              notifications: {
+                type: 'object',
+                properties: {
+                  email: { type: 'boolean', default: true },
+                  push: { type: 'boolean', default: true },
+                  sms: { type: 'boolean', default: false },
+                  priceAlerts: { type: 'boolean', default: true },
+                  whaleMovements: { type: 'boolean', default: true },
+                  socialSpikes: { type: 'boolean', default: true },
+                },
+              },
+              defaultCurrency: { type: 'string', default: 'USD' },
+              theme: { type: 'string', enum: ['light', 'dark'], default: 'light' },
+              riskTolerance: { type: 'string', enum: ['low', 'medium', 'high'], default: 'medium' },
+            },
+          },
+        },
+      },
+      response: {
+        201: {
+          description: 'User registered successfully',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                user: { $ref: '#/components/schemas/User' },
+                token: {
+                  type: 'string',
+                  description: 'JWT authentication token',
+                  example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                },
+              },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                requestId: { type: 'string' },
+              },
+            },
+          },
+        },
+        400: { $ref: '#/components/schemas/ValidationError' },
+      },
+    },
+  }, async (request: FastifyRequest<{ Body: RegisterRequest }>, reply: FastifyReply) => {
     try {
       // Validate request body
       const validatedData = registerSchema.parse(request.body);
@@ -86,7 +162,58 @@ export async function authRoutes(fastify: FastifyInstance) {
   // Login endpoint
   fastify.post<{
     Body: LoginRequest;
-  }>('/login', async (request: FastifyRequest<{ Body: LoginRequest }>, reply: FastifyReply) => {
+  }>('/login', {
+    schema: {
+      description: 'Authenticate user and get JWT token',
+      tags: ['Authentication'],
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: {
+            type: 'string',
+            format: 'email',
+            description: 'User email address',
+            example: 'user@example.com',
+          },
+          password: {
+            type: 'string',
+            description: 'User password',
+            example: 'SecurePass123!',
+          },
+        },
+      },
+      response: {
+        200: {
+          description: 'Login successful',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                user: { $ref: '#/components/schemas/User' },
+                token: {
+                  type: 'string',
+                  description: 'JWT authentication token',
+                  example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                },
+              },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                requestId: { type: 'string' },
+              },
+            },
+          },
+        },
+        400: { $ref: '#/components/schemas/ValidationError' },
+        401: { $ref: '#/components/schemas/AuthenticationError' },
+      },
+    },
+  }, async (request: FastifyRequest<{ Body: LoginRequest }>, reply: FastifyReply) => {
     try {
       // Validate request body
       const validatedData = loginSchema.parse(request.body);
@@ -148,6 +275,35 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   // Get current user profile (protected)
   fastify.get('/profile', {
+    schema: {
+      description: 'Get current user profile information',
+      tags: ['Authentication'],
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          description: 'User profile retrieved successfully',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                user: { $ref: '#/components/schemas/User' },
+              },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                requestId: { type: 'string' },
+              },
+            },
+          },
+        },
+        401: { $ref: '#/components/schemas/AuthenticationError' },
+        404: { $ref: '#/components/schemas/NotFoundError' },
+      },
+    },
     preHandler: [fastify.authenticate],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -201,6 +357,54 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.put<{
     Body: UpdatePreferencesRequest;
   }>('/preferences', {
+    schema: {
+      description: 'Update user preferences',
+      tags: ['Authentication'],
+      security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        properties: {
+          notifications: {
+            type: 'object',
+            properties: {
+              email: { type: 'boolean' },
+              push: { type: 'boolean' },
+              sms: { type: 'boolean' },
+              priceAlerts: { type: 'boolean' },
+              whaleMovements: { type: 'boolean' },
+              socialSpikes: { type: 'boolean' },
+            },
+          },
+          defaultCurrency: { type: 'string', example: 'USD' },
+          theme: { type: 'string', enum: ['light', 'dark'] },
+          riskTolerance: { type: 'string', enum: ['low', 'medium', 'high'] },
+        },
+      },
+      response: {
+        200: {
+          description: 'Preferences updated successfully',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                user: { $ref: '#/components/schemas/User' },
+              },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                requestId: { type: 'string' },
+              },
+            },
+          },
+        },
+        400: { $ref: '#/components/schemas/ValidationError' },
+        401: { $ref: '#/components/schemas/AuthenticationError' },
+      },
+    },
     preHandler: [fastify.authenticate],
   }, async (request: FastifyRequest<{ Body: UpdatePreferencesRequest }>, reply: FastifyReply) => {
     try {
@@ -257,6 +461,47 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{
     Body: LinkWalletRequest;
   }>('/link-wallet', {
+    schema: {
+      description: 'Link a wallet address to user account',
+      tags: ['Authentication'],
+      security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        required: ['walletAddress'],
+        properties: {
+          walletAddress: {
+            type: 'string',
+            pattern: '^0x[a-fA-F0-9]{40}$',
+            description: 'Ethereum wallet address to link',
+            example: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b5',
+          },
+        },
+      },
+      response: {
+        200: {
+          description: 'Wallet linked successfully',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                user: { $ref: '#/components/schemas/User' },
+              },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                requestId: { type: 'string' },
+              },
+            },
+          },
+        },
+        400: { $ref: '#/components/schemas/ValidationError' },
+        401: { $ref: '#/components/schemas/AuthenticationError' },
+      },
+    },
     preHandler: [fastify.authenticate],
   }, async (request: FastifyRequest<{ Body: LinkWalletRequest }>, reply: FastifyReply) => {
     try {
@@ -313,6 +558,55 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{
     Body: ChangePasswordRequest;
   }>('/change-password', {
+    schema: {
+      description: 'Change user password',
+      tags: ['Authentication'],
+      security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        required: ['currentPassword', 'newPassword'],
+        properties: {
+          currentPassword: {
+            type: 'string',
+            description: 'Current password',
+            example: 'OldPass123!',
+          },
+          newPassword: {
+            type: 'string',
+            minLength: 8,
+            description: 'New password (min 8 chars, must contain uppercase, lowercase, number, and special character)',
+            example: 'NewSecurePass123!',
+          },
+        },
+      },
+      response: {
+        200: {
+          description: 'Password changed successfully',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                message: {
+                  type: 'string',
+                  example: 'Password changed successfully',
+                },
+              },
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                timestamp: { type: 'string', format: 'date-time' },
+                requestId: { type: 'string' },
+              },
+            },
+          },
+        },
+        400: { $ref: '#/components/schemas/ValidationError' },
+        401: { $ref: '#/components/schemas/AuthenticationError' },
+      },
+    },
     preHandler: [fastify.authenticate],
   }, async (request: FastifyRequest<{ Body: ChangePasswordRequest }>, reply: FastifyReply) => {
     try {

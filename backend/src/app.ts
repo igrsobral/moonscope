@@ -15,6 +15,7 @@ import jobsRoutes from './routes/jobs.js';
 import { portfolioRoutes } from './routes/portfolio.js';
 import { alertRoutes } from './routes/alerts.js';
 import whaleRoutes from './routes/whale.js';
+import liquidityRoutes from './routes/liquidity-simple.js';
 import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import cachePlugin from './plugins/cache.js';
@@ -27,6 +28,7 @@ import queuePlugin from './plugins/queue.js';
 import jobsPlugin from './plugins/jobs.js';
 import notificationPlugin from './plugins/notification.js';
 import alertTriggerPlugin from './plugins/alert-trigger.js';
+import swaggerPlugin from './plugins/swagger.js';
 
 export interface AppOptions {
   logger?: boolean;
@@ -56,6 +58,9 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   const fastify = Fastify(fastifyOptions);
 
   await fastify.register(fastifyEnv, envOptions);
+
+  // Register Swagger documentation first
+  await fastify.register(swaggerPlugin);
 
   await fastify.register(databasePlugin);
   await fastify.register(redisPlugin);
@@ -190,6 +195,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(portfolioRoutes, { prefix: '/api/v1' });
   await fastify.register(alertRoutes, { prefix: '/api/v1' });
   await fastify.register(whaleRoutes, { prefix: '/api/v1/whale' });
+  await fastify.register(liquidityRoutes, { prefix: '/api/v1/liquidity' });
   await fastify.register(websocketRoutes);
 
   fastify.addHook('onClose', async (instance) => {
