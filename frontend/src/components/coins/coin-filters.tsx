@@ -29,7 +29,7 @@ export function CoinFilters({ filters, onFiltersChange }: CoinFiltersProps) {
   const clearFilters = () => {
     onFiltersChange({
       page: 1,
-      limit: filters.limit,
+      limit: filters.limit || 20,
     });
   };
 

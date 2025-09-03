@@ -118,6 +118,7 @@ describe('useWallet', () => {
 
     vi.mocked(useConnectModal).mockReturnValue({
       openConnectModal: vi.fn(),
+      connectModalOpen: false,
     });
 
     const { result } = renderHook(() => useWallet());

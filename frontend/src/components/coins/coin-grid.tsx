@@ -32,7 +32,7 @@ export function CoinGrid({ initialQuery = {} }: CoinGridProps) {
       ...prev,
       search: search || undefined,
       page: 1,
-    }));
+    } as CoinQuery));
   };
 
   const handleFiltersChange = (newFilters: CoinQuery) => {
@@ -104,7 +104,7 @@ export function CoinGrid({ initialQuery = {} }: CoinGridProps) {
               <Coins className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
                 {data.pagination.total} coins found
-                {query.search && <span> for "{query.search}"</span>}
+                {query.search && <span> for &quot;{query.search}&quot;</span>}
               </span>
             </div>
           </div>
@@ -138,7 +138,7 @@ export function CoinGrid({ initialQuery = {} }: CoinGridProps) {
                     limit: 20,
                     sortBy: 'marketCap',
                     sortOrder: 'desc',
-                  }),
+                  } as CoinQuery),
               }}
             />
           )}
