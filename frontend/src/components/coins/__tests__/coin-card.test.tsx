@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { CoinCard } from '../coin-card';
 import { Coin } from '@/types';
+import React from 'react';
+import { describe, expect, it } from 'vitest';
 
 const mockCoin: Coin = {
   id: 1,

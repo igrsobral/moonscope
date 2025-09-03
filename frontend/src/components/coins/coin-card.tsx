@@ -1,9 +1,10 @@
 'use client';
 
-import { Card, CardContent, Badge } from '@/components/ui';
-import { TrendingUp, TrendingDown, AlertTriangle, Shield } from 'lucide-react';
-import { Coin } from '@/types';
+import { Badge, Card, CardContent } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { Coin } from '@/types';
+import { AlertTriangle, Shield, TrendingDown, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface CoinCardProps {
@@ -76,7 +77,7 @@ export function CoinCard({ coin, onClick }: CoinCardProps) {
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center space-x-3">
             {coin.logoUrl ? (
-              <img
+              <Image
                 src={coin.logoUrl}
                 alt={coin.name}
                 className="h-10 w-10 rounded-full"

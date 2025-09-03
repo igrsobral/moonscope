@@ -1,14 +1,15 @@
 'use client';
 
+import { Badge, Card, CardContent, CardHeader, CardTitle, LoadingState } from '@/components/ui';
 import { useCoin } from '@/hooks/use-api';
-import { Card, CardContent, CardHeader, CardTitle, Badge, LoadingState } from '@/components/ui';
-import { ArrowLeft, ExternalLink, Shield, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { AlertTriangle, ArrowLeft, ExternalLink, Shield } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { PriceChart } from './price-chart';
+import { RealTimePriceDisplay } from './real-time-price-display';
 import { RiskAssessmentDisplay } from './risk-assessment-display';
 import { SocialMetricsDashboard } from './social-metrics-dashboard';
-import { RealTimePriceDisplay } from './real-time-price-display';
-import { cn } from '@/lib/utils';
 
 interface CoinDetailViewProps {
   coinId: string;
@@ -79,7 +80,7 @@ export function CoinDetailView({ coinId }: CoinDetailViewProps) {
 
         <div className="flex flex-1 items-center space-x-4">
           {coin.logoUrl ? (
-            <img
+            <Image
               src={coin.logoUrl}
               alt={coin.name}
               className="h-12 w-12 rounded-full"

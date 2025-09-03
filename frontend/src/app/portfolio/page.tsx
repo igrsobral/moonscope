@@ -1,12 +1,99 @@
-import { Metadata } from 'next';
-import { RealTimePortfolioValue } from '@/components/portfolio/real-time-portfolio-value';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Portfolio - MemeAnalyzer',
-  description: 'Track your meme coin portfolio performance and analytics.',
-};
+import { AddHoldingDialog } from '@/components/portfolio/add-holding-dialog';
+import { EditHoldingDialog } from '@/components/portfolio/edit-holding-dialog';
+import { PortfolioAnalyticsChart } from '@/components/portfolio/portfolio-analytics-chart';
+import { PortfolioExporter } from '@/components/portfolio/portfolio-export';
+import { PortfolioHoldingsList } from '@/components/portfolio/portfolio-holdings-list';
+import { PortfolioOverview } from '@/components/portfolio/portfolio-overview';
+import { PortfolioShareDialog } from '@/components/portfolio/portfolio-share-dialog';
+import { LoadingState } from '@/components/ui/loading';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
+import { usePortfolioManagement } from '@/hooks/use-portfolio-management';
+import { Portfolio } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+// TODO: Replace with actual user ID from authentication context
+const DEMO_USER_ID = 'demo-user';
 
 export default function PortfolioPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [editingHolding, setEditingHolding] = useState<Portfolio | null>(null);
+
+  const {
+    portfolioData,
+    availableCoins,
+    portfolioMetrics,
+    isLoading,
+    addHolding,
+    updateHolding,
+    deleteHolding,
+  } = usePortfolioManagement(DEMO_USER_ID);
+
+  const handleAddHolding = async (data: { coinId: number; amount: number; avgPrice: number }) => {
+    await addHolding(data);
+    setShowAddDialog(false);
+  };
+
+  const handleEditHolding = (holding: Portfolio) => {
+    setEditingHolding(holding);
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateHolding = async (
+    holdingId: number,
+    data: { amount: number; avgPrice: number }
+  ) => {
+    await updateHolding(holdingId, data);
+    setShowEditDialog(false);
+    setEditingHolding(null);
+  };
+
+  const handleDeleteHolding = async (holdingId: number) => {
+    if (confirm('Are you sure you want to delete this holding?')) {
+      await deleteHolding(holdingId);
+    }
+  };
+
+  const handleViewCoinDetails = (coinId: number) => {
+    router.push(`/coins/${coinId}`);
+  };
+
+  const handleExport = (format: 'csv' | 'json') => {
+    try {
+      if (format === 'csv') {
+        PortfolioExporter.exportToCSV(portfolioData);
+      } else {
+        PortfolioExporter.exportToJSON(portfolioData);
+      }
+      toast({
+        title: 'Export successful',
+        description: `Portfolio exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: error instanceof Error ? error.message : 'Failed to export portfolio',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleShare = () => {
+    setShowShareDialog(true);
+  };
+
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,24 +103,62 @@ export default function PortfolioPage() {
         </p>
       </div>
 
-      {/* Real-time Portfolio Value */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <RealTimePortfolioValue
-          userId="demo-user" // TODO: add userId from auth
-          initialValue={0}
-          initialProfitLoss={0}
-          initialProfitLossPercentage={0}
-        />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="holdings">Holdings</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-        <div className="md:col-span-2">
-          <div className="rounded-lg border bg-card p-8 text-center">
-            <h2 className="mb-2 text-xl font-semibold">Portfolio Holdings</h2>
-            <p className="text-muted-foreground">
-              Portfolio management features will be implemented in the next tasks.
-            </p>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="overview" className="space-y-6">
+          <PortfolioOverview
+            portfolioData={portfolioData}
+            totalValue={portfolioMetrics.totalValue}
+            totalProfitLoss={portfolioMetrics.totalProfitLoss}
+            totalProfitLossPercentage={portfolioMetrics.totalProfitLossPercentage}
+            onAddHolding={() => setShowAddDialog(true)}
+            onExport={handleExport}
+            onShare={handleShare}
+          />
+        </TabsContent>
+
+        <TabsContent value="holdings" className="space-y-6">
+          <PortfolioHoldingsList
+            portfolioData={portfolioData}
+            onEditHolding={handleEditHolding}
+            onDeleteHolding={handleDeleteHolding}
+            onViewCoinDetails={handleViewCoinDetails}
+          />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <PortfolioAnalyticsChart portfolioData={portfolioData} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialogs */}
+      <AddHoldingDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSubmit={handleAddHolding}
+        availableCoins={availableCoins}
+      />
+
+      <EditHoldingDialog
+        open={showEditDialog}
+        onOpenChange={open => {
+          setShowEditDialog(open);
+          if (!open) setEditingHolding(null);
+        }}
+        holding={editingHolding}
+        onSubmit={handleUpdateHolding}
+      />
+
+      <PortfolioShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        portfolioData={portfolioData}
+      />
     </div>
   );
 }
