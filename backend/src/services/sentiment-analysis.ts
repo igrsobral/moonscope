@@ -37,7 +37,7 @@ export class SentimentAnalysisService {
       score: normalizedScore,
       comparative: result.comparative,
       calculation: result.calculation.map(calc => ({
-        word: calc.word,
+        word: String(calc.word),
         score: calc.score,
       })),
       tokens: result.tokens,

@@ -3,48 +3,78 @@ import fp from 'fastify-plugin';
 import fastifyRedis from '@fastify/redis';
 
 const redisPlugin: FastifyPluginAsync = async (fastify) => {
-  await fastify.register(fastifyRedis, {
-    url: fastify.config.REDIS_URL,
-  });
-
   try {
+    await fastify.register(fastifyRedis, {
+      url: fastify.config.REDIS_URL,
+    });
+
+    // Test connection
     await fastify.redis.ping();
     fastify.log.info('Redis connected successfully');
   } catch (error) {
     fastify.log.error({ error }, 'Failed to connect to Redis');
     
-    if (fastify.config.NODE_ENV === 'test') {
-      fastify.log.warn('Redis connection failed in test environment, continuing...');
+    if (fastify.config.NODE_ENV === 'test' || fastify.config.NODE_ENV === 'development') {
+      fastify.log.warn('Redis connection failed, creating mock Redis instance...');
+      
+      // Create a mock Redis instance for development/testing
+      const mockRedis = {
+        ping: async () => 'PONG',
+        get: async () => null,
+        set: async () => 'OK',
+        del: async () => 1,
+        exists: async () => 0,
+        expire: async () => 1,
+        ttl: async () => -1,
+        keys: async () => [],
+        flushall: async () => 'OK',
+        quit: async () => 'OK',
+        on: () => {},
+        off: () => {},
+        removeAllListeners: () => {},
+      };
+      
+      fastify.decorate('redis', mockRedis as any);
+      fastify.log.info('Mock Redis instance created for development/testing');
     } else {
       throw error;
     }
   }
 
-  fastify.redis.on('connect', () => {
-    fastify.log.info('Redis connection established');
-  });
+  // Only add event listeners if we have a real Redis connection
+  if (fastify.redis && typeof fastify.redis.on === 'function') {
+    fastify.redis.on('connect', () => {
+      fastify.log.info('Redis connection established');
+    });
 
-  fastify.redis.on('ready', () => {
-    fastify.log.info('Redis ready to receive commands');
-  });
+    fastify.redis.on('ready', () => {
+      fastify.log.info('Redis ready to receive commands');
+    });
 
-  fastify.redis.on('error', (error) => {
-    fastify.log.error({ error }, 'Redis connection error');
-  });
+    fastify.redis.on('error', (error) => {
+      fastify.log.error({ error }, 'Redis connection error');
+    });
 
-  fastify.redis.on('close', () => {
-    fastify.log.info('Redis connection closed');
-  });
+    fastify.redis.on('close', () => {
+      fastify.log.info('Redis connection closed');
+    });
 
-  fastify.redis.on('reconnecting', (delay: number) => {
-    fastify.log.info({ delay }, 'Redis reconnecting...');
-  });
+    fastify.redis.on('reconnecting', (delay: number) => {
+      fastify.log.info({ delay }, 'Redis reconnecting...');
+    });
+  }
 
   // Graceful shutdown
   fastify.addHook('onClose', async (instance) => {
-    instance.log.info('Disconnecting from Redis...');
-    await instance.redis.quit();
-    instance.log.info('Redis disconnected');
+    if (instance.redis && typeof instance.redis.quit === 'function') {
+      instance.log.info('Disconnecting from Redis...');
+      try {
+        await instance.redis.quit();
+        instance.log.info('Redis disconnected');
+      } catch (error) {
+        instance.log.warn({ error }, 'Error during Redis disconnect');
+      }
+    }
   });
 
   // Health check
@@ -59,7 +89,7 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       fastify.log.error({ error }, 'Redis health check failed');
       
-      if (fastify.config.NODE_ENV !== 'test') {
+      if (fastify.config.NODE_ENV === 'production') {
         throw error;
       }
     }

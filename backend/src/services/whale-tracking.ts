@@ -133,7 +133,7 @@ export class WhaleTrackingService {
       await this.cacheService.set(
         `whale_transactions:${coinId}`,
         processedTransactions,
-        900 // 15 minutes
+        { ttl: 900 } // 15 minutes
       );
 
       this.logger?.info({
@@ -210,7 +210,7 @@ export class WhaleTrackingService {
       }
 
       // Cache updated whale wallet data
-      await this.cacheService.set(cacheKey, whaleWallet, 900); // 15 minutes
+      await this.cacheService.set(cacheKey, whaleWallet, { ttl: 900 }); // 15 minutes
     } catch (error) {
       this.logger?.error({
         address,
@@ -374,7 +374,7 @@ export class WhaleTrackingService {
       await this.cacheService.set(
         `whale_analysis:${coinId}:${timeframe}`,
         analysis,
-        900 // 15 minutes
+        { ttl: 900 } // 15 minutes
       );
 
       this.logger?.info({
@@ -490,7 +490,7 @@ export class WhaleTrackingService {
           isActive: this.isWalletActive(lastSeen),
         };
 
-        await this.cacheService.set(cacheKey, whaleWallet, 900); // 15 minutes
+        await this.cacheService.set(cacheKey, whaleWallet, { ttl: 900 }); // 15 minutes
       }
 
       return whaleWallet;

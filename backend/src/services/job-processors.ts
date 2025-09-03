@@ -208,6 +208,8 @@ export class JobProcessors {
 
       // Broadcast real-time update
       realtimeService.broadcastPriceUpdate(coinId.toString(), {
+        id: 0, // Temporary ID for real-time data
+        coinId: coinId,
         price: priceData.price,
         marketCap: priceData.marketCap,
         volume24h: priceData.volume24h,
@@ -358,7 +360,7 @@ export class JobProcessors {
       const notifications = await this.sendAlertNotifications(alert, condition);
 
       // Broadcast real-time alert
-      realtimeService.broadcastAlertTriggered(userId, alert, condition);
+      realtimeService.broadcastAlertTriggered(userId, alert as any, condition);
 
       await job.updateProgress(100);
 

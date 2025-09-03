@@ -82,9 +82,14 @@ export class UserService {
     }
 
     const hashedPassword = await this.hashPassword(password);
+    const defaultPrefs = this.getDefaultPreferences();
     const userPreferences = {
-      ...this.getDefaultPreferences(),
+      ...defaultPrefs,
       ...(preferences || {}),
+      notifications: {
+        ...defaultPrefs.notifications,
+        ...(preferences?.notifications || {}),
+      },
     };
 
     const user = await this.prisma.user.create({
@@ -92,13 +97,16 @@ export class UserService {
         email,
         password: hashedPassword,
         walletAddress,
-        preferences: userPreferences,
+        preferences: userPreferences as any,
       },
     });
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword as UserWithoutPassword;
+    return {
+      ...userWithoutPassword,
+      preferences: userWithoutPassword.preferences as UserPreferences,
+    } as UserWithoutPassword;
   }
 
   /**
@@ -122,7 +130,10 @@ export class UserService {
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword as UserWithoutPassword;
+    return {
+      ...userWithoutPassword,
+      preferences: userWithoutPassword.preferences as UserPreferences,
+    } as UserWithoutPassword;
   }
 
   /**
@@ -141,7 +152,10 @@ export class UserService {
       },
     });
 
-    return user as UserWithoutPassword | null;
+    return user ? {
+      ...user,
+      preferences: user.preferences as UserPreferences,
+    } as UserWithoutPassword : null;
   }
 
   /**
@@ -160,7 +174,10 @@ export class UserService {
       },
     });
 
-    return user as UserWithoutPassword | null;
+    return user ? {
+      ...user,
+      preferences: user.preferences as UserPreferences,
+    } as UserWithoutPassword : null;
   }
 
   /**
@@ -173,7 +190,7 @@ export class UserService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
-        preferences: preferences,
+        preferences: preferences as any,
       },
       select: {
         id: true,
@@ -185,7 +202,10 @@ export class UserService {
       },
     });
 
-    return user as UserWithoutPassword;
+    return {
+      ...user,
+      preferences: user.preferences as UserPreferences,
+    } as UserWithoutPassword;
   }
 
   /**
@@ -214,7 +234,10 @@ export class UserService {
       },
     });
 
-    return user as UserWithoutPassword;
+    return {
+      ...user,
+      preferences: user.preferences as UserPreferences,
+    } as UserWithoutPassword;
   }
 
   /**
