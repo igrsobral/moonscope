@@ -53,3 +53,14 @@ export {
 } from './breadcrumb';
 export { Progress } from './progress';
 export { Popover, PopoverTrigger, PopoverContent } from './popover';
+export {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './dialog';
+export { Label } from './label';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
