@@ -3,11 +3,15 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { WalletConnectButton } from '@/components/ui/wallet-connect-button';
+import { NetworkSwitcher } from '@/components/ui/network-switcher';
+import { useWallet } from '@/hooks/use-wallet';
 import { Coins, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isConnected } = useWallet();
 
   const navigation = [
     { name: 'Dashboard', href: '/' },
@@ -42,9 +46,10 @@ export function Header() {
         {/* Right side actions */}
         <div className="flex items-center space-x-4">
           <ThemeToggle />
-          <Button variant="outline" size="sm" className="hidden sm:flex">
-            Connect Wallet
-          </Button>
+          <div className="hidden items-center space-x-2 sm:flex">
+            <WalletConnectButton size="sm" />
+            {isConnected && <NetworkSwitcher />}
+          </div>
 
           {/* Mobile menu button */}
           <Button
@@ -72,10 +77,9 @@ export function Header() {
                 {item.name}
               </Link>
             ))}
-            <div className="border-t pt-2">
-              <Button variant="outline" size="sm" className="w-full">
-                Connect Wallet
-              </Button>
+            <div className="space-y-2 border-t pt-2">
+              <WalletConnectButton size="sm" className="w-full" />
+              {isConnected && <NetworkSwitcher className="w-full" />}
             </div>
           </nav>
         </div>
