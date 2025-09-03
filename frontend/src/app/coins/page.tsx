@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { CoinGrid } from '@/components/coins';
 
 export const metadata: Metadata = {
   title: 'Coins - MemeAnalyzer',
@@ -15,12 +16,7 @@ export default function CoinsPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-8 text-center">
-        <h2 className="mb-2 text-xl font-semibold">Coming Soon</h2>
-        <p className="text-muted-foreground">
-          Coin discovery and analysis features will be implemented in the next tasks.
-        </p>
-      </div>
+      <CoinGrid />
     </div>
   );
 }

@@ -29,6 +29,19 @@ export {
 export { Toaster } from './toaster';
 export { useToast, toast } from './use-toast';
 export { Separator } from './separator';
+export { Input } from './input';
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from './select';
 export {
   Breadcrumb,
   BreadcrumbItem,
