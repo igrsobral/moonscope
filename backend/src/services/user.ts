@@ -105,7 +105,7 @@ export class UserService {
     const { password: _, ...userWithoutPassword } = user;
     return {
       ...userWithoutPassword,
-      preferences: userWithoutPassword.preferences as UserPreferences,
+      preferences: userWithoutPassword.preferences as unknown as UserPreferences,
     } as UserWithoutPassword;
   }
 
@@ -132,7 +132,7 @@ export class UserService {
     const { password: _, ...userWithoutPassword } = user;
     return {
       ...userWithoutPassword,
-      preferences: userWithoutPassword.preferences as UserPreferences,
+      preferences: userWithoutPassword.preferences as unknown as UserPreferences,
     } as UserWithoutPassword;
   }
 
@@ -154,7 +154,7 @@ export class UserService {
 
     return user ? {
       ...user,
-      preferences: user.preferences as UserPreferences,
+      preferences: user.preferences as unknown as UserPreferences,
     } as UserWithoutPassword : null;
   }
 
@@ -176,7 +176,7 @@ export class UserService {
 
     return user ? {
       ...user,
-      preferences: user.preferences as UserPreferences,
+      preferences: user.preferences as unknown as UserPreferences,
     } as UserWithoutPassword : null;
   }
 
@@ -204,7 +204,7 @@ export class UserService {
 
     return {
       ...user,
-      preferences: user.preferences as UserPreferences,
+      preferences: user.preferences as unknown as UserPreferences,
     } as UserWithoutPassword;
   }
 
@@ -236,7 +236,7 @@ export class UserService {
 
     return {
       ...user,
-      preferences: user.preferences as UserPreferences,
+      preferences: user.preferences as unknown as UserPreferences,
     } as UserWithoutPassword;
   }
 

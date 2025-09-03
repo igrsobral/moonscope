@@ -3,6 +3,12 @@ import fp from 'fastify-plugin';
 import fastifyRedis from '@fastify/redis';
 
 const redisPlugin: FastifyPluginAsync = async (fastify) => {
+  // Check if redis decorator already exists (hot reload protection)
+  if (fastify.hasDecorator('redis')) {
+    fastify.log.info('Redis decorator already exists, skipping registration');
+    return;
+  }
+
   try {
     await fastify.register(fastifyRedis, {
       url: fastify.config.REDIS_URL,
