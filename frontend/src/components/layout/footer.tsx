@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { Coins } from 'lucide-react';
+import { Coins, Github, Twitter } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -25,19 +27,40 @@ export function Footer() {
     ],
   };
 
+  const socialLinks = [
+    { name: 'Twitter', href: 'https://twitter.com', icon: Twitter },
+    { name: 'GitHub', href: 'https://github.com', icon: Github },
+  ];
+
   return (
     <footer className="border-t bg-background">
       <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-5">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:col-span-2">
             <Link href="/" className="flex items-center space-x-2">
               <Coins className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">MemeAnalyzer</span>
             </Link>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Comprehensive Web3 application for meme coin analysis and trading insights.
+              Comprehensive Web3 application for meme coin analysis and trading insights. Make
+              informed decisions with real-time data and advanced analytics.
             </p>
+
+            {/* Social Links */}
+            <div className="flex space-x-2">
+              {socialLinks.map(social => {
+                const Icon = social.icon;
+                return (
+                  <Button key={social.name} variant="ghost" size="icon" asChild className="h-8 w-8">
+                    <Link href={social.href} target="_blank" rel="noopener noreferrer">
+                      <Icon className="h-4 w-4" />
+                      <span className="sr-only">{social.name}</span>
+                    </Link>
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Links */}
@@ -90,13 +113,26 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between border-t pt-8 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            © {currentYear} MemeAnalyzer. All rights reserved.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground sm:mt-0">
-            Built with Next.js and TypeScript
-          </p>
+        <Separator className="my-8" />
+
+        <div className="flex flex-col items-center justify-between space-y-4 sm:flex-row sm:space-y-0">
+          <div className="flex flex-col items-center space-y-2 sm:flex-row sm:space-x-4 sm:space-y-0">
+            <p className="text-sm text-muted-foreground">
+              © {currentYear} MemeAnalyzer. All rights reserved.
+            </p>
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+              <span>Built with</span>
+              <span className="text-red-500">♥</span>
+              <span>using Next.js and TypeScript</span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+            <span className="flex items-center space-x-1">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500"></span>
+              <span>All systems operational</span>
+            </span>
+          </div>
         </div>
       </div>
     </footer>
