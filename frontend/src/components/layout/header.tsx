@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { WalletConnectButton } from '@/components/ui/wallet-connect-button';
 import { NetworkSwitcher } from '@/components/ui/network-switcher';
+import { WebSocketStatus } from '@/components/ui/websocket-status';
+import { RealTimeAlertNotifications } from '@/components/alerts/real-time-alert-notifications';
 import { useWallet } from '@/hooks/use-wallet';
-import { Coins, Menu, X, Bell, Search } from 'lucide-react';
+import { Coins, Menu, X, Search } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -63,13 +65,11 @@ export function Header() {
             <span className="sr-only">Search</span>
           </Button>
 
-          {/* Notifications button */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Notifications</span>
-            {/* Notification badge */}
-            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500"></span>
-          </Button>
+          {/* Real-time alert notifications */}
+          <RealTimeAlertNotifications />
+
+          {/* WebSocket connection status */}
+          <WebSocketStatus showLabel={false} className="hidden sm:flex" />
 
           <ThemeToggle />
 

@@ -2,18 +2,12 @@
 
 import { useCoin } from '@/hooks/use-api';
 import { Card, CardContent, CardHeader, CardTitle, Badge, LoadingState } from '@/components/ui';
-import {
-  ArrowLeft,
-  ExternalLink,
-  Shield,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-} from 'lucide-react';
+import { ArrowLeft, ExternalLink, Shield, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PriceChart } from './price-chart';
 import { RiskAssessmentDisplay } from './risk-assessment-display';
 import { SocialMetricsDashboard } from './social-metrics-dashboard';
+import { RealTimePriceDisplay } from './real-time-price-display';
 import { cn } from '@/lib/utils';
 
 interface CoinDetailViewProps {
@@ -49,37 +43,27 @@ export function CoinDetailView({ coinId }: CoinDetailViewProps) {
     );
   }
 
-  const priceChange = coin.price?.priceChange24h || 0;
-  const isPositive = priceChange >= 0;
-
-  const formatPrice = (price: number) => {
-    if (price < 0.01) {
-      return `$${price.toFixed(6)}`;
-    }
-    return `$${price.toFixed(4)}`;
-  };
-
   const formatMarketCap = (marketCap: number) => {
     if (marketCap >= 1e9) {
-      return `$${(marketCap / 1e9).toFixed(2)}B`;
+      return `${(marketCap / 1e9).toFixed(2)}B`;
     }
     if (marketCap >= 1e6) {
-      return `$${(marketCap / 1e6).toFixed(2)}M`;
+      return `${(marketCap / 1e6).toFixed(2)}M`;
     }
     if (marketCap >= 1e3) {
-      return `$${(marketCap / 1e3).toFixed(2)}K`;
+      return `${(marketCap / 1e3).toFixed(2)}K`;
     }
-    return `$${marketCap.toFixed(2)}`;
+    return `${marketCap.toFixed(2)}`;
   };
 
   const formatVolume = (volume: number) => {
     if (volume >= 1e6) {
-      return `$${(volume / 1e6).toFixed(2)}M`;
+      return `${(volume / 1e6).toFixed(2)}M`;
     }
     if (volume >= 1e3) {
-      return `$${(volume / 1e3).toFixed(2)}K`;
+      return `${(volume / 1e3).toFixed(2)}K`;
     }
-    return `$${volume.toFixed(2)}`;
+    return `${volume.toFixed(2)}`;
   };
 
   return (
@@ -128,27 +112,12 @@ export function CoinDetailView({ coinId }: CoinDetailViewProps) {
             </div>
 
             <div className="mt-2 flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-3xl font-bold">
-                  {coin.price ? formatPrice(coin.price.price) : 'N/A'}
-                </span>
-                <div
-                  className={cn(
-                    'flex items-center space-x-1 text-lg font-medium',
-                    isPositive ? 'text-green-600' : 'text-red-600'
-                  )}
-                >
-                  {isPositive ? (
-                    <TrendingUp className="h-5 w-5" />
-                  ) : (
-                    <TrendingDown className="h-5 w-5" />
-                  )}
-                  <span>
-                    {isPositive ? '+' : ''}
-                    {priceChange.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
+              <RealTimePriceDisplay
+                coinId={coinId}
+                initialPrice={coin.price?.price || 0}
+                initialChange={coin.price?.priceChange24h || 0}
+                size="lg"
+              />
 
               {coin.website && (
                 <a

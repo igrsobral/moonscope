@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCoins } from '@/hooks/use-api';
 import { CoinQuery } from '@/types';
-import { CoinCard } from './coin-card';
+import { RealTimeCoinCard } from './real-time-coin-card';
 import { CoinSearch } from './coin-search';
 import { CoinFilters } from './coin-filters';
 import { CoinPagination } from './coin-pagination';
@@ -114,7 +114,7 @@ export function CoinGrid({ initialQuery = {} }: CoinGridProps) {
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {data.coins.map(coin => (
-                  <CoinCard key={coin.id} coin={coin} onClick={handleCoinClick} />
+                  <RealTimeCoinCard key={coin.id} coin={coin} onClick={handleCoinClick} />
                 ))}
               </div>
 

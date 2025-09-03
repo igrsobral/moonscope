@@ -1,4 +1,6 @@
 export { CoinCard } from './coin-card';
+export { RealTimeCoinCard } from './real-time-coin-card';
+export { RealTimePriceDisplay } from './real-time-price-display';
 export { CoinSearch } from './coin-search';
 export { CoinFilters } from './coin-filters';
 export { CoinPagination } from './coin-pagination';

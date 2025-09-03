@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { RealTimePortfolioValue } from '@/components/portfolio/real-time-portfolio-value';
 
 export const metadata: Metadata = {
   title: 'Portfolio - MemeAnalyzer',
@@ -15,11 +16,23 @@ export default function PortfolioPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-8 text-center">
-        <h2 className="mb-2 text-xl font-semibold">Coming Soon</h2>
-        <p className="text-muted-foreground">
-          Portfolio management features will be implemented in the next tasks.
-        </p>
+      {/* Real-time Portfolio Value */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <RealTimePortfolioValue
+          userId="demo-user" // TODO: add userId from auth
+          initialValue={0}
+          initialProfitLoss={0}
+          initialProfitLossPercentage={0}
+        />
+
+        <div className="md:col-span-2">
+          <div className="rounded-lg border bg-card p-8 text-center">
+            <h2 className="mb-2 text-xl font-semibold">Portfolio Holdings</h2>
+            <p className="text-muted-foreground">
+              Portfolio management features will be implemented in the next tasks.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

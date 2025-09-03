@@ -6,6 +6,7 @@ import { QueryProvider } from '@/components/providers/query-provider';
 import { Web3Provider } from '@/components/providers/web3-provider';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { ConnectionStatusBar } from '@/components/layout/connection-status-bar';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Web3Provider>
                 <div className="relative flex min-h-screen flex-col">
                   <Header />
+                  <ConnectionStatusBar />
                   <main className="flex-1">
                     <div className="container py-6">{children}</div>
                   </main>

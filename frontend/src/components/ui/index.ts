@@ -52,3 +52,4 @@ export {
   BreadcrumbEllipsis,
 } from './breadcrumb';
 export { Progress } from './progress';
+export { Popover, PopoverTrigger, PopoverContent } from './popover';
