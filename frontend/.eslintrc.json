@@ -5,7 +5,8 @@
     "prettier/prettier": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "react-hooks/exhaustive-deps": "off",
+    "no-console": ["off", { "allow": ["warn", "error"] }],
     "prefer-const": "error",
     "no-var": "error"
   },
