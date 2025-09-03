@@ -1,69 +1,118 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, BarChart3, Bell, Shield, TrendingUp } from 'lucide-react';
+
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-center text-4xl font-bold lg:text-left">Meme Coin Analyzer</h1>
-      </div>
-
-      <div className="before:bg-gradient-radial after:bg-gradient-conic relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:translate-y-1/4 before:rounded-full before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <div className="text-center">
-          <h2 className="mb-4 text-2xl font-semibold">Comprehensive Web3 Meme Coin Analysis</h2>
-          <p className="max-w-2xl text-lg text-muted-foreground">
+    <div className="space-y-16">
+      {/* Hero Section */}
+      <section className="space-y-6 text-center">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+            Meme Coin Analysis
+            <span className="text-primary"> Made Simple</span>
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Real-time price tracking, risk assessment, social sentiment analysis, and portfolio
             management for meme coins across multiple blockchain networks.
           </p>
         </div>
-      </div>
 
-      <div className="mb-32 mt-16 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h3 className="mb-3 text-2xl font-semibold">
-            Real-time Data{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              →
-            </span>
-          </h3>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+        <div className="flex flex-col justify-center gap-4 sm:flex-row">
+          <Button asChild size="lg">
+            <Link href="/coins">
+              Explore Coins <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button variant="outline" size="lg" asChild>
+            <Link href="/portfolio">View Portfolio</Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="group relative overflow-hidden rounded-lg border bg-card p-6 transition-shadow hover:shadow-md">
+          <div className="mb-4 flex items-center space-x-2">
+            <TrendingUp className="h-6 w-6 text-primary" />
+            <h3 className="text-xl font-semibold">Real-time Data</h3>
+          </div>
+          <p className="text-muted-foreground">
             Live price updates, market metrics, and trading volume across multiple DEXs.
           </p>
         </div>
 
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h3 className="mb-3 text-2xl font-semibold">
-            Risk Analysis{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              →
-            </span>
-          </h3>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+        <div className="group relative overflow-hidden rounded-lg border bg-card p-6 transition-shadow hover:shadow-md">
+          <div className="mb-4 flex items-center space-x-2">
+            <Shield className="h-6 w-6 text-primary" />
+            <h3 className="text-xl font-semibold">Risk Analysis</h3>
+          </div>
+          <p className="text-muted-foreground">
             Advanced risk scoring based on liquidity, holder distribution, and contract security.
           </p>
         </div>
 
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h3 className="mb-3 text-2xl font-semibold">
-            Social Sentiment{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              →
-            </span>
-          </h3>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+        <div className="group relative overflow-hidden rounded-lg border bg-card p-6 transition-shadow hover:shadow-md">
+          <div className="mb-4 flex items-center space-x-2">
+            <BarChart3 className="h-6 w-6 text-primary" />
+            <h3 className="text-xl font-semibold">Social Sentiment</h3>
+          </div>
+          <p className="text-muted-foreground">
             Track community sentiment across Twitter, Reddit, and Telegram.
           </p>
         </div>
 
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h3 className="mb-3 text-2xl font-semibold">
-            Portfolio Tracking{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              →
-            </span>
-          </h3>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
+        <div className="group relative overflow-hidden rounded-lg border bg-card p-6 transition-shadow hover:shadow-md">
+          <div className="mb-4 flex items-center space-x-2">
+            <Bell className="h-6 w-6 text-primary" />
+            <h3 className="text-xl font-semibold">Smart Alerts</h3>
+          </div>
+          <p className="text-muted-foreground">
             Automated portfolio detection and performance analytics with Web3 integration.
           </p>
         </div>
-      </div>
-    </main>
+      </section>
+
+      {/* Stats Section */}
+      <section className="rounded-lg border bg-card p-8">
+        <div className="mb-8 space-y-4 text-center">
+          <h2 className="text-3xl font-bold">Platform Statistics</h2>
+          <p className="text-muted-foreground">
+            Real-time metrics from our meme coin analysis platform
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3">
+          <div className="space-y-2 text-center">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <div className="text-sm text-muted-foreground">Coins Tracked</div>
+          </div>
+          <div className="space-y-2 text-center">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <div className="text-sm text-muted-foreground">Active Users</div>
+          </div>
+          <div className="space-y-2 text-center">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <div className="text-sm text-muted-foreground">Alerts Sent</div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="space-y-6 py-12 text-center">
+        <div className="space-y-4">
+          <h2 className="text-3xl font-bold">Ready to Start Analyzing?</h2>
+          <p className="mx-auto max-w-2xl text-muted-foreground">
+            Join thousands of traders who trust MemeAnalyzer for their meme coin investments.
+          </p>
+        </div>
+
+        <Button asChild size="lg">
+          <Link href="/coins">
+            Get Started Now <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </section>
+    </div>
   );
 }

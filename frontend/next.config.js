@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    typedRoutes: true,
-  },
   images: {
     domains: ['assets.coingecko.com', 'coin-images.coingecko.com'],
     formats: ['image/webp', 'image/avif'],
