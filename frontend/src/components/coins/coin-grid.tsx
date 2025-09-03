@@ -28,11 +28,14 @@ export function CoinGrid({ initialQuery = {} }: CoinGridProps) {
   const { data, isLoading, error, isError } = useCoins(query);
 
   const handleSearchChange = (search: string) => {
-    setQuery(prev => ({
-      ...prev,
-      search: search || undefined,
-      page: 1,
-    } as CoinQuery));
+    setQuery(
+      prev =>
+        ({
+          ...prev,
+          search: search || undefined,
+          page: 1,
+        }) as CoinQuery
+    );
   };
 
   const handleFiltersChange = (newFilters: CoinQuery) => {
@@ -89,10 +92,7 @@ export function CoinGrid({ initialQuery = {} }: CoinGridProps) {
 
       {/* Loading State */}
       {isLoading && (
-        <LoadingState
-          title="Loading coins..."
-          description="Fetching the latest coin data and market information."
-        />
+        <LoadingState message="Loading coins... Fetching the latest coin data and market information." />
       )}
 
       {/* Results */}
