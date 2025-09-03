@@ -13,7 +13,7 @@ interface ErrorBoundaryState {
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
-  fallback?: React.ComponentType<{ error: Error; retry: () => void }>;
+  fallback?: React.ComponentType<{ error: Error; retry: () => void }> | undefined;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
@@ -112,9 +112,5 @@ interface AsyncErrorBoundaryProps {
 }
 
 export function AsyncErrorBoundary({ children, fallback }: AsyncErrorBoundaryProps) {
-  return (
-    <ErrorBoundary fallback={fallback || undefined}>
-      {children}
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary fallback={fallback}>{children}</ErrorBoundary>;
 }

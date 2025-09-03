@@ -2,10 +2,10 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { mainnet, polygon, optimism, arbitrum, base, sepolia, polygonMumbai } from 'wagmi/chains';
 
 // Get environment variables
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id';
 
-if (!projectId) {
-  console.warn('NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set');
+if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
+  console.warn('NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set, using demo project ID');
 }
 
 export const wagmiConfig = getDefaultConfig({
@@ -24,7 +24,15 @@ export const wagmiConfig = getDefaultConfig({
 
 export const supportedChains = wagmiConfig.chains;
 
-export const chainConfig = {
+export const chainConfig: Record<
+  number,
+  {
+    name: string;
+    nativeCurrency: string;
+    blockExplorer: string;
+    rpcUrl: string;
+  }
+> = {
   [mainnet.id]: {
     name: 'Ethereum',
     nativeCurrency: 'ETH',
