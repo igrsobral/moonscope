@@ -3,3 +3,7 @@ export { CoinSearch } from './coin-search';
 export { CoinFilters } from './coin-filters';
 export { CoinPagination } from './coin-pagination';
 export { CoinGrid } from './coin-grid';
+export { CoinDetailView } from './coin-detail-view';
+export { PriceChart } from './price-chart';
+export { RiskAssessmentDisplay } from './risk-assessment-display';
+export { SocialMetricsDashboard } from './social-metrics-dashboard';

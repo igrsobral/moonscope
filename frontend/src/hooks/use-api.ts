@@ -48,6 +48,20 @@ export function useCoin(id: string) {
   });
 }
 
+export function useCoinChart(id: string, timeframe: string) {
+  return useQuery({
+    queryKey: ['coin-chart', id, timeframe],
+    queryFn: async () => {
+      const response = await apiClient.get<any[]>(
+        `/api/v1/coins/${id}/chart?timeframe=${timeframe}`
+      );
+      return response.data;
+    },
+    enabled: !!id && !!timeframe,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
 // Portfolio API hooks
 export function usePortfolio() {
   return useQuery({

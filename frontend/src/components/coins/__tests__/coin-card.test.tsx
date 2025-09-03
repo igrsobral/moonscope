@@ -29,7 +29,12 @@ const mockCoin: Coin = {
     factors: {
       liquidity: { score: 70, value: 1000000, threshold: 500000 },
       holderDistribution: { score: 60, topHoldersPercentage: 15, holderCount: 5000 },
-      contractSecurity: { score: 80, isVerified: true, hasProxyContract: false, hasOwnershipRenounced: true },
+      contractSecurity: {
+        score: 80,
+        isVerified: true,
+        hasProxyContract: false,
+        hasOwnershipRenounced: true,
+      },
       socialMetrics: { score: 50, sentimentScore: 0.7, communitySize: 10000 },
     },
     timestamp: '2023-01-01T00:00:00Z',
@@ -41,7 +46,7 @@ const mockCoin: Coin = {
 describe('CoinCard', () => {
   it('renders coin information correctly', () => {
     render(<CoinCard coin={mockCoin} />);
-    
+
     expect(screen.getByText('DOGE')).toBeInTheDocument();
     expect(screen.getByText('Dogecoin')).toBeInTheDocument();
     expect(screen.getByText('$0.0800')).toBeInTheDocument();
@@ -53,16 +58,17 @@ describe('CoinCard', () => {
 
   it('shows verified contract indicator', () => {
     render(<CoinCard coin={mockCoin} />);
-    
+
     // Should show shield icon for verified contract
-    const shieldIcon = screen.getByTestId('shield-icon') || document.querySelector('[data-testid="shield-icon"]');
+    const shieldIcon =
+      screen.getByTestId('shield-icon') || document.querySelector('[data-testid="shield-icon"]');
     expect(shieldIcon || screen.getByText('ETHEREUM')).toBeInTheDocument();
   });
 
   it('handles missing price data gracefully', () => {
     const coinWithoutPrice = { ...mockCoin, price: undefined };
     render(<CoinCard coin={coinWithoutPrice} />);
-    
+
     expect(screen.getByText('N/A')).toBeInTheDocument();
   });
 });

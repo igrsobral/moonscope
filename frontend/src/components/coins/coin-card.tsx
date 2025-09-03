@@ -4,6 +4,7 @@ import { Card, CardContent, Badge } from '@/components/ui';
 import { TrendingUp, TrendingDown, AlertTriangle, Shield } from 'lucide-react';
 import { Coin } from '@/types';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface CoinCardProps {
   coin: Coin;
@@ -11,9 +12,18 @@ interface CoinCardProps {
 }
 
 export function CoinCard({ coin, onClick }: CoinCardProps) {
+  const router = useRouter();
   const priceChange = coin.price?.priceChange24h || 0;
   const isPositive = priceChange >= 0;
   const riskScore = coin.risk?.overallScore || 0;
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick(coin);
+    } else {
+      router.push(`/coins/${coin.id}`);
+    }
+  };
 
   const getRiskLevel = (score: number) => {
     if (score >= 80) return { level: 'Low', color: 'bg-green-500', textColor: 'text-green-700' };
@@ -60,7 +70,7 @@ export function CoinCard({ coin, onClick }: CoinCardProps) {
         'cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg',
         onClick && 'hover:bg-accent/50'
       )}
-      onClick={() => onClick?.(coin)}
+      onClick={handleClick}
     >
       <CardContent className="p-4">
         <div className="mb-3 flex items-start justify-between">
