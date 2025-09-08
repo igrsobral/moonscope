@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -108,11 +107,11 @@ export function PortfolioComparison({ portfolioData }: PortfolioComparisonProps)
   const portfolioVolatility = Math.sqrt(
     returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length
   );
-  const portfolioMaxDrawdown = Math.min(...returns) * -1;
+
   const portfolioSharpe = portfolioVolatility > 0 ? (avgReturn - 2) / portfolioVolatility : 0;
 
   const selectedBenchmarkData =
-    BENCHMARKS.find(b => b.symbol === selectedBenchmark) ?? BENCHMARKS[0];
+    BENCHMARKS.find(b => b.symbol === selectedBenchmark) || BENCHMARKS[0]!;
 
   // Generate comparison chart data
   const generateComparisonData = (): ComparisonData[] => {
@@ -134,7 +133,7 @@ export function PortfolioComparison({ portfolioData }: PortfolioComparisonProps)
         (Math.random() - 0.5) * 8;
 
       data.push({
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split('T')[0] || date.toLocaleDateString(),
         portfolio: portfolioValue,
         benchmark: benchmarkValue,
         outperformance: portfolioValue - benchmarkValue,

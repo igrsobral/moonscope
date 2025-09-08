@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Portfolio } from '@/types';
-import { CheckboxItem } from '@radix-ui/react-dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Database, Download, FileText, Share, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -214,7 +214,7 @@ export function PortfolioExportDialog({ portfolioData, trigger }: PortfolioExpor
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <CheckboxItem
+                <Checkbox
                   id="includeMetrics"
                   checked={exportOptions.includeMetrics}
                   onCheckedChange={checked =>
@@ -228,7 +228,7 @@ export function PortfolioExportDialog({ portfolioData, trigger }: PortfolioExpor
               </div>
 
               <div className="flex items-center space-x-2">
-                <CheckboxItem
+                <Checkbox
                   id="includeProfitLoss"
                   checked={exportOptions.includeProfitLoss}
                   onCheckedChange={checked =>
@@ -239,7 +239,7 @@ export function PortfolioExportDialog({ portfolioData, trigger }: PortfolioExpor
               </div>
 
               <div className="flex items-center space-x-2">
-                <CheckboxItem
+                <Checkbox
                   id="includeHistorical"
                   checked={exportOptions.includeHistorical}
                   onCheckedChange={checked =>

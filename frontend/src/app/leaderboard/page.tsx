@@ -3,15 +3,28 @@
 import { PortfolioLeaderboard } from '@/components/portfolio';
 import { usePortfolioManagement } from '@/hooks/use-portfolio-management';
 
+interface LeaderboardEntry {
+  id: string;
+  username: string;
+  avatar?: string;
+  portfolioValue: number;
+  profitLoss: number;
+  profitLossPercentage: number;
+  holdingsCount: number;
+  topCoin: string;
+  joinedDate: string;
+  rank: number;
+  isVerified?: boolean;
+}
+
 export default function LeaderboardPage() {
   const { portfolioData } = usePortfolioManagement();
 
-  const currentUserStats =
+  const currentUserStats: Omit<LeaderboardEntry, 'rank'> | undefined =
     portfolioData.length > 0
       ? {
           id: 'current-user',
           username: 'You',
-          avatar: undefined,
           portfolioValue: portfolioData.reduce((sum, holding) => sum + holding.currentValue, 0),
           profitLoss: portfolioData.reduce((sum, holding) => sum + holding.profitLoss, 0),
           profitLossPercentage:
@@ -21,8 +34,7 @@ export default function LeaderboardPage() {
               : 0,
           holdingsCount: portfolioData.length,
           topCoin: portfolioData.length > 0 ? (portfolioData?.[0]?.coin?.symbol ?? 'N/A') : 'N/A',
-          joinedDate: new Date().toISOString().split('T')[0],
-          isVerified: undefined,
+          joinedDate: new Date().toISOString().split('T')[0] || new Date().toLocaleDateString(),
         }
       : undefined;
 
@@ -30,7 +42,10 @@ export default function LeaderboardPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <PortfolioLeaderboard currentUserRank={currentUserRank} currentUserStats={currentUserStats} />
+      <PortfolioLeaderboard
+        {...(currentUserRank !== undefined && { currentUserRank })}
+        {...(currentUserStats !== undefined && { currentUserStats })}
+      />
     </div>
   );
 }

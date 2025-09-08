@@ -160,8 +160,8 @@ export default function PortfolioPage() {
                     portfolioData.length
                   : 0,
               holdingsCount: portfolioData.length,
-              topCoin: portfolioData.length > 0 ? (portfolioData[0].coin?.symbol ?? 'N/A') : 'N/A',
-              joinedDate: new Date().toISOString().split('T')[0],
+              topCoin: portfolioData.length > 0 ? (portfolioData[0]?.coin?.symbol ?? 'N/A') : 'N/A',
+              joinedDate: new Date().toISOString().split('T')[0] || new Date().toLocaleDateString(),
             }}
           />
         </TabsContent>

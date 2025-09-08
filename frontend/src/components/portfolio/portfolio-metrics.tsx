@@ -68,7 +68,7 @@ export function PortfolioMetrics({ portfolioData }: PortfolioMetricsProps) {
   };
 
   const volatilityRisk = getRiskLevel(metrics.volatility, [10, 20]);
-  const varRisk = getRiskLevel(metrics.valueAtRisk, [5, 15]);
+
   const performanceRating = getPerformanceRating(metrics.sharpeRatio);
 
   return (

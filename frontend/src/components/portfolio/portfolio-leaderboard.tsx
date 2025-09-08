@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -349,7 +349,7 @@ export function PortfolioLeaderboard({
           <div className="space-y-2">
             {filteredData
               .filter(entry => entry.isVerified)
-              .map((entry, index) => (
+              .map(entry => (
                 <Card
                   key={entry.id}
                   className="border-primary/20 transition-colors hover:bg-muted/50"

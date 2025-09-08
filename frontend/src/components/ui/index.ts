@@ -64,3 +64,4 @@ export {
 } from './dialog';
 export { Label } from './label';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+export { Checkbox } from './checkbox';
