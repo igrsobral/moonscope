@@ -179,7 +179,18 @@ export interface WhaleTransaction {
 }
 
 export interface WebSocketEvent {
-  type: 'price_update' | 'alert_triggered' | 'whale_movement' | 'social_spike' | 'portfolio_update' | 'portfolio_value_update' | 'wallet_integration_complete' | 'alert_created' | 'alert_updated' | 'alert_deleted' | 'alert_action_performed';
+  type:
+    | 'price_update'
+    | 'alert_triggered'
+    | 'whale_movement'
+    | 'social_spike'
+    | 'portfolio_update'
+    | 'portfolio_value_update'
+    | 'wallet_integration_complete'
+    | 'alert_created'
+    | 'alert_updated'
+    | 'alert_deleted'
+    | 'alert_action_performed';
   data: unknown;
   timestamp: string;
   coinId?: string;

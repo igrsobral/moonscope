@@ -21,7 +21,7 @@ describe('Social Routes', () => {
   beforeAll(async () => {
     app = await buildApp({ logger: false });
     await app.ready();
-    
+
     // Get the mocked service instance
     const { SocialService } = await import('../services/social.js');
     mockSocialService = new (SocialService as any)();
@@ -228,9 +228,7 @@ describe('Social Routes', () => {
     });
 
     it('should handle service errors', async () => {
-      mockSocialService.getAggregatedSocialMetrics.mockRejectedValue(
-        new Error('No metrics found')
-      );
+      mockSocialService.getAggregatedSocialMetrics.mockRejectedValue(new Error('No metrics found'));
 
       const response = await app.inject({
         method: 'GET',
@@ -285,10 +283,7 @@ describe('Social Routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(mockSocialService.detectTrending).toHaveBeenCalledWith(
-        ['twitter', 'reddit'],
-        '1h'
-      );
+      expect(mockSocialService.detectTrending).toHaveBeenCalledWith(['twitter', 'reddit'], '1h');
     });
 
     it('should filter invalid platforms', async () => {
@@ -300,10 +295,7 @@ describe('Social Routes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(mockSocialService.detectTrending).toHaveBeenCalledWith(
-        ['twitter', 'reddit'],
-        '24h'
-      );
+      expect(mockSocialService.detectTrending).toHaveBeenCalledWith(['twitter', 'reddit'], '24h');
     });
   });
 
@@ -334,10 +326,7 @@ describe('Social Routes', () => {
       const data = JSON.parse(response.payload);
       expect(data.success).toBe(true);
       expect(data.data).toEqual(mockResult);
-      expect(mockSocialService.analyzeSentiment).toHaveBeenCalledWith(
-        'This is great!',
-        'twitter'
-      );
+      expect(mockSocialService.analyzeSentiment).toHaveBeenCalledWith('This is great!', 'twitter');
     });
 
     it('should validate request body', async () => {

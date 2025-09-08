@@ -53,8 +53,8 @@ export class TwitterClient {
         query,
         'tweet.fields': 'created_at,author_id,public_metrics,context_annotations',
         'user.fields': 'public_metrics,verified',
-        'expansions': 'author_id',
-        'max_results': (options.maxResults || 100).toString(),
+        expansions: 'author_id',
+        max_results: (options.maxResults || 100).toString(),
       });
 
       if (options.startTime) {
@@ -66,7 +66,7 @@ export class TwitterClient {
 
       const response = await fetch(`${this.baseUrl}/tweets/search/recent?${params}`, {
         headers: {
-          'Authorization': `Bearer ${this.bearerToken}`,
+          Authorization: `Bearer ${this.bearerToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -75,8 +75,8 @@ export class TwitterClient {
         throw new Error(`Twitter API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       return this.transformTwitterData(data);
     } catch (error) {
       console.error('Error fetching Twitter data:', error);
@@ -94,19 +94,22 @@ export class TwitterClient {
     verified: boolean;
   } | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/users/by/username/${username}?user.fields=public_metrics,verified`, {
-        headers: {
-          'Authorization': `Bearer ${this.bearerToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${this.baseUrl}/users/by/username/${username}?user.fields=public_metrics,verified`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.bearerToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Twitter API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       if (!data.data) return null;
 
       return {
@@ -129,7 +132,7 @@ export class TwitterClient {
 
     return data.data.map((tweet: any) => {
       const user = userMap.get(tweet.author_id);
-      const isInfluencer = user?.verified || (user?.public_metrics?.followers_count > 10000);
+      const isInfluencer = user?.verified || user?.public_metrics?.followers_count > 10000;
 
       return {
         id: tweet.id,
@@ -174,12 +177,12 @@ export class RedditClient {
   ): Promise<SocialPost[]> {
     try {
       const query = keywords.join(' OR ');
-      const subredditQuery = options.subreddits?.length 
+      const subredditQuery = options.subreddits?.length
         ? `subreddit:${options.subreddits.join(' OR subreddit:')}`
         : '';
-      
+
       const fullQuery = [query, subredditQuery].filter(Boolean).join(' ');
-      
+
       const params = new URLSearchParams({
         q: fullQuery,
         limit: (options.limit || 100).toString(),
@@ -198,8 +201,8 @@ export class RedditClient {
         throw new Error(`Reddit API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       return this.transformRedditData(data);
     } catch (error) {
       console.error('Error fetching Reddit data:', error);
@@ -226,8 +229,8 @@ export class RedditClient {
         throw new Error(`Reddit API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       if (!data.data) return null;
 
       return {
@@ -248,9 +251,10 @@ export class RedditClient {
       .filter((child: any) => child.kind === 't3') // Only posts, not comments
       .map((child: any) => {
         const post = child.data;
-        const isInfluencer = post.author_flair_text?.includes('Moderator') || 
-                           post.distinguished === 'moderator' ||
-                           post.score > 1000;
+        const isInfluencer =
+          post.author_flair_text?.includes('Moderator') ||
+          post.distinguished === 'moderator' ||
+          post.score > 1000;
 
         return {
           id: post.id,
@@ -301,12 +305,12 @@ export class TelegramClient {
         throw new Error(`Telegram API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       if (!data.ok) return null;
 
       const chat = data.result;
-      
+
       // Get member count
       const memberResponse = await fetch(`${this.baseUrl}${this.botToken}/getChatMemberCount`, {
         method: 'POST',
@@ -320,7 +324,7 @@ export class TelegramClient {
 
       let memberCount = 0;
       if (memberResponse.ok) {
-        const memberData = await memberResponse.json() as any;
+        const memberData = (await memberResponse.json()) as any;
         memberCount = memberData.ok ? memberData.result : 0;
       }
 
@@ -349,7 +353,7 @@ export class TelegramClient {
     // Note: Telegram Bot API doesn't provide full search functionality
     // This is a placeholder implementation that would need to be enhanced
     // with proper message history access or third-party services
-    
+
     console.warn('Telegram message search has limited functionality via Bot API');
     return [];
   }
@@ -463,7 +467,7 @@ export class SocialMediaClientManager {
 
   private extractHashtags(posts: SocialPost[]): string[] {
     const hashtags = new Set<string>();
-    
+
     posts.forEach(post => {
       const matches = post.text.match(/#\w+/g);
       if (matches) {
@@ -475,9 +479,7 @@ export class SocialMediaClientManager {
   }
 
   private getTopInfluencers(posts: SocialPost[]): string[] {
-    const influencers = posts
-      .filter(post => post.isInfluencer)
-      .map(post => post.author);
+    const influencers = posts.filter(post => post.isInfluencer).map(post => post.author);
 
     return [...new Set(influencers)].slice(0, 10);
   }

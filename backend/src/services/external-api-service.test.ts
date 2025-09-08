@@ -53,7 +53,7 @@ describe('ExternalApiService', () => {
     // Get the mocked client instances
     mockCoinGeckoClient = (CoinGeckoClient as any).mock.results[0].value;
     mockMoralisClient = (MoralisClient as any).mock.results[0].value;
-    
+
     vi.clearAllMocks();
   });
 

@@ -3,13 +3,13 @@ import { FastifyBaseLogger } from 'fastify';
 // import { CoinGeckoClient } from './coingecko-client.js';
 import { ExternalApiService } from './external-api-service.js';
 import { CacheService } from './cache.js';
-import { 
-  CoinQuery, 
-  CreateCoin, 
-  UpdateCoin, 
-  CreatePriceData, 
+import {
+  CoinQuery,
+  CreateCoin,
+  UpdateCoin,
+  CreatePriceData,
   NetworkType,
-  PriceHistoryQuery 
+  PriceHistoryQuery,
 } from '../schemas/coins.js';
 import { ApiResponse, PaginationMeta } from '../types/index.js';
 
@@ -42,7 +42,7 @@ export class CoinService {
 
       // Build where clause
       const where: any = {};
-      
+
       if (network) {
         where.network = network;
       }
@@ -68,10 +68,10 @@ export class CoinService {
         case 'marketCap':
         case 'volume':
           // For price-related sorting, we'll need to join with price data
-          orderBy = { 
+          orderBy = {
             priceData: {
-              _count: sortOrder === 'desc' ? 'desc' : 'asc'
-            }
+              _count: sortOrder === 'desc' ? 'desc' : 'asc',
+            },
           };
           break;
         default:
@@ -111,15 +111,18 @@ export class CoinService {
         })
         .filter(coin => {
           // Apply market cap filter
-          if (minMarketCap && (!coin.latestPrice || Number(coin.latestPrice.marketCap) < minMarketCap)) {
+          if (
+            minMarketCap &&
+            (!coin.latestPrice || Number(coin.latestPrice.marketCap) < minMarketCap)
+          ) {
             return false;
           }
-          
+
           // Apply risk score filter
           if (maxRiskScore && (!coin.riskScore || coin.riskScore > maxRiskScore)) {
             return false;
           }
-          
+
           return true;
         });
 
@@ -158,11 +161,14 @@ export class CoinService {
         hasPrev: page > 1,
       };
 
-      this.logger.info({ 
-        query, 
-        resultCount: coinsWithPriceData.length, 
-        total 
-      }, 'Successfully retrieved coins list');
+      this.logger.info(
+        {
+          query,
+          resultCount: coinsWithPriceData.length,
+          total,
+        },
+        'Successfully retrieved coins list'
+      );
 
       return {
         success: true,
@@ -187,7 +193,7 @@ export class CoinService {
       // Try to get from cache first
       const cacheKey = `coin:${id}:detail`;
       const cached = await this.cacheService.get<CoinDetailResponse>(cacheKey);
-      
+
       if (cached) {
         this.logger.info({ coinId: id }, 'Retrieved coin detail from cache');
         return {
@@ -354,7 +360,7 @@ export class CoinService {
   async updateCoin(id: number, data: UpdateCoin): Promise<ApiResponse<Coin>> {
     try {
       const updateData: any = { updatedAt: new Date() };
-      
+
       if (data.symbol !== undefined) updateData.symbol = data.symbol;
       if (data.name !== undefined) updateData.name = data.name;
       if (data.network !== undefined) updateData.network = data.network;
@@ -438,7 +444,10 @@ export class CoinService {
       // Invalidate coin detail cache
       await this.cacheService.delete(`coin:${data.coinId}:*`);
 
-      this.logger.info({ coinId: data.coinId, price: data.price }, 'Successfully stored price data');
+      this.logger.info(
+        { coinId: data.coinId, price: data.price },
+        'Successfully stored price data'
+      );
 
       return {
         success: true,
@@ -458,16 +467,16 @@ export class CoinService {
    * Get price history for a coin
    */
   async getPriceHistory(
-    coinId: number, 
+    coinId: number,
     query: PriceHistoryQuery
   ): Promise<ApiResponse<PriceData[]>> {
     try {
       const { timeframe } = query;
-      
+
       // Calculate date range based on timeframe
       const now = new Date();
       let fromDate: Date;
-      
+
       switch (timeframe) {
         case '1h':
           fromDate = new Date(now.getTime() - 60 * 60 * 1000);
@@ -501,11 +510,14 @@ export class CoinService {
         orderBy: { timestamp: 'asc' },
       });
 
-      this.logger.info({ 
-        coinId, 
-        timeframe, 
-        dataPoints: priceHistory.length 
-      }, 'Successfully retrieved price history');
+      this.logger.info(
+        {
+          coinId,
+          timeframe,
+          dataPoints: priceHistory.length,
+        },
+        'Successfully retrieved price history'
+      );
 
       return {
         success: true,
@@ -532,23 +544,24 @@ export class CoinService {
       const trendingCoins = await this.externalApiService.getTrendingMemeCoins();
       const importedCoins: Coin[] = [];
 
-      for (const tokenData of trendingCoins.slice(0, 10)) { // Limit to 10 coins
+      for (const tokenData of trendingCoins.slice(0, 10)) {
+        // Limit to 10 coins
         try {
           // Check if coin already exists
           const existingCoin = await this.prisma.coin.findFirst({
             where: {
-              OR: [
-                { name: tokenData.name },
-                { symbol: tokenData.symbol },
-              ],
+              OR: [{ name: tokenData.name }, { symbol: tokenData.symbol }],
             },
           });
 
           if (existingCoin) {
-            this.logger.info({ 
-              coinName: tokenData.name, 
-              symbol: tokenData.symbol 
-            }, 'Coin already exists, skipping');
+            this.logger.info(
+              {
+                coinName: tokenData.name,
+                symbol: tokenData.symbol,
+              },
+              'Coin already exists, skipping'
+            );
             continue;
           }
 
@@ -582,27 +595,36 @@ export class CoinService {
           }
 
           importedCoins.push(newCoin);
-          
-          this.logger.info({ 
-            coinId: newCoin.id, 
-            name: newCoin.name, 
-            symbol: newCoin.symbol 
-          }, 'Successfully imported coin');
+
+          this.logger.info(
+            {
+              coinId: newCoin.id,
+              name: newCoin.name,
+              symbol: newCoin.symbol,
+            },
+            'Successfully imported coin'
+          );
         } catch (error) {
-          this.logger.warn({ 
-            error, 
-            tokenName: tokenData.name 
-          }, 'Failed to import coin');
+          this.logger.warn(
+            {
+              error,
+              tokenName: tokenData.name,
+            },
+            'Failed to import coin'
+          );
         }
       }
 
       // Invalidate coins cache
       await this.cacheService.delete('coins:*');
 
-      this.logger.info({ 
-        network, 
-        importedCount: importedCoins.length 
-      }, 'Completed coin discovery');
+      this.logger.info(
+        {
+          network,
+          importedCount: importedCoins.length,
+        },
+        'Completed coin discovery'
+      );
 
       return {
         success: true,
@@ -632,9 +654,12 @@ export class CoinService {
       };
 
       const result = await this.getCoins(searchQuery);
-      
-      this.logger.info({ query, resultCount: result.data?.length || 0 }, 'Successfully searched coins');
-      
+
+      this.logger.info(
+        { query, resultCount: result.data?.length || 0 },
+        'Successfully searched coins'
+      );
+
       return result;
     } catch (error) {
       this.logger.error({ error, query }, 'Failed to search coins');

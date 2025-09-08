@@ -105,7 +105,7 @@ describe('SentimentAnalysisService', () => {
   describe('extractKeywords', () => {
     it('should extract keywords, hashtags, and mentions', async () => {
       const text = 'Great #crypto project by @developer with amazing potential!';
-      
+
       const result = service.extractKeywords(text);
 
       expect(result.hashtags).toContain('#crypto');
@@ -118,7 +118,7 @@ describe('SentimentAnalysisService', () => {
 
     it('should filter out stop words', async () => {
       const text = 'This is a great project with the best team';
-      
+
       const result = service.extractKeywords(text);
 
       expect(result.keywords).not.toContain('this');
@@ -131,7 +131,7 @@ describe('SentimentAnalysisService', () => {
 
     it('should handle duplicate keywords', async () => {
       const text = 'Great great great project!';
-      
+
       const result = service.extractKeywords(text);
 
       expect(result.keywords.filter(k => k === 'great')).toHaveLength(1);
@@ -141,10 +141,10 @@ describe('SentimentAnalysisService', () => {
   describe('calculateTrendingScore', () => {
     it('should calculate trending score correctly', () => {
       const score = service.calculateTrendingScore(
-        0.8,  // High positive sentiment
-        500,  // High mention count
-        0.7,  // Good engagement rate
-        3     // Some influencer mentions
+        0.8, // High positive sentiment
+        500, // High mention count
+        0.7, // Good engagement rate
+        3 // Some influencer mentions
       );
 
       expect(score).toBeGreaterThan(60);
@@ -154,9 +154,9 @@ describe('SentimentAnalysisService', () => {
     it('should handle negative sentiment', () => {
       const score = service.calculateTrendingScore(
         -0.5, // Negative sentiment
-        100,  // Moderate mentions
-        0.3,  // Low engagement
-        0     // No influencer mentions
+        100, // Moderate mentions
+        0.3, // Low engagement
+        0 // No influencer mentions
       );
 
       expect(score).toBeLessThan(50);
@@ -165,10 +165,10 @@ describe('SentimentAnalysisService', () => {
 
     it('should cap values appropriately', () => {
       const score = service.calculateTrendingScore(
-        1.0,   // Max sentiment
+        1.0, // Max sentiment
         10000, // Very high mentions (should be capped)
-        2.0,   // Very high engagement (should be capped)
-        100    // Very high influencer mentions (should be capped)
+        2.0, // Very high engagement (should be capped)
+        100 // Very high influencer mentions (should be capped)
       );
 
       expect(score).toBeLessThanOrEqual(100);
@@ -179,9 +179,9 @@ describe('SentimentAnalysisService', () => {
     it('should detect high viral potential', () => {
       const potential = service.detectViralPotential(
         1000, // High mention increase
-        0.8,  // High sentiment
+        0.8, // High sentiment
         true, // Influencer activity
-        90    // High trending score
+        90 // High trending score
       );
 
       expect(potential).toBe('high');
@@ -189,10 +189,10 @@ describe('SentimentAnalysisService', () => {
 
     it('should detect medium viral potential', () => {
       const potential = service.detectViralPotential(
-        100,  // Moderate mention increase
-        0.3,  // Moderate sentiment
+        100, // Moderate mention increase
+        0.3, // Moderate sentiment
         false, // No influencer activity
-        70    // Moderate trending score
+        70 // Moderate trending score
       );
 
       expect(potential).toBe('medium');
@@ -200,10 +200,10 @@ describe('SentimentAnalysisService', () => {
 
     it('should detect low viral potential', () => {
       const potential = service.detectViralPotential(
-        5,    // Low mention increase
+        5, // Low mention increase
         -0.2, // Negative sentiment
         false, // No influencer activity
-        30    // Low trending score
+        30 // Low trending score
       );
 
       expect(potential).toBe('low');

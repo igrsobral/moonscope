@@ -13,7 +13,8 @@ async function swaggerPlugin(fastify: FastifyInstance) {
     swagger: {
       info: {
         title: 'Meme Coin Analyzer API',
-        description: 'A comprehensive Web3 application API for real-time meme coin analysis, sentiment tracking, and trading insights.',
+        description:
+          'A comprehensive Web3 application API for real-time meme coin analysis, sentiment tracking, and trading insights.',
         version: '1.0.0',
       },
       host: 'localhost:3001',
@@ -25,7 +26,8 @@ async function swaggerPlugin(fastify: FastifyInstance) {
           type: 'apiKey',
           name: 'Authorization',
           in: 'header',
-          description: 'JWT token obtained from /api/v1/auth/login endpoint. Format: Bearer <token>',
+          description:
+            'JWT token obtained from /api/v1/auth/login endpoint. Format: Bearer <token>',
         },
       },
     },

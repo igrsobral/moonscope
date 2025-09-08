@@ -10,36 +10,46 @@ export const RiskAssessmentInputSchema = z.object({
 
 // Risk assessment configuration schema
 export const RiskAssessmentConfigSchema = z.object({
-  weights: z.object({
-    liquidity: z.number().min(0).max(1),
-    holderDistribution: z.number().min(0).max(1),
-    contractSecurity: z.number().min(0).max(1),
-    socialMetrics: z.number().min(0).max(1),
-  }).refine(
-    (weights) => {
-      const sum = weights.liquidity + weights.holderDistribution + weights.contractSecurity + weights.socialMetrics;
-      return Math.abs(sum - 1) < 0.001; // Allow for floating point precision
-    },
-    {
-      message: 'Weights must sum to 1.0',
-    }
-  ),
-  thresholds: z.object({
-    liquidity: z.object({
-      excellent: z.number().positive(),
-      good: z.number().positive(),
-      fair: z.number().positive(),
-      poor: z.number().positive(),
-    }).refine(
-      (thresholds) => {
-        return thresholds.excellent > thresholds.good &&
-               thresholds.good > thresholds.fair &&
-               thresholds.fair > thresholds.poor;
+  weights: z
+    .object({
+      liquidity: z.number().min(0).max(1),
+      holderDistribution: z.number().min(0).max(1),
+      contractSecurity: z.number().min(0).max(1),
+      socialMetrics: z.number().min(0).max(1),
+    })
+    .refine(
+      weights => {
+        const sum =
+          weights.liquidity +
+          weights.holderDistribution +
+          weights.contractSecurity +
+          weights.socialMetrics;
+        return Math.abs(sum - 1) < 0.001; // Allow for floating point precision
       },
       {
-        message: 'Liquidity thresholds must be in descending order',
+        message: 'Weights must sum to 1.0',
       }
     ),
+  thresholds: z.object({
+    liquidity: z
+      .object({
+        excellent: z.number().positive(),
+        good: z.number().positive(),
+        fair: z.number().positive(),
+        poor: z.number().positive(),
+      })
+      .refine(
+        thresholds => {
+          return (
+            thresholds.excellent > thresholds.good &&
+            thresholds.good > thresholds.fair &&
+            thresholds.fair > thresholds.poor
+          );
+        },
+        {
+          message: 'Liquidity thresholds must be in descending order',
+        }
+      ),
     holderDistribution: z.object({
       maxTopHoldersPercentage: z.number().min(0).max(100),
       minHolderCount: z.number().positive(),
@@ -121,33 +131,47 @@ export const BulkRiskAssessmentSchema = z.object({
 // Risk comparison schema
 export const RiskComparisonSchema = z.object({
   coinIds: z.array(z.number().positive()).min(2).max(10),
-  metrics: z.array(z.enum(['overall', 'liquidity', 'holderDistribution', 'contractSecurity', 'socialMetrics'])).optional(),
+  metrics: z
+    .array(
+      z.enum(['overall', 'liquidity', 'holderDistribution', 'contractSecurity', 'socialMetrics'])
+    )
+    .optional(),
 });
 
 // Risk alert threshold schema
 export const RiskAlertThresholdSchema = z.object({
   coinId: z.number().positive(),
   thresholds: z.object({
-    overallScore: z.object({
-      min: z.number().min(1).max(100).optional(),
-      max: z.number().min(1).max(100).optional(),
-    }).optional(),
-    liquidityScore: z.object({
-      min: z.number().min(1).max(100).optional(),
-      max: z.number().min(1).max(100).optional(),
-    }).optional(),
-    holderDistributionScore: z.object({
-      min: z.number().min(1).max(100).optional(),
-      max: z.number().min(1).max(100).optional(),
-    }).optional(),
-    contractSecurityScore: z.object({
-      min: z.number().min(1).max(100).optional(),
-      max: z.number().min(1).max(100).optional(),
-    }).optional(),
-    socialScore: z.object({
-      min: z.number().min(1).max(100).optional(),
-      max: z.number().min(1).max(100).optional(),
-    }).optional(),
+    overallScore: z
+      .object({
+        min: z.number().min(1).max(100).optional(),
+        max: z.number().min(1).max(100).optional(),
+      })
+      .optional(),
+    liquidityScore: z
+      .object({
+        min: z.number().min(1).max(100).optional(),
+        max: z.number().min(1).max(100).optional(),
+      })
+      .optional(),
+    holderDistributionScore: z
+      .object({
+        min: z.number().min(1).max(100).optional(),
+        max: z.number().min(1).max(100).optional(),
+      })
+      .optional(),
+    contractSecurityScore: z
+      .object({
+        min: z.number().min(1).max(100).optional(),
+        max: z.number().min(1).max(100).optional(),
+      })
+      .optional(),
+    socialScore: z
+      .object({
+        min: z.number().min(1).max(100).optional(),
+        max: z.number().min(1).max(100).optional(),
+      })
+      .optional(),
   }),
   notificationMethods: z.array(z.enum(['email', 'push', 'sms'])).min(1),
 });

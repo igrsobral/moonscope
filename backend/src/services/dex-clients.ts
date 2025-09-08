@@ -73,15 +73,15 @@ export abstract class BaseDexClient {
     outputReserve: number
   ): number {
     if (inputReserve === 0 || outputReserve === 0) return 100;
-    
+
     const k = inputReserve * outputReserve;
     const newInputReserve = inputReserve + inputAmount;
     const newOutputReserve = k / newInputReserve;
     const outputAmount = outputReserve - newOutputReserve;
-    
+
     const expectedOutput = (inputAmount * outputReserve) / inputReserve;
     const priceImpact = ((expectedOutput - outputAmount) / expectedOutput) * 100;
-    
+
     return Math.max(0, priceImpact);
   }
 }
@@ -135,7 +135,7 @@ export class UniswapV2Client extends BaseDexClient {
       });
 
       const pools: DexPoolData[] = [];
-      
+
       for (const pair of response.data.pairs) {
         const isToken0 = pair.token0.id.toLowerCase() === tokenAddress.toLowerCase();
         const baseToken = isToken0 ? pair.token0 : pair.token1;
@@ -278,9 +278,21 @@ export class UniswapV2Client extends BaseDexClient {
         quoteReserve: parseFloat(pair.reserve1),
         volume24h: parseFloat(pair.volumeUSD),
         fees24h: parseFloat(pair.volumeUSD) * 0.003,
-        priceImpact1k: this.calculatePriceImpact(1000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact10k: this.calculatePriceImpact(10000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact100k: this.calculatePriceImpact(100000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
+        priceImpact1k: this.calculatePriceImpact(
+          1000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact10k: this.calculatePriceImpact(
+          10000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact100k: this.calculatePriceImpact(
+          100000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
       }));
 
       this.logger?.info({ poolCount: pools.length }, 'Fetched top Uniswap V2 pools');
@@ -345,9 +357,21 @@ export class UniswapV2Client extends BaseDexClient {
         quoteReserve: parseFloat(pair.reserve1),
         volume24h: parseFloat(pair.volumeUSD),
         fees24h: parseFloat(pair.volumeUSD) * 0.003,
-        priceImpact1k: this.calculatePriceImpact(1000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact10k: this.calculatePriceImpact(10000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact100k: this.calculatePriceImpact(100000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
+        priceImpact1k: this.calculatePriceImpact(
+          1000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact10k: this.calculatePriceImpact(
+          10000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact100k: this.calculatePriceImpact(
+          100000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
       }));
 
       this.logger?.info({ query, poolCount: pools.length }, 'Searched Uniswap V2 pools');
@@ -564,9 +588,21 @@ export class SushiSwapClient extends BaseDexClient {
         quoteReserve: parseFloat(pair.reserve1),
         volume24h: parseFloat(pair.volumeUSD),
         fees24h: parseFloat(pair.volumeUSD) * 0.0025,
-        priceImpact1k: this.calculatePriceImpact(1000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact10k: this.calculatePriceImpact(10000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact100k: this.calculatePriceImpact(100000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
+        priceImpact1k: this.calculatePriceImpact(
+          1000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact10k: this.calculatePriceImpact(
+          10000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact100k: this.calculatePriceImpact(
+          100000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
       }));
 
       this.logger?.info({ poolCount: pools.length }, 'Fetched top SushiSwap pools');
@@ -632,9 +668,21 @@ export class SushiSwapClient extends BaseDexClient {
         quoteReserve: parseFloat(pair.reserve1),
         volume24h: parseFloat(pair.volumeUSD),
         fees24h: parseFloat(pair.volumeUSD) * 0.0025,
-        priceImpact1k: this.calculatePriceImpact(1000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact10k: this.calculatePriceImpact(10000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact100k: this.calculatePriceImpact(100000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
+        priceImpact1k: this.calculatePriceImpact(
+          1000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact10k: this.calculatePriceImpact(
+          10000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact100k: this.calculatePriceImpact(
+          100000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
       }));
 
       this.logger?.info({ query, poolCount: pools.length }, 'Searched SushiSwap pools');
@@ -833,9 +881,21 @@ export class PancakeSwapClient extends BaseDexClient {
         quoteReserve: parseFloat(pair.reserve1),
         volume24h: parseFloat(pair.volumeUSD),
         fees24h: parseFloat(pair.volumeUSD) * 0.0025,
-        priceImpact1k: this.calculatePriceImpact(1000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact10k: this.calculatePriceImpact(10000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact100k: this.calculatePriceImpact(100000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
+        priceImpact1k: this.calculatePriceImpact(
+          1000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact10k: this.calculatePriceImpact(
+          10000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact100k: this.calculatePriceImpact(
+          100000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
       }));
 
       this.logger?.info({ poolCount: pools.length }, 'Fetched top PancakeSwap pools');
@@ -901,9 +961,21 @@ export class PancakeSwapClient extends BaseDexClient {
         quoteReserve: parseFloat(pair.reserve1),
         volume24h: parseFloat(pair.volumeUSD),
         fees24h: parseFloat(pair.volumeUSD) * 0.0025,
-        priceImpact1k: this.calculatePriceImpact(1000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact10k: this.calculatePriceImpact(10000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
-        priceImpact100k: this.calculatePriceImpact(100000, parseFloat(pair.reserve0), parseFloat(pair.reserve1)),
+        priceImpact1k: this.calculatePriceImpact(
+          1000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact10k: this.calculatePriceImpact(
+          10000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
+        priceImpact100k: this.calculatePriceImpact(
+          100000,
+          parseFloat(pair.reserve0),
+          parseFloat(pair.reserve1)
+        ),
       }));
 
       this.logger?.info({ query, poolCount: pools.length }, 'Searched PancakeSwap pools');

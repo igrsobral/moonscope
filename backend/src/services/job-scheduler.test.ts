@@ -55,7 +55,7 @@ describe('JobScheduler', () => {
       });
 
       expect(mockQueueManager.addJob).toHaveBeenCalledTimes(2);
-      
+
       expect(mockQueueManager.addJob).toHaveBeenCalledWith(
         'price-updates',
         'update-coin-price',
@@ -100,10 +100,7 @@ describe('JobScheduler', () => {
         { coinCount: 2 },
         'Scheduling price update jobs'
       );
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        { coinCount: 2 },
-        'Price update jobs scheduled'
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith({ coinCount: 2 }, 'Price update jobs scheduled');
     });
 
     it('should handle errors when scheduling price update jobs', async () => {
@@ -112,7 +109,9 @@ describe('JobScheduler', () => {
       mockPrisma.coin.findMany.mockRejectedValue(error);
 
       // Act & Assert
-      await expect((jobScheduler as any).schedulePriceUpdateJobs()).rejects.toThrow('Database error');
+      await expect((jobScheduler as any).schedulePriceUpdateJobs()).rejects.toThrow(
+        'Database error'
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         { error: 'Database error' },
         'Failed to schedule price update jobs'
@@ -140,7 +139,7 @@ describe('JobScheduler', () => {
       });
 
       expect(mockQueueManager.addJob).toHaveBeenCalledTimes(2);
-      
+
       expect(mockQueueManager.addJob).toHaveBeenCalledWith(
         'social-scraping',
         'scrape-social-data',
@@ -343,7 +342,7 @@ describe('JobScheduler', () => {
         'social-scraping': mockStats,
         'alert-processing': mockStats,
         'risk-assessment': mockStats,
-        'maintenance': mockStats,
+        maintenance: mockStats,
       });
     });
 

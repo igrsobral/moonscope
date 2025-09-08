@@ -16,13 +16,20 @@ vi.mock('./http-client.js', () => {
   return {
     HttpClient: vi.fn().mockImplementation(() => mockHttpClient),
     HttpError: class HttpError extends Error {
-      constructor(message: string, public statusCode: number, public responseBody?: string) {
+      constructor(
+        message: string,
+        public statusCode: number,
+        public responseBody?: string
+      ) {
         super(message);
         this.name = 'HttpError';
       }
     },
     RateLimitError: class RateLimitError extends Error {
-      constructor(message: string, public retryAfter?: number) {
+      constructor(
+        message: string,
+        public retryAfter?: number
+      ) {
         super(message);
         this.name = 'RateLimitError';
       }
@@ -61,7 +68,7 @@ describe('MoralisClient', () => {
         apiKey: 'test-default-key',
         logger: mockLogger,
       });
-      
+
       expect(HttpClient).toHaveBeenCalledWith(
         expect.objectContaining({
           baseUrl: 'https://deep-index.moralis.io/api/v2.2',
@@ -123,7 +130,10 @@ describe('MoralisClient', () => {
     it('should fetch token metadata with custom chain', async () => {
       mockHttpClient.get.mockResolvedValue(mockTokenMetadata);
 
-      const result = await client.getTokenMetadata('0x1234567890123456789012345678901234567890', 'bsc');
+      const result = await client.getTokenMetadata(
+        '0x1234567890123456789012345678901234567890',
+        'bsc'
+      );
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         '/erc20/metadata?chain=bsc&addresses%5B0%5D=0x1234567890123456789012345678901234567890'
@@ -144,7 +154,7 @@ describe('MoralisClient', () => {
         name: 'Ether',
         symbol: 'ETH',
       },
-      usdPrice: 100.50,
+      usdPrice: 100.5,
       usdPriceFormatted: '100.50',
     };
 
@@ -196,7 +206,9 @@ describe('MoralisClient', () => {
     it('should fetch wallet token balances with default parameters', async () => {
       mockHttpClient.get.mockResolvedValue(mockTokenBalances);
 
-      const result = await client.getWalletTokenBalances('0xabcdef1234567890123456789012345678901234');
+      const result = await client.getWalletTokenBalances(
+        '0xabcdef1234567890123456789012345678901234'
+      );
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         '/0xabcdef1234567890123456789012345678901234/erc20?chain=eth'
@@ -219,18 +231,12 @@ describe('MoralisClient', () => {
         }
       );
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('chain=bsc')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('chain=bsc'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('cursor=page-cursor')
       );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('limit=50')
-      );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('exclude_spam=true')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('limit=50'));
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('exclude_spam=true'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('exclude_unverified_contracts=true')
       );
@@ -266,7 +272,9 @@ describe('MoralisClient', () => {
     it('should fetch wallet transactions with default parameters', async () => {
       mockHttpClient.get.mockResolvedValue(mockTransactions);
 
-      const result = await client.getWalletTransactions('0xabcdef1234567890123456789012345678901234');
+      const result = await client.getWalletTransactions(
+        '0xabcdef1234567890123456789012345678901234'
+      );
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         '/0xabcdef1234567890123456789012345678901234?chain=eth'
@@ -291,15 +299,11 @@ describe('MoralisClient', () => {
         }
       );
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('chain=polygon')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('chain=polygon'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('from_block=12000000')
       );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('to_block=13000000')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('to_block=13000000'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('include_internal_transactions=true')
       );
@@ -353,12 +357,8 @@ describe('MoralisClient', () => {
         }
       );
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('chain=bsc')
-      );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('order=DESC')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('chain=bsc'));
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('order=DESC'));
     });
   });
 
@@ -399,15 +399,11 @@ describe('MoralisClient', () => {
         }
       );
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('chain=polygon')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('chain=polygon'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('cursor=page-cursor')
       );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('order=ASC')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('order=ASC'));
     });
   });
 
@@ -433,7 +429,9 @@ describe('MoralisClient', () => {
     it('should fetch transaction with default parameters', async () => {
       mockHttpClient.get.mockResolvedValue(mockTransaction);
 
-      const result = await client.getTransaction('0xabcdef1234567890123456789012345678901234567890123456789012345678');
+      const result = await client.getTransaction(
+        '0xabcdef1234567890123456789012345678901234567890123456789012345678'
+      );
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         '/transaction/0xabcdef1234567890123456789012345678901234567890123456789012345678?chain=eth'
@@ -450,9 +448,7 @@ describe('MoralisClient', () => {
         true
       );
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('chain=bsc')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('chain=bsc'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('include_internal_transactions=true')
       );
@@ -465,7 +461,9 @@ describe('MoralisClient', () => {
       (error as any).statusCode = 500;
       mockHttpClient.get.mockRejectedValue(error);
 
-      await expect(client.getTokenMetadata('0x1234567890123456789012345678901234567890')).rejects.toThrow('API Error');
+      await expect(
+        client.getTokenMetadata('0x1234567890123456789012345678901234567890')
+      ).rejects.toThrow('API Error');
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'getTokenMetadata',
@@ -481,7 +479,9 @@ describe('MoralisClient', () => {
       (error as any).statusCode = 429;
       mockHttpClient.get.mockRejectedValue(error);
 
-      await expect(client.getTokenMetadata('0x1234567890123456789012345678901234567890')).rejects.toThrow(RateLimitError);
+      await expect(
+        client.getTokenMetadata('0x1234567890123456789012345678901234567890')
+      ).rejects.toThrow(RateLimitError);
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'getTokenMetadata',

@@ -42,7 +42,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       // Create test whale transactions
@@ -56,7 +56,7 @@ describe('Whale Tracking Integration', () => {
             amount: '1000000000000000000000',
             usdValue: 15000,
             timestamp: new Date('2024-01-01T00:00:00Z'),
-          }
+          },
         }),
         app.prisma.whaleTransaction.create({
           data: {
@@ -67,8 +67,8 @@ describe('Whale Tracking Integration', () => {
             amount: '2000000000000000000000',
             usdValue: 25000,
             timestamp: new Date('2024-01-01T01:00:00Z'),
-          }
-        })
+          },
+        }),
       ]);
 
       const response = await app.inject({
@@ -95,7 +95,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       // Create transactions with different timestamps
@@ -109,7 +109,7 @@ describe('Whale Tracking Integration', () => {
             amount: '1000000000000000000000',
             usdValue: 15000,
             timestamp: new Date('2024-01-01T00:00:00Z'),
-          }
+          },
         }),
         app.prisma.whaleTransaction.create({
           data: {
@@ -120,8 +120,8 @@ describe('Whale Tracking Integration', () => {
             amount: '2000000000000000000000',
             usdValue: 25000,
             timestamp: new Date('2024-01-02T00:00:00Z'),
-          }
-        })
+          },
+        }),
       ]);
 
       const response = await app.inject({
@@ -145,7 +145,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       // Create transactions with different USD values
@@ -159,7 +159,7 @@ describe('Whale Tracking Integration', () => {
             amount: '1000000000000000000000',
             usdValue: 15000,
             timestamp: new Date('2024-01-01T00:00:00Z'),
-          }
+          },
         }),
         app.prisma.whaleTransaction.create({
           data: {
@@ -170,8 +170,8 @@ describe('Whale Tracking Integration', () => {
             amount: '2000000000000000000000',
             usdValue: 25000,
             timestamp: new Date('2024-01-01T01:00:00Z'),
-          }
-        })
+          },
+        }),
       ]);
 
       const response = await app.inject({
@@ -206,7 +206,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       // Create test whale transactions
@@ -220,7 +220,7 @@ describe('Whale Tracking Integration', () => {
             amount: '1000000000000000000000',
             usdValue: 15000,
             timestamp: new Date(),
-          }
+          },
         }),
         app.prisma.whaleTransaction.create({
           data: {
@@ -231,8 +231,8 @@ describe('Whale Tracking Integration', () => {
             amount: '2000000000000000000000',
             usdValue: 25000,
             timestamp: new Date(),
-          }
-        })
+          },
+        }),
       ]);
 
       const response = await app.inject({
@@ -260,7 +260,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       const response = await app.inject({
@@ -294,7 +294,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       const walletAddress = '0x123456789abcdef123456789abcdef1234567890';
@@ -309,7 +309,7 @@ describe('Whale Tracking Integration', () => {
           amount: '1000000000000000000000',
           usdValue: 15000,
           timestamp: new Date(),
-        }
+        },
       });
 
       const response = await app.inject({
@@ -359,7 +359,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       // Create test whale transactions with different wallets
@@ -373,7 +373,7 @@ describe('Whale Tracking Integration', () => {
             amount: '1000000000000000000000',
             usdValue: 100000,
             timestamp: new Date(),
-          }
+          },
         }),
         app.prisma.whaleTransaction.create({
           data: {
@@ -384,8 +384,8 @@ describe('Whale Tracking Integration', () => {
             amount: '2000000000000000000000',
             usdValue: 200000,
             timestamp: new Date(),
-          }
-        })
+          },
+        }),
       ]);
 
       const response = await app.inject({
@@ -398,7 +398,7 @@ describe('Whale Tracking Integration', () => {
       expect(data.success).toBe(true);
       expect(Array.isArray(data.data)).toBe(true);
       expect(data.data.length).toBeGreaterThan(0);
-      
+
       // Should be sorted by volume (descending)
       if (data.data.length > 1) {
         expect(data.data[0].totalVolume).toBeGreaterThanOrEqual(data.data[1].totalVolume);
@@ -414,7 +414,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       const response = await app.inject({
@@ -439,7 +439,7 @@ describe('Whale Tracking Integration', () => {
           name: 'Shiba Inu',
           network: 'ethereum',
           contractVerified: true,
-        }
+        },
       });
 
       const response = await app.inject({
@@ -454,7 +454,7 @@ describe('Whale Tracking Integration', () => {
 
       // This might fail due to external API calls, but we test the endpoint structure
       expect([200, 500, 502]).toContain(response.statusCode);
-      
+
       if (response.statusCode === 200) {
         const data = JSON.parse(response.payload);
         expect(data.success).toBe(true);

@@ -25,12 +25,7 @@ export class LiquidityJobProcessor {
     private cacheService: CacheService,
     private realtimeService: RealtimeService
   ) {
-    this.liquidityService = new LiquidityService(
-      prisma,
-      logger,
-      cacheService,
-      realtimeService
-    );
+    this.liquidityService = new LiquidityService(prisma, logger, cacheService, realtimeService);
   }
 
   /**
@@ -38,14 +33,17 @@ export class LiquidityJobProcessor {
    */
   async processLiquidityMonitoring(job: Job<LiquidityMonitoringJobData>): Promise<void> {
     const { coinId, tokenAddress, type } = job.data;
-    
+
     try {
-      this.logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        tokenAddress, 
-        type 
-      }, 'Processing liquidity monitoring job');
+      this.logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          tokenAddress,
+          type,
+        },
+        'Processing liquidity monitoring job'
+      );
 
       switch (type) {
         case 'sync_pools':
@@ -61,18 +59,24 @@ export class LiquidityJobProcessor {
           throw new Error(`Unknown liquidity job type: ${type}`);
       }
 
-      this.logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        type 
-      }, 'Completed liquidity monitoring job');
+      this.logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          type,
+        },
+        'Completed liquidity monitoring job'
+      );
     } catch (error) {
-      this.logger.error({ 
-        error, 
-        jobId: job.id, 
-        coinId, 
-        type 
-      }, 'Failed to process liquidity monitoring job');
+      this.logger.error(
+        {
+          error,
+          jobId: job.id,
+          coinId,
+          type,
+        },
+        'Failed to process liquidity monitoring job'
+      );
       throw error;
     }
   }
@@ -82,13 +86,16 @@ export class LiquidityJobProcessor {
    */
   async processBatchLiquidity(job: Job<LiquidityBatchJobData>): Promise<void> {
     const { coinIds, type } = job.data;
-    
+
     try {
-      this.logger.info({ 
-        jobId: job.id, 
-        coinCount: coinIds.length, 
-        type 
-      }, 'Processing batch liquidity job');
+      this.logger.info(
+        {
+          jobId: job.id,
+          coinCount: coinIds.length,
+          type,
+        },
+        'Processing batch liquidity job'
+      );
 
       switch (type) {
         case 'batch_sync':
@@ -101,18 +108,24 @@ export class LiquidityJobProcessor {
           throw new Error(`Unknown batch liquidity job type: ${type}`);
       }
 
-      this.logger.info({ 
-        jobId: job.id, 
-        coinCount: coinIds.length, 
-        type 
-      }, 'Completed batch liquidity job');
+      this.logger.info(
+        {
+          jobId: job.id,
+          coinCount: coinIds.length,
+          type,
+        },
+        'Completed batch liquidity job'
+      );
     } catch (error) {
-      this.logger.error({ 
-        error, 
-        jobId: job.id, 
-        coinCount: coinIds.length, 
-        type 
-      }, 'Failed to process batch liquidity job');
+      this.logger.error(
+        {
+          error,
+          jobId: job.id,
+          coinCount: coinIds.length,
+          type,
+        },
+        'Failed to process batch liquidity job'
+      );
       throw error;
     }
   }
@@ -123,13 +136,16 @@ export class LiquidityJobProcessor {
   private async syncPoolsForCoin(coinId: number, tokenAddress: string): Promise<void> {
     try {
       const result = await this.liquidityService.syncLiquidityPools(coinId, tokenAddress);
-      
+
       if (result.success && result.data) {
-        this.logger.info({ 
-          coinId, 
-          tokenAddress, 
-          poolCount: result.data.length 
-        }, 'Successfully synced liquidity pools');
+        this.logger.info(
+          {
+            coinId,
+            tokenAddress,
+            poolCount: result.data.length,
+          },
+          'Successfully synced liquidity pools'
+        );
 
         // Send real-time update
         await this.realtimeService.broadcast({
@@ -170,19 +186,22 @@ export class LiquidityJobProcessor {
       // Invalidate trend caches to force refresh
       await this.cacheService.delete(`liquidity:${coinId}:trends:*`);
       await this.cacheService.delete(`liquidity:${coinId}:analysis`);
-      
+
       // Pre-warm cache with fresh data
       const timeframes: ('1h' | '24h' | '7d' | '30d')[] = ['1h', '24h', '7d', '30d'];
-      
+
       for (const timeframe of timeframes) {
         try {
           await this.liquidityService.getLiquidityTrends(coinId, timeframe);
         } catch (error) {
-          this.logger.warn({ 
-            error, 
-            coinId, 
-            timeframe 
-          }, 'Failed to update trend for timeframe');
+          this.logger.warn(
+            {
+              error,
+              coinId,
+              timeframe,
+            },
+            'Failed to update trend for timeframe'
+          );
         }
       }
 
@@ -209,8 +228,8 @@ export class LiquidityJobProcessor {
 
     for (let i = 0; i < coinIds.length; i += batchSize) {
       const batch = coinIds.slice(i, i + batchSize);
-      
-      const batchPromises = batch.map(async (coinId) => {
+
+      const batchPromises = batch.map(async coinId => {
         try {
           // Get coin details
           const coin = await this.prisma.coin.findUnique({
@@ -227,7 +246,11 @@ export class LiquidityJobProcessor {
           return { coinId, success: result.success, poolCount: result.data?.length || 0 };
         } catch (error) {
           this.logger.error({ error, coinId }, 'Failed to sync pools in batch');
-          return { coinId, success: false, error: error instanceof Error ? error.message : String(error) };
+          return {
+            coinId,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
         }
       });
 
@@ -243,11 +266,14 @@ export class LiquidityJobProcessor {
     const successCount = results.filter(r => r?.success).length;
     const failureCount = results.filter(r => r && !r.success).length;
 
-    this.logger.info({ 
-      totalCoins: coinIds.length,
-      successCount,
-      failureCount,
-    }, 'Completed batch pool sync');
+    this.logger.info(
+      {
+        totalCoins: coinIds.length,
+        successCount,
+        failureCount,
+      },
+      'Completed batch pool sync'
+    );
 
     // Send batch update notification
     await this.realtimeService.broadcast({
@@ -271,21 +297,21 @@ export class LiquidityJobProcessor {
 
     for (let i = 0; i < coinIds.length; i += batchSize) {
       const batch = coinIds.slice(i, i + batchSize);
-      
-      const batchPromises = batch.map(async (coinId) => {
+
+      const batchPromises = batch.map(async coinId => {
         try {
           const result = await this.liquidityService.analyzeLiquidity(coinId);
-          return { 
-            coinId, 
-            success: result.success, 
-            analysis: result.data 
+          return {
+            coinId,
+            success: result.success,
+            analysis: result.data,
           };
         } catch (error) {
           this.logger.error({ error, coinId }, 'Failed to analyze liquidity in batch');
-          return { 
-            coinId, 
-            success: false, 
-            error: error instanceof Error ? error.message : String(error) 
+          return {
+            coinId,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
           };
         }
       });
@@ -302,11 +328,14 @@ export class LiquidityJobProcessor {
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;
 
-    this.logger.info({ 
-      totalCoins: coinIds.length,
-      successCount,
-      failureCount,
-    }, 'Completed batch liquidity analysis');
+    this.logger.info(
+      {
+        totalCoins: coinIds.length,
+        successCount,
+        failureCount,
+      },
+      'Completed batch liquidity analysis'
+    );
 
     // Send batch analysis notification
     await this.realtimeService.broadcast({
@@ -350,9 +379,12 @@ export class LiquidityJobProcessor {
         },
       });
 
-      this.logger.info({ 
-        coinCount: coinsWithPools.length 
-      }, 'Scheduling regular liquidity monitoring');
+      this.logger.info(
+        {
+          coinCount: coinsWithPools.length,
+        },
+        'Scheduling regular liquidity monitoring'
+      );
 
       // Schedule sync jobs for each coin (staggered)
       for (let i = 0; i < coinsWithPools.length; i++) {

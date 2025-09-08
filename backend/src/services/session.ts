@@ -78,7 +78,7 @@ export class SessionService {
       const sessionKey = this.getSessionKey(sessionId);
       const userSessionsKey = this.getUserSessionsKey(userId);
       const now = Date.now();
-      
+
       const sessionData: SessionData = {
         userId,
         walletAddress,
@@ -91,42 +91,49 @@ export class SessionService {
       };
 
       const ttl = options.ttl || this.DEFAULT_TTL;
-      
+
       // Use pipeline for atomic operations
       const pipeline = this.redis.pipeline();
-      
+
       // Store session data
       pipeline.setex(sessionKey, ttl, JSON.stringify(sessionData));
-      
+
       // Add session to user's session set
       pipeline.sadd(userSessionsKey, sessionId);
       pipeline.expire(userSessionsKey, ttl);
-      
+
       const results = await pipeline.exec();
-      
+
       // Check if all operations succeeded
-      const allSucceeded = results?.every(([error, result]) => 
-        error === null && (result === 'OK' || typeof result === 'number')
-      ) ?? false;
-      
+      const allSucceeded =
+        results?.every(
+          ([error, result]) => error === null && (result === 'OK' || typeof result === 'number')
+        ) ?? false;
+
       if (!allSucceeded) {
         throw new Error('Failed to create session in Redis');
       }
-      
-      this.logger.info({
-        sessionId: this.hashForLogging(sessionId),
-        userId,
-        walletAddress: this.hashForLogging(walletAddress),
-        ttl,
-      }, 'Session created successfully');
-      
+
+      this.logger.info(
+        {
+          sessionId: this.hashForLogging(sessionId),
+          userId,
+          walletAddress: this.hashForLogging(walletAddress),
+          ttl,
+        },
+        'Session created successfully'
+      );
+
       return sessionId;
     } catch (error) {
-      this.logger.error({
-        error,
-        userId,
-        walletAddress: this.hashForLogging(walletAddress),
-      }, 'Failed to create session');
+      this.logger.error(
+        {
+          error,
+          userId,
+          walletAddress: this.hashForLogging(walletAddress),
+        },
+        'Failed to create session'
+      );
       return null;
     }
   }
@@ -138,44 +145,53 @@ export class SessionService {
     try {
       const sessionKey = this.getSessionKey(sessionId);
       const sessionDataStr = await this.redis.get(sessionKey);
-      
+
       if (!sessionDataStr) {
-        this.logger.debug({
-          sessionId: this.hashForLogging(sessionId),
-        }, 'Session not found');
+        this.logger.debug(
+          {
+            sessionId: this.hashForLogging(sessionId),
+          },
+          'Session not found'
+        );
         return null;
       }
-      
+
       const sessionData: SessionData = JSON.parse(sessionDataStr);
-      
+
       // Update last accessed time if rolling sessions are enabled
       if (options.rolling !== false) {
         sessionData.lastAccessedAt = Date.now();
-        
+
         const ttl = options.ttl || this.DEFAULT_TTL;
         const pipeline = this.redis.pipeline();
-        
+
         // Update session data with new lastAccessedAt
         pipeline.setex(sessionKey, ttl, JSON.stringify(sessionData));
-        
+
         // Extend user sessions set TTL
         const userSessionsKey = this.getUserSessionsKey(sessionData.userId);
         pipeline.expire(userSessionsKey, ttl);
-        
+
         await pipeline.exec();
       }
-      
-      this.logger.debug({
-        sessionId: this.hashForLogging(sessionId),
-        userId: sessionData.userId,
-      }, 'Session retrieved successfully');
-      
+
+      this.logger.debug(
+        {
+          sessionId: this.hashForLogging(sessionId),
+          userId: sessionData.userId,
+        },
+        'Session retrieved successfully'
+      );
+
       return sessionData;
     } catch (error) {
-      this.logger.error({
-        error,
-        sessionId: this.hashForLogging(sessionId),
-      }, 'Failed to get session');
+      this.logger.error(
+        {
+          error,
+          sessionId: this.hashForLogging(sessionId),
+        },
+        'Failed to get session'
+      );
       return null;
     }
   }
@@ -190,35 +206,41 @@ export class SessionService {
   ): Promise<boolean> {
     try {
       const sessionData = await this.getSession(sessionId, { rolling: false });
-      
+
       if (!sessionData) {
         return false;
       }
-      
+
       // Merge updates
       const updatedData: SessionData = {
         ...sessionData,
         ...updates,
         lastAccessedAt: Date.now(),
       };
-      
+
       const sessionKey = this.getSessionKey(sessionId);
       const ttl = options.ttl || this.DEFAULT_TTL;
-      
+
       const result = await this.redis.setex(sessionKey, ttl, JSON.stringify(updatedData));
-      
-      this.logger.debug({
-        sessionId: this.hashForLogging(sessionId),
-        userId: sessionData.userId,
-        updates: Object.keys(updates),
-      }, 'Session updated successfully');
-      
+
+      this.logger.debug(
+        {
+          sessionId: this.hashForLogging(sessionId),
+          userId: sessionData.userId,
+          updates: Object.keys(updates),
+        },
+        'Session updated successfully'
+      );
+
       return result === 'OK';
     } catch (error) {
-      this.logger.error({
-        error,
-        sessionId: this.hashForLogging(sessionId),
-      }, 'Failed to update session');
+      this.logger.error(
+        {
+          error,
+          sessionId: this.hashForLogging(sessionId),
+        },
+        'Failed to update session'
+      );
       return false;
     }
   }
@@ -230,35 +252,41 @@ export class SessionService {
     try {
       // Get session data first to clean up user sessions set
       const sessionData = await this.getSession(sessionId, { rolling: false });
-      
+
       if (!sessionData) {
         return true; // Session doesn't exist, consider it deleted
       }
-      
+
       const sessionKey = this.getSessionKey(sessionId);
       const userSessionsKey = this.getUserSessionsKey(sessionData.userId);
-      
+
       const pipeline = this.redis.pipeline();
-      
+
       // Delete session data
       pipeline.del(sessionKey);
-      
+
       // Remove session from user's session set
       pipeline.srem(userSessionsKey, sessionId);
-      
+
       const results = await pipeline.exec();
-      
-      this.logger.info({
-        sessionId: this.hashForLogging(sessionId),
-        userId: sessionData.userId,
-      }, 'Session deleted successfully');
-      
+
+      this.logger.info(
+        {
+          sessionId: this.hashForLogging(sessionId),
+          userId: sessionData.userId,
+        },
+        'Session deleted successfully'
+      );
+
       return results?.[0]?.[1] === 1; // First operation (del) should return 1
     } catch (error) {
-      this.logger.error({
-        error,
-        sessionId: this.hashForLogging(sessionId),
-      }, 'Failed to delete session');
+      this.logger.error(
+        {
+          error,
+          sessionId: this.hashForLogging(sessionId),
+        },
+        'Failed to delete session'
+      );
       return false;
     }
   }
@@ -270,41 +298,47 @@ export class SessionService {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId);
       const sessionIds = await this.redis.smembers(userSessionsKey);
-      
+
       if (sessionIds.length === 0) {
         return 0;
       }
-      
+
       const pipeline = this.redis.pipeline();
-      
+
       // Delete all session data
       for (const sessionId of sessionIds) {
         const sessionKey = this.getSessionKey(sessionId);
         pipeline.del(sessionKey);
       }
-      
+
       // Delete user sessions set
       pipeline.del(userSessionsKey);
-      
+
       const results = await pipeline.exec();
-      
+
       // Count successful deletions
-      const deletedCount = results?.slice(0, -1).filter(([error, result]) => 
-        error === null && result === 1
-      ).length ?? 0;
-      
-      this.logger.info({
-        userId,
-        deletedCount,
-        totalSessions: sessionIds.length,
-      }, 'User sessions deleted');
-      
+      const deletedCount =
+        results?.slice(0, -1).filter(([error, result]) => error === null && result === 1).length ??
+        0;
+
+      this.logger.info(
+        {
+          userId,
+          deletedCount,
+          totalSessions: sessionIds.length,
+        },
+        'User sessions deleted'
+      );
+
       return deletedCount;
     } catch (error) {
-      this.logger.error({
-        error,
-        userId,
-      }, 'Failed to delete user sessions');
+      this.logger.error(
+        {
+          error,
+          userId,
+        },
+        'Failed to delete user sessions'
+      );
       return 0;
     }
   }
@@ -316,26 +350,29 @@ export class SessionService {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId);
       const sessionIds = await this.redis.smembers(userSessionsKey);
-      
+
       if (sessionIds.length === 0) {
         return [];
       }
-      
+
       const sessions: Array<{ sessionId: string; data: SessionData }> = [];
-      
+
       for (const sessionId of sessionIds) {
         const sessionData = await this.getSession(sessionId, { rolling: false });
         if (sessionData) {
           sessions.push({ sessionId, data: sessionData });
         }
       }
-      
+
       return sessions;
     } catch (error) {
-      this.logger.error({
-        error,
-        userId,
-      }, 'Failed to get user sessions');
+      this.logger.error(
+        {
+          error,
+          userId,
+        },
+        'Failed to get user sessions'
+      );
       return [];
     }
   }
@@ -347,36 +384,39 @@ export class SessionService {
     try {
       // This is a maintenance operation that should be run periodically
       // It cleans up orphaned session references in user session sets
-      
+
       const pattern = `mca:${this.USER_SESSIONS_PREFIX}:*`;
       const userSessionKeys = await this.redis.keys(pattern);
-      
+
       let cleanedCount = 0;
-      
+
       for (const userSessionKey of userSessionKeys) {
         const sessionIds = await this.redis.smembers(userSessionKey);
         const expiredSessionIds: string[] = [];
-        
+
         for (const sessionId of sessionIds) {
           const sessionKey = this.getSessionKey(sessionId);
           const exists = await this.redis.exists(sessionKey);
-          
+
           if (!exists) {
             expiredSessionIds.push(sessionId);
           }
         }
-        
+
         if (expiredSessionIds.length > 0) {
           await this.redis.srem(userSessionKey, ...expiredSessionIds);
           cleanedCount += expiredSessionIds.length;
         }
       }
-      
-      this.logger.info({
-        cleanedCount,
-        checkedUserKeys: userSessionKeys.length,
-      }, 'Session cleanup completed');
-      
+
+      this.logger.info(
+        {
+          cleanedCount,
+          checkedUserKeys: userSessionKeys.length,
+        },
+        'Session cleanup completed'
+      );
+
       return cleanedCount;
     } catch (error) {
       this.logger.error({ error }, 'Session cleanup failed');
@@ -395,16 +435,16 @@ export class SessionService {
     try {
       const sessionPattern = `mca:${this.SESSION_PREFIX}:*`;
       const userSessionPattern = `mca:${this.USER_SESSIONS_PREFIX}:*`;
-      
+
       const [sessionKeys, userSessionKeys] = await Promise.all([
         this.redis.keys(sessionPattern),
         this.redis.keys(userSessionPattern),
       ]);
-      
+
       const totalSessions = sessionKeys.length;
       const totalUsers = userSessionKeys.length;
       const averageSessionsPerUser = totalUsers > 0 ? totalSessions / totalUsers : 0;
-      
+
       return {
         totalSessions,
         totalUsers,

@@ -65,10 +65,7 @@ export class UserService {
     // Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { email },
-          ...(walletAddress ? [{ walletAddress }] : []),
-        ],
+        OR: [{ email }, ...(walletAddress ? [{ walletAddress }] : [])],
       },
     });
 
@@ -152,10 +149,12 @@ export class UserService {
       },
     });
 
-    return user ? {
-      ...user,
-      preferences: user.preferences as unknown as UserPreferences,
-    } as UserWithoutPassword : null;
+    return user
+      ? ({
+          ...user,
+          preferences: user.preferences as unknown as UserPreferences,
+        } as UserWithoutPassword)
+      : null;
   }
 
   /**
@@ -174,10 +173,12 @@ export class UserService {
       },
     });
 
-    return user ? {
-      ...user,
-      preferences: user.preferences as unknown as UserPreferences,
-    } as UserWithoutPassword : null;
+    return user
+      ? ({
+          ...user,
+          preferences: user.preferences as unknown as UserPreferences,
+        } as UserWithoutPassword)
+      : null;
   }
 
   /**
@@ -243,7 +244,11 @@ export class UserService {
   /**
    * Change user password
    */
-  async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });

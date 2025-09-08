@@ -39,7 +39,7 @@ async function jwtPlugin(fastify: FastifyInstance) {
           requestId: request.id,
         },
       };
-      
+
       return reply.code(401).send(response);
     }
   });

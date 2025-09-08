@@ -68,10 +68,7 @@ describe('UserService', () => {
 
       expect(mockPrisma.user.findFirst).toHaveBeenCalledWith({
         where: {
-          OR: [
-            { email: userData.email },
-            { walletAddress: userData.walletAddress },
-          ],
+          OR: [{ email: userData.email }, { walletAddress: userData.walletAddress }],
         },
       });
       expect(bcrypt.hash).toHaveBeenCalledWith(userData.password, 12);
@@ -320,9 +317,9 @@ describe('UserService', () => {
 
       (mockPrisma.user.findUnique as any).mockResolvedValue(null);
 
-      await expect(userService.changePassword(userId, currentPassword, newPassword)).rejects.toThrow(
-        'User not found'
-      );
+      await expect(
+        userService.changePassword(userId, currentPassword, newPassword)
+      ).rejects.toThrow('User not found');
     });
 
     it('should throw error if current password is incorrect', async () => {
@@ -337,9 +334,9 @@ describe('UserService', () => {
       (mockPrisma.user.findUnique as any).mockResolvedValue(user);
       (bcrypt.compare as any).mockResolvedValue(false);
 
-      await expect(userService.changePassword(userId, currentPassword, newPassword)).rejects.toThrow(
-        'Current password is incorrect'
-      );
+      await expect(
+        userService.changePassword(userId, currentPassword, newPassword)
+      ).rejects.toThrow('Current password is incorrect');
     });
   });
 });

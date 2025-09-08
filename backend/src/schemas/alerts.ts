@@ -6,39 +6,55 @@ export const AlertQuerySchema = z.object({
   sortBy: z.enum(['createdAt', 'lastTriggered', 'type']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   coinId: z.number().positive().optional(),
-  type: z.enum(['price_above', 'price_below', 'volume_spike', 'whale_movement', 'social_spike']).optional(),
+  type: z
+    .enum(['price_above', 'price_below', 'volume_spike', 'whale_movement', 'social_spike'])
+    .optional(),
   isActive: z.boolean().optional(),
 });
 
 export const CreateAlertSchema = z.object({
   coinId: z.number().positive(),
   type: z.enum(['price_above', 'price_below', 'volume_spike', 'whale_movement', 'social_spike']),
-  condition: z.object({
-    targetPrice: z.number().positive().optional(),
-    percentageChange: z.number().min(-100).max(1000).optional(),
-    volumeThreshold: z.number().positive().optional(),
-    socialThreshold: z.number().min(0).max(100).optional(),
-  }).refine((data) => {
-    // Ensure at least one condition is provided based on alert type
-    const { targetPrice, percentageChange, volumeThreshold, socialThreshold } = data;
-    return targetPrice !== undefined || percentageChange !== undefined || 
-           volumeThreshold !== undefined || socialThreshold !== undefined;
-  }, {
-    message: "At least one condition must be specified"
-  }),
+  condition: z
+    .object({
+      targetPrice: z.number().positive().optional(),
+      percentageChange: z.number().min(-100).max(1000).optional(),
+      volumeThreshold: z.number().positive().optional(),
+      socialThreshold: z.number().min(0).max(100).optional(),
+    })
+    .refine(
+      data => {
+        // Ensure at least one condition is provided based on alert type
+        const { targetPrice, percentageChange, volumeThreshold, socialThreshold } = data;
+        return (
+          targetPrice !== undefined ||
+          percentageChange !== undefined ||
+          volumeThreshold !== undefined ||
+          socialThreshold !== undefined
+        );
+      },
+      {
+        message: 'At least one condition must be specified',
+      }
+    ),
   notificationMethods: z.array(z.enum(['email', 'push', 'sms'])).min(1),
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
 });
 
 export const UpdateAlertSchema = z.object({
-  condition: z.object({
-    targetPrice: z.number().positive().optional(),
-    percentageChange: z.number().min(-100).max(1000).optional(),
-    volumeThreshold: z.number().positive().optional(),
-    socialThreshold: z.number().min(0).max(100).optional(),
-  }).optional(),
-  notificationMethods: z.array(z.enum(['email', 'push', 'sms'])).min(1).optional(),
+  condition: z
+    .object({
+      targetPrice: z.number().positive().optional(),
+      percentageChange: z.number().min(-100).max(1000).optional(),
+      volumeThreshold: z.number().positive().optional(),
+      socialThreshold: z.number().min(0).max(100).optional(),
+    })
+    .optional(),
+  notificationMethods: z
+    .array(z.enum(['email', 'push', 'sms']))
+    .min(1)
+    .optional(),
   isActive: z.boolean().optional(),
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),

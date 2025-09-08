@@ -3,12 +3,12 @@ import { FastifyBaseLogger } from 'fastify';
 import { MoralisClient, MoralisChain } from './moralis-client.js';
 import { CoinGeckoClient } from './coingecko-client.js';
 import { CacheService } from './cache.js';
-import { 
-  RiskFactors, 
-  LiquidityRisk, 
-  HolderDistributionRisk, 
-  ContractSecurityRisk, 
-  SocialMetricsRisk 
+import {
+  RiskFactors,
+  LiquidityRisk,
+  HolderDistributionRisk,
+  ContractSecurityRisk,
+  SocialMetricsRisk,
 } from '../types/index.js';
 
 export interface RiskAssessmentConfig {
@@ -122,9 +122,9 @@ export class RiskAssessmentService {
       thresholds: {
         liquidity: {
           excellent: 10000000, // $10M+
-          good: 1000000,       // $1M+
-          fair: 100000,        // $100K+
-          poor: 10000,         // $10K+
+          good: 1000000, // $1M+
+          fair: 100000, // $100K+
+          poor: 10000, // $10K+
         },
         holderDistribution: {
           maxTopHoldersPercentage: 50, // Top 10 holders should own <50%
@@ -149,13 +149,16 @@ export class RiskAssessmentService {
    */
   async assessRisk(input: RiskAssessmentInput): Promise<RiskAssessmentResult> {
     try {
-      this.logger.info({ coinId: input.coinId, contractAddress: input.contractAddress }, 'Starting risk assessment');
+      this.logger.info(
+        { coinId: input.coinId, contractAddress: input.contractAddress },
+        'Starting risk assessment'
+      );
 
       // Check cache first unless force refresh is requested
       if (!input.forceRefresh) {
         const cacheKey = `risk:${input.coinId}`;
         const cached = await this.cacheService.get<RiskAssessmentResult>(cacheKey);
-        
+
         if (cached) {
           this.logger.info({ coinId: input.coinId }, 'Retrieved risk assessment from cache');
           return cached;
@@ -203,9 +206,9 @@ export class RiskAssessmentService {
       // Calculate weighted overall score
       const overallScore = Math.round(
         liquidityRisk.score * this.config.weights.liquidity +
-        holderRisk.score * this.config.weights.holderDistribution +
-        contractRisk.score * this.config.weights.contractSecurity +
-        socialRisk.score * this.config.weights.socialMetrics
+          holderRisk.score * this.config.weights.holderDistribution +
+          contractRisk.score * this.config.weights.contractSecurity +
+          socialRisk.score * this.config.weights.socialMetrics
       );
 
       const factors: RiskFactors = {
@@ -230,12 +233,15 @@ export class RiskAssessmentService {
       // Cache result for 15 minutes
       await this.cacheService.set(`risk:${input.coinId}`, result, { ttl: 900 });
 
-      this.logger.info({ 
-        coinId: input.coinId, 
-        overallScore: result.overallScore,
-        confidence: result.confidence,
-        warningCount: warnings.length
-      }, 'Risk assessment completed');
+      this.logger.info(
+        {
+          coinId: input.coinId,
+          overallScore: result.overallScore,
+          confidence: result.confidence,
+          warningCount: warnings.length,
+        },
+        'Risk assessment completed'
+      );
 
       return result;
     } catch (error) {
@@ -250,7 +256,7 @@ export class RiskAssessmentService {
   private async analyzeLiquidity(contractAddress: string, network: string): Promise<LiquidityData> {
     try {
       const chain = this.networkToMoralisChain(network);
-      
+
       // Get token transfers to identify DEX interactions
       const transfers = await this.moralisClient.getTokenTransfers(contractAddress, chain, {
         limit: 100,
@@ -263,7 +269,10 @@ export class RiskAssessmentService {
 
       transfers.result.forEach(transfer => {
         // Identify known DEX addresses (simplified)
-        if (this.isKnownDexAddress(transfer.to_address) || this.isKnownDexAddress(transfer.from_address)) {
+        if (
+          this.isKnownDexAddress(transfer.to_address) ||
+          this.isKnownDexAddress(transfer.from_address)
+        ) {
           dexAddresses.add(transfer.to_address);
           totalVolume24h += parseFloat(transfer.value) || 0;
         }
@@ -294,24 +303,29 @@ export class RiskAssessmentService {
   /**
    * Analyze holder distribution from blockchain data
    */
-  private async analyzeHolderDistribution(contractAddress: string, network: string): Promise<HolderData> {
+  private async analyzeHolderDistribution(
+    contractAddress: string,
+    network: string
+  ): Promise<HolderData> {
     try {
       const chain = this.networkToMoralisChain(network);
-      
+
       // Get token holders
       const holders = await this.moralisClient.getTokenHolders(contractAddress, chain, {
         limit: 100,
         order: 'DESC',
       });
 
-      const totalSupply = holders.result.reduce((sum, holder) => 
-        sum + parseFloat(holder.balance_formatted), 0
+      const totalSupply = holders.result.reduce(
+        (sum, holder) => sum + parseFloat(holder.balance_formatted),
+        0
       );
 
       // Calculate top holders percentage (top 10)
       const topHolders = holders.result.slice(0, 10);
-      const topHoldersBalance = topHolders.reduce((sum, holder) => 
-        sum + parseFloat(holder.balance_formatted), 0
+      const topHoldersBalance = topHolders.reduce(
+        (sum, holder) => sum + parseFloat(holder.balance_formatted),
+        0
       );
       const topHoldersPercentage = (topHoldersBalance / totalSupply) * 100;
 
@@ -333,7 +347,10 @@ export class RiskAssessmentService {
 
       return holderData;
     } catch (error) {
-      this.logger.error({ error, contractAddress, network }, 'Failed to analyze holder distribution');
+      this.logger.error(
+        { error, contractAddress, network },
+        'Failed to analyze holder distribution'
+      );
       throw error;
     }
   }
@@ -341,10 +358,13 @@ export class RiskAssessmentService {
   /**
    * Analyze contract security features
    */
-  private async analyzeContractSecurity(contractAddress: string, network: string): Promise<ContractSecurityData> {
+  private async analyzeContractSecurity(
+    contractAddress: string,
+    network: string
+  ): Promise<ContractSecurityData> {
     try {
       const chain = this.networkToMoralisChain(network);
-      
+
       // Get token metadata
       const metadata = await this.moralisClient.getTokenMetadata(contractAddress, chain);
       const tokenInfo = metadata[0];
@@ -389,9 +409,11 @@ export class RiskAssessmentService {
       }
 
       const latest = socialMetrics[0];
-      const avgSentiment = socialMetrics.reduce((sum, metric) => 
-        sum + parseFloat(metric.sentimentScore.toString()), 0
-      ) / socialMetrics.length;
+      const avgSentiment =
+        socialMetrics.reduce(
+          (sum, metric) => sum + parseFloat(metric.sentimentScore.toString()),
+          0
+        ) / socialMetrics.length;
 
       const socialData: SocialData = {
         sentimentScore: avgSentiment,
@@ -460,7 +482,10 @@ export class RiskAssessmentService {
   /**
    * Calculate holder distribution risk score
    */
-  private calculateHolderDistributionRisk(data: HolderData | null, warnings: string[]): HolderDistributionRisk {
+  private calculateHolderDistributionRisk(
+    data: HolderData | null,
+    warnings: string[]
+  ): HolderDistributionRisk {
     if (!data) {
       warnings.push('Holder distribution data unavailable');
       return {
@@ -514,7 +539,10 @@ export class RiskAssessmentService {
   /**
    * Calculate contract security risk score
    */
-  private calculateContractSecurityRisk(data: ContractSecurityData | null, warnings: string[]): ContractSecurityRisk {
+  private calculateContractSecurityRisk(
+    data: ContractSecurityData | null,
+    warnings: string[]
+  ): ContractSecurityRisk {
     if (!data) {
       warnings.push('Contract security data unavailable');
       return {
@@ -582,7 +610,10 @@ export class RiskAssessmentService {
   /**
    * Calculate social metrics risk score
    */
-  private calculateSocialMetricsRisk(data: SocialData | null, warnings: string[]): SocialMetricsRisk {
+  private calculateSocialMetricsRisk(
+    data: SocialData | null,
+    warnings: string[]
+  ): SocialMetricsRisk {
     if (!data) {
       warnings.push('Social metrics data unavailable');
       return {
@@ -689,7 +720,7 @@ export class RiskAssessmentService {
       weights: { ...this.config.weights, ...newConfig.weights },
       thresholds: { ...this.config.thresholds, ...newConfig.thresholds },
     };
-    
+
     this.logger.info({ config: this.config }, 'Risk assessment configuration updated');
   }
 

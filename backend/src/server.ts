@@ -11,14 +11,16 @@ const start = async (): Promise<void> => {
 
     await fastify.listen({ port, host });
 
-    fastify.log.info({
-      server: {
-        host,
-        port,
-        environment: fastify.config.NODE_ENV,
+    fastify.log.info(
+      {
+        server: {
+          host,
+          port,
+          environment: fastify.config.NODE_ENV,
+        },
       },
-    }, `🚀 Server listening on http://${host}:${port}`);
-
+      `🚀 Server listening on http://${host}:${port}`
+    );
   } catch (err) {
     if (fastify) {
       fastify.log.error(err, 'Failed to start server');
@@ -28,7 +30,6 @@ const start = async (): Promise<void> => {
     process.exit(1);
   }
 };
-
 
 const gracefulShutdown = async (signal: string): Promise<void> => {
   console.log(`\n🛑 Received ${signal}, shutting down gracefully...`);
@@ -49,7 +50,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   console.error('💥 Uncaught Exception:', err);
   process.exit(1);
 });

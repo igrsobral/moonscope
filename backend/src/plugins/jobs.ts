@@ -17,7 +17,7 @@ declare module 'fastify' {
   }
 }
 
-const jobsPlugin: FastifyPluginAsync = async (fastify) => {
+const jobsPlugin: FastifyPluginAsync = async fastify => {
   // Initialize services that job processors depend on
   const coinService = new CoinService(
     fastify.prisma,
@@ -26,25 +26,21 @@ const jobsPlugin: FastifyPluginAsync = async (fastify) => {
     fastify.externalApi
   );
 
-  const socialService = new SocialService(
-    fastify.prisma,
-    fastify.redis,
-    {
-      twitter: {
-        apiKey: fastify.config.TWITTER_BEARER_TOKEN || '',
-        apiSecret: '',
-        bearerToken: fastify.config.TWITTER_BEARER_TOKEN || '',
-      },
-      reddit: {
-        clientId: fastify.config.REDDIT_CLIENT_ID || '',
-        clientSecret: fastify.config.REDDIT_CLIENT_SECRET || '',
-        userAgent: 'meme-coin-analyzer/1.0',
-      },
-      telegram: {
-        botToken: '',
-      },
-    }
-  );
+  const socialService = new SocialService(fastify.prisma, fastify.redis, {
+    twitter: {
+      apiKey: fastify.config.TWITTER_BEARER_TOKEN || '',
+      apiSecret: '',
+      bearerToken: fastify.config.TWITTER_BEARER_TOKEN || '',
+    },
+    reddit: {
+      clientId: fastify.config.REDDIT_CLIENT_ID || '',
+      clientSecret: fastify.config.REDDIT_CLIENT_SECRET || '',
+      userAgent: 'meme-coin-analyzer/1.0',
+    },
+    telegram: {
+      botToken: '',
+    },
+  });
 
   const cacheService = new CacheService(fastify.redis, fastify.log);
 
@@ -75,19 +71,10 @@ const jobsPlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   // Initialize job scheduler
-  const jobScheduler = new JobScheduler(
-    fastify.prisma,
-    fastify.queue,
-    fastify.log
-  );
+  const jobScheduler = new JobScheduler(fastify.prisma, fastify.queue, fastify.log);
 
   // Initialize job monitor
-  const jobMonitor = new JobMonitor(
-    fastify.prisma,
-    fastify.redis,
-    fastify.queue,
-    fastify.log
-  );
+  const jobMonitor = new JobMonitor(fastify.prisma, fastify.redis, fastify.queue, fastify.log);
 
   // Register services
   fastify.decorate('jobProcessors', jobProcessors);
@@ -110,25 +97,34 @@ const jobsPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.addHook('onReady', async () => {
     try {
       const healthStatus = await jobMonitor.getHealthStatus();
-      fastify.log.info({ 
-        jobSystemHealth: healthStatus.overall,
-        queueCount: Object.keys(healthStatus.queues).length 
-      }, 'Job system health check completed');
+      fastify.log.info(
+        {
+          jobSystemHealth: healthStatus.overall,
+          queueCount: Object.keys(healthStatus.queues).length,
+        },
+        'Job system health check completed'
+      );
     } catch (error) {
-      fastify.log.error({ error: error instanceof Error ? error.message : String(error) }, 'Job system health check failed');
+      fastify.log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Job system health check failed'
+      );
     }
   });
 
   // Graceful shutdown
-  fastify.addHook('onClose', async (instance) => {
+  fastify.addHook('onClose', async instance => {
     instance.log.info('Shutting down job system...');
-    
+
     try {
       // Close job processors (this will close all workers)
       await jobProcessors.close();
       instance.log.info('Job processors closed');
     } catch (error) {
-      instance.log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error closing job processors');
+      instance.log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Error closing job processors'
+      );
     }
 
     instance.log.info('Job system shutdown complete');

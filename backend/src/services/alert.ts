@@ -7,7 +7,7 @@ import {
   CreateAlert,
   UpdateAlert,
   AlertAction,
-  NotificationDelivery
+  NotificationDelivery,
 } from '../schemas/alerts.js';
 import { ApiResponse, PaginationMeta, WebSocketEvent } from '../types/index.js';
 
@@ -90,11 +90,14 @@ export class AlertService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId,
-        query,
-      }, 'Error getting alerts');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          query,
+        },
+        'Error getting alerts'
+      );
 
       return {
         success: false,
@@ -145,11 +148,14 @@ export class AlertService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId,
-        alertId,
-      }, 'Error getting alert');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          alertId,
+        },
+        'Error getting alert'
+      );
 
       return {
         success: false,
@@ -220,12 +226,15 @@ export class AlertService {
       // Clear user's alert cache
       await this.cache.delete(`alerts:user:${userId}`);
 
-      this.logger.info({
-        userId,
-        alertId: alert.id,
-        coinId: data.coinId,
-        type: data.type,
-      }, 'Alert created successfully');
+      this.logger.info(
+        {
+          userId,
+          alertId: alert.id,
+          coinId: data.coinId,
+          type: data.type,
+        },
+        'Alert created successfully'
+      );
 
       return {
         success: true,
@@ -236,11 +245,14 @@ export class AlertService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId,
-        data,
-      }, 'Error creating alert');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          data,
+        },
+        'Error creating alert'
+      );
 
       return {
         success: false,
@@ -256,7 +268,11 @@ export class AlertService {
     }
   }
 
-  async updateAlert(userId: number, alertId: number, data: UpdateAlert): Promise<ApiResponse<AlertWithCoin>> {
+  async updateAlert(
+    userId: number,
+    alertId: number,
+    data: UpdateAlert
+  ): Promise<ApiResponse<AlertWithCoin>> {
     try {
       // Check if alert exists and belongs to user
       const existingAlert = await this.prisma.alert.findFirst({
@@ -282,7 +298,10 @@ export class AlertService {
 
       // Validate condition if provided
       if (data.condition) {
-        const validationResult = this.validateAlertCondition(existingAlert.type as any, data.condition);
+        const validationResult = this.validateAlertCondition(
+          existingAlert.type as any,
+          data.condition
+        );
         if (!validationResult.valid) {
           return {
             success: false,
@@ -315,11 +334,14 @@ export class AlertService {
       // Clear user's alert cache
       await this.cache.delete(`alerts:user:${userId}`);
 
-      this.logger.info({
-        userId,
-        alertId,
-        updates: Object.keys(data),
-      }, 'Alert updated successfully');
+      this.logger.info(
+        {
+          userId,
+          alertId,
+          updates: Object.keys(data),
+        },
+        'Alert updated successfully'
+      );
 
       return {
         success: true,
@@ -330,12 +352,15 @@ export class AlertService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId,
-        alertId,
-        data,
-      }, 'Error updating alert');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          alertId,
+          data,
+        },
+        'Error updating alert'
+      );
 
       return {
         success: false,
@@ -382,10 +407,13 @@ export class AlertService {
       // Clear user's alert cache
       await this.cache.delete(`alerts:user:${userId}`);
 
-      this.logger.info({
-        userId,
-        alertId,
-      }, 'Alert deleted successfully');
+      this.logger.info(
+        {
+          userId,
+          alertId,
+        },
+        'Alert deleted successfully'
+      );
 
       return {
         success: true,
@@ -395,11 +423,14 @@ export class AlertService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId,
-        alertId,
-      }, 'Error deleting alert');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          alertId,
+        },
+        'Error deleting alert'
+      );
 
       return {
         success: false,
@@ -415,7 +446,11 @@ export class AlertService {
     }
   }
 
-  async performAlertAction(userId: number, alertId: number, action: AlertAction): Promise<ApiResponse<AlertWithCoin>> {
+  async performAlertAction(
+    userId: number,
+    alertId: number,
+    action: AlertAction
+  ): Promise<ApiResponse<AlertWithCoin>> {
     try {
       const existingAlert = await this.prisma.alert.findFirst({
         where: {
@@ -445,19 +480,19 @@ export class AlertService {
 
       switch (action.action) {
         case 'pause':
-          updatedAlert = await this.prisma.alert.update({
+          updatedAlert = (await this.prisma.alert.update({
             where: { id: alertId },
             data: { isActive: false },
             include: { coin: true },
-          }) as AlertWithCoin;
+          })) as AlertWithCoin;
           break;
 
         case 'resume':
-          updatedAlert = await this.prisma.alert.update({
+          updatedAlert = (await this.prisma.alert.update({
             where: { id: alertId },
             data: { isActive: true },
             include: { coin: true },
-          }) as AlertWithCoin;
+          })) as AlertWithCoin;
           break;
 
         case 'test':
@@ -483,11 +518,14 @@ export class AlertService {
       // Clear user's alert cache
       await this.cache.delete(`alerts:user:${userId}`);
 
-      this.logger.info({
-        userId,
-        alertId,
-        action: action.action,
-      }, 'Alert action performed successfully');
+      this.logger.info(
+        {
+          userId,
+          alertId,
+          action: action.action,
+        },
+        'Alert action performed successfully'
+      );
 
       return {
         success: true,
@@ -498,12 +536,15 @@ export class AlertService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId,
-        alertId,
-        action,
-      }, 'Error performing alert action');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          alertId,
+          action,
+        },
+        'Error performing alert action'
+      );
 
       return {
         success: false,
@@ -535,16 +576,19 @@ export class AlertService {
 
       for (const alert of alerts) {
         const triggerResult = this.evaluateAlertCondition(alert, context);
-        
+
         if (triggerResult.triggered) {
           await this.triggerAlert(alert as AlertWithCoin & { user: any }, triggerResult, context);
         }
       }
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        context,
-      }, 'Error checking alerts');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          context,
+        },
+        'Error checking alerts'
+      );
     }
   }
 
@@ -562,7 +606,10 @@ export class AlertService {
 
       case 'volume_spike':
         if (!condition.volumeThreshold && !condition.percentageChange) {
-          return { valid: false, message: 'Volume spike alerts require volumeThreshold or percentageChange' };
+          return {
+            valid: false,
+            message: 'Volume spike alerts require volumeThreshold or percentageChange',
+          };
         }
         break;
 
@@ -574,7 +621,10 @@ export class AlertService {
 
       case 'social_spike':
         if (!condition.socialThreshold && !condition.percentageChange) {
-          return { valid: false, message: 'Social spike alerts require socialThreshold or percentageChange' };
+          return {
+            valid: false,
+            message: 'Social spike alerts require socialThreshold or percentageChange',
+          };
         }
         break;
 
@@ -590,14 +640,22 @@ export class AlertService {
 
     switch (alert.type) {
       case 'price_above':
-        if (condition.targetPrice && context.currentPrice && context.currentPrice >= condition.targetPrice) {
+        if (
+          condition.targetPrice &&
+          context.currentPrice &&
+          context.currentPrice >= condition.targetPrice
+        ) {
           return {
             triggered: true,
             reason: `Price reached target of $${condition.targetPrice}`,
             data: { currentPrice: context.currentPrice, targetPrice: condition.targetPrice },
           };
         }
-        if (condition.percentageChange && context.priceChange24h && context.priceChange24h >= condition.percentageChange) {
+        if (
+          condition.percentageChange &&
+          context.priceChange24h &&
+          context.priceChange24h >= condition.percentageChange
+        ) {
           return {
             triggered: true,
             reason: `Price increased by ${context.priceChange24h.toFixed(2)}%`,
@@ -607,14 +665,22 @@ export class AlertService {
         break;
 
       case 'price_below':
-        if (condition.targetPrice && context.currentPrice && context.currentPrice <= condition.targetPrice) {
+        if (
+          condition.targetPrice &&
+          context.currentPrice &&
+          context.currentPrice <= condition.targetPrice
+        ) {
           return {
             triggered: true,
             reason: `Price dropped below $${condition.targetPrice}`,
             data: { currentPrice: context.currentPrice, targetPrice: condition.targetPrice },
           };
         }
-        if (condition.percentageChange && context.priceChange24h && context.priceChange24h <= -Math.abs(condition.percentageChange)) {
+        if (
+          condition.percentageChange &&
+          context.priceChange24h &&
+          context.priceChange24h <= -Math.abs(condition.percentageChange)
+        ) {
           return {
             triggered: true,
             reason: `Price decreased by ${Math.abs(context.priceChange24h).toFixed(2)}%`,
@@ -624,7 +690,11 @@ export class AlertService {
         break;
 
       case 'volume_spike':
-        if (condition.volumeThreshold && context.volume24h && context.volume24h >= condition.volumeThreshold) {
+        if (
+          condition.volumeThreshold &&
+          context.volume24h &&
+          context.volume24h >= condition.volumeThreshold
+        ) {
           return {
             triggered: true,
             reason: `Volume spike detected: $${context.volume24h.toLocaleString()}`,
@@ -634,18 +704,28 @@ export class AlertService {
         break;
 
       case 'whale_movement':
-        if (context.whaleTransaction && condition.volumeThreshold && 
-            context.whaleTransaction.usdValue >= condition.volumeThreshold) {
+        if (
+          context.whaleTransaction &&
+          condition.volumeThreshold &&
+          context.whaleTransaction.usdValue >= condition.volumeThreshold
+        ) {
           return {
             triggered: true,
             reason: `Whale transaction detected: $${context.whaleTransaction.usdValue.toLocaleString()}`,
-            data: { whaleTransaction: context.whaleTransaction, threshold: condition.volumeThreshold },
+            data: {
+              whaleTransaction: context.whaleTransaction,
+              threshold: condition.volumeThreshold,
+            },
           };
         }
         break;
 
       case 'social_spike':
-        if (condition.socialThreshold && context.socialScore && context.socialScore >= condition.socialThreshold) {
+        if (
+          condition.socialThreshold &&
+          context.socialScore &&
+          context.socialScore >= condition.socialThreshold
+        ) {
           return {
             triggered: true,
             reason: `Social activity spike detected: ${context.socialScore}`,
@@ -676,20 +756,26 @@ export class AlertService {
         await this.sendAlertNotification(alert, method, triggerResult, context);
       }
 
-      this.logger.info({
-        alertId: alert.id,
-        userId: alert.userId,
-        coinId: alert.coinId,
-        type: alert.type,
-        reason: triggerResult.reason,
-      }, 'Alert triggered successfully');
+      this.logger.info(
+        {
+          alertId: alert.id,
+          userId: alert.userId,
+          coinId: alert.coinId,
+          type: alert.type,
+          reason: triggerResult.reason,
+        },
+        'Alert triggered successfully'
+      );
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        alertId: alert.id,
-        triggerResult,
-        context,
-      }, 'Error triggering alert');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          alertId: alert.id,
+          triggerResult,
+          context,
+        },
+        'Error triggering alert'
+      );
     }
   }
 
@@ -702,11 +788,14 @@ export class AlertService {
     try {
       const recipient = this.getNotificationRecipient(alert.user, method);
       if (!recipient) {
-        this.logger.warn({
-          alertId: alert.id,
-          method,
-          userId: alert.userId,
-        }, 'No recipient configured for notification method');
+        this.logger.warn(
+          {
+            alertId: alert.id,
+            method,
+            userId: alert.userId,
+          },
+          'No recipient configured for notification method'
+        );
         return;
       }
 
@@ -729,11 +818,14 @@ export class AlertService {
 
       await this.notificationService.sendNotification(delivery);
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        alertId: alert.id,
-        method,
-      }, 'Error sending alert notification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          alertId: alert.id,
+          method,
+        },
+        'Error sending alert notification'
+      );
     }
   }
 
@@ -767,10 +859,13 @@ export class AlertService {
         await this.notificationService.sendNotification(delivery);
       }
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        alertId: alert.id,
-      }, 'Error sending test notification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          alertId: alert.id,
+        },
+        'Error sending test notification'
+      );
     }
   }
 
@@ -798,19 +893,19 @@ export class AlertService {
     const alertName = alert.name || `${alert.type} alert`;
 
     const subject = `🚨 Alert Triggered: ${coinName}`;
-    
+
     let content = `Your ${alertName} for ${coinName} has been triggered!\n\n`;
     content += `Reason: ${triggerResult.reason}\n`;
-    
+
     if (context.currentPrice) {
       content += `Current Price: $${context.currentPrice.toFixed(6)}\n`;
     }
-    
+
     if (context.priceChange24h) {
       const changeSymbol = context.priceChange24h >= 0 ? '+' : '';
       content += `24h Change: ${changeSymbol}${context.priceChange24h.toFixed(2)}%\n`;
     }
-    
+
     if (context.volume24h) {
       content += `24h Volume: $${context.volume24h.toLocaleString()}\n`;
     }

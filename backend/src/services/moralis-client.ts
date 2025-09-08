@@ -158,14 +158,14 @@ export interface MoralisTokenHolders {
   }>;
 }
 
-export type MoralisChain = 
-  | 'eth' 
-  | 'bsc' 
-  | 'polygon' 
-  | 'avalanche' 
-  | 'fantom' 
-  | 'cronos' 
-  | 'arbitrum' 
+export type MoralisChain =
+  | 'eth'
+  | 'bsc'
+  | 'polygon'
+  | 'avalanche'
+  | 'fantom'
+  | 'cronos'
+  | 'arbitrum'
   | 'optimism'
   | 'base'
   | 'linea';
@@ -176,7 +176,7 @@ export class MoralisClient {
 
   constructor(config: MoralisConfig) {
     this.logger = config.logger;
-    
+
     const httpOptions: HttpClientOptions = {
       baseUrl: config.baseUrl || 'https://deep-index.moralis.io/api/v2.2',
       timeout: config.timeout || 30000,
@@ -407,7 +407,15 @@ export class MoralisClient {
       limit?: number;
       order?: 'ASC' | 'DESC';
     } = {}
-  ): Promise<{ cursor?: string; result: Array<{ address: string; balance: string; balance_formatted: string; percentage_relative_to_total_supply?: number }> }> {
+  ): Promise<{
+    cursor?: string;
+    result: Array<{
+      address: string;
+      balance: string;
+      balance_formatted: string;
+      percentage_relative_to_total_supply?: number;
+    }>;
+  }> {
     const params = new URLSearchParams({
       chain,
     });
@@ -423,9 +431,15 @@ export class MoralisClient {
     }
 
     try {
-      return await this.httpClient.get<{ cursor?: string; result: Array<{ address: string; balance: string; balance_formatted: string; percentage_relative_to_total_supply?: number }> }>(
-        `/erc20/${address}/owners?${params.toString()}`
-      );
+      return await this.httpClient.get<{
+        cursor?: string;
+        result: Array<{
+          address: string;
+          balance: string;
+          balance_formatted: string;
+          percentage_relative_to_total_supply?: number;
+        }>;
+      }>(`/erc20/${address}/owners?${params.toString()}`);
     } catch (error) {
       this.handleApiError(error, 'getTokenHolders');
       throw error;
@@ -495,9 +509,7 @@ export class MoralisClient {
     }
 
     try {
-      return await this.httpClient.get(
-        `/block/${blockNumberOrHash}?${params.toString()}`
-      );
+      return await this.httpClient.get(`/block/${blockNumberOrHash}?${params.toString()}`);
     } catch (error) {
       this.handleApiError(error, 'getBlock');
       throw error;
@@ -506,21 +518,27 @@ export class MoralisClient {
 
   private handleApiError(error: any, method: string): void {
     if (error.statusCode === 429) {
-      this.logger?.warn({
-        method,
-        error: error.message,
-        statusCode: error.statusCode,
-      }, 'Moralis API rate limit exceeded');
-      
+      this.logger?.warn(
+        {
+          method,
+          error: error.message,
+          statusCode: error.statusCode,
+        },
+        'Moralis API rate limit exceeded'
+      );
+
       throw new RateLimitError('Moralis API rate limit exceeded');
     }
 
-    this.logger?.error({
-      method,
-      error: error.message,
-      statusCode: error.statusCode,
-      responseBody: error.responseBody,
-    }, 'Moralis API error');
+    this.logger?.error(
+      {
+        method,
+        error: error.message,
+        statusCode: error.statusCode,
+        responseBody: error.responseBody,
+      },
+      'Moralis API error'
+    );
   }
 
   /**

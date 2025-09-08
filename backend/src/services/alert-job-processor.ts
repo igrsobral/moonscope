@@ -1,6 +1,12 @@
 import { Job } from 'bullmq';
 import { FastifyBaseLogger } from 'fastify';
-import { AlertTriggerService, PriceUpdateEvent, WhaleMovementEvent, SocialSpikeEvent, VolumeSpike } from './alert-trigger.js';
+import {
+  AlertTriggerService,
+  PriceUpdateEvent,
+  WhaleMovementEvent,
+  SocialSpikeEvent,
+  VolumeSpike,
+} from './alert-trigger.js';
 
 export interface AlertJobData {
   type: 'price_update' | 'whale_movement' | 'social_spike' | 'volume_spike';
@@ -17,11 +23,14 @@ export class AlertJobProcessor {
     try {
       const { type, data } = job.data;
 
-      this.logger.info({
-        jobId: job.id,
-        type,
-        coinId: data.coinId,
-      }, 'Processing alert job');
+      this.logger.info(
+        {
+          jobId: job.id,
+          type,
+          coinId: data.coinId,
+        },
+        'Processing alert job'
+      );
 
       switch (type) {
         case 'price_update':
@@ -44,17 +53,23 @@ export class AlertJobProcessor {
           throw new Error(`Unknown alert job type: ${type}`);
       }
 
-      this.logger.info({
-        jobId: job.id,
-        type,
-        coinId: data.coinId,
-      }, 'Alert job processed successfully');
+      this.logger.info(
+        {
+          jobId: job.id,
+          type,
+          coinId: data.coinId,
+        },
+        'Alert job processed successfully'
+      );
     } catch (error) {
-      this.logger.error({
-        jobId: job.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        jobData: job.data,
-      }, 'Error processing alert job');
+      this.logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          jobData: job.data,
+        },
+        'Error processing alert job'
+      );
 
       throw error; // Re-throw to mark job as failed
     }
@@ -62,25 +77,34 @@ export class AlertJobProcessor {
 
   async processAlertCleanup(job: Job): Promise<void> {
     try {
-      this.logger.info({
-        jobId: job.id,
-      }, 'Processing alert cleanup job');
+      this.logger.info(
+        {
+          jobId: job.id,
+        },
+        'Processing alert cleanup job'
+      );
 
       const [cleanedNotifications, retriedNotifications] = await Promise.all([
         this.alertTriggerService.cleanupNotificationHistory(30), // Clean up 30+ day old notifications
         this.alertTriggerService.retryFailedNotifications(3), // Retry failed notifications up to 3 times
       ]);
 
-      this.logger.info({
-        jobId: job.id,
-        cleanedNotifications,
-        retriedNotifications,
-      }, 'Alert cleanup job completed');
+      this.logger.info(
+        {
+          jobId: job.id,
+          cleanedNotifications,
+          retriedNotifications,
+        },
+        'Alert cleanup job completed'
+      );
     } catch (error) {
-      this.logger.error({
-        jobId: job.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }, 'Error processing alert cleanup job');
+      this.logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Error processing alert cleanup job'
+      );
 
       throw error;
     }
@@ -88,24 +112,33 @@ export class AlertJobProcessor {
 
   async processAlertStatistics(job: Job): Promise<void> {
     try {
-      this.logger.info({
-        jobId: job.id,
-      }, 'Processing alert statistics job');
+      this.logger.info(
+        {
+          jobId: job.id,
+        },
+        'Processing alert statistics job'
+      );
 
       const statistics = await this.alertTriggerService.getAlertStatistics();
 
-      this.logger.info({
-        jobId: job.id,
-        statistics,
-      }, 'Alert statistics collected');
+      this.logger.info(
+        {
+          jobId: job.id,
+          statistics,
+        },
+        'Alert statistics collected'
+      );
 
       // You could store these statistics in a database or send to monitoring service
       // For now, we just log them
     } catch (error) {
-      this.logger.error({
-        jobId: job.id,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }, 'Error processing alert statistics job');
+      this.logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Error processing alert statistics job'
+      );
 
       throw error;
     }

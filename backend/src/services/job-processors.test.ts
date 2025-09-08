@@ -170,7 +170,9 @@ describe('JobProcessors', () => {
       mockCoinService.storePriceData.mockRejectedValue(new Error('Database Error'));
 
       // Act & Assert
-      await expect((jobProcessors as any).processPriceUpdateJob(mockJob)).rejects.toThrow('Database Error');
+      await expect((jobProcessors as any).processPriceUpdateJob(mockJob)).rejects.toThrow(
+        'Database Error'
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           jobId: 'job-123',
@@ -193,7 +195,7 @@ describe('JobProcessors', () => {
         updateProgress: vi.fn(),
       } as unknown as Job;
 
-      // Since we're using mock data in the current implementation, 
+      // Since we're using mock data in the current implementation,
       // this test should pass with the mock data
       const result = await (jobProcessors as any).processPriceUpdateJob(mockJob);
 
@@ -276,7 +278,7 @@ describe('JobProcessors', () => {
           alertId: 1,
           coinId: 1,
           alertType: 'price_above',
-          condition: { targetPrice: 0.10 },
+          condition: { targetPrice: 0.1 },
           userId: 1,
         },
         updateProgress: vi.fn(),
@@ -286,7 +288,7 @@ describe('JobProcessors', () => {
         id: 1,
         isActive: true,
         type: 'price_above',
-        condition: { targetPrice: 0.10 },
+        condition: { targetPrice: 0.1 },
         notificationMethods: ['email', 'push'],
         user: { id: 1, email: 'test@example.com' },
         coin: { symbol: 'DOGE' },
@@ -316,7 +318,9 @@ describe('JobProcessors', () => {
         where: { id: 1 },
         data: { lastTriggered: expect.any(Date) },
       });
-      expect(mockRealtimeService.broadcastAlertTriggered).toHaveBeenCalledWith(1, mockAlert, { targetPrice: 0.10 });
+      expect(mockRealtimeService.broadcastAlertTriggered).toHaveBeenCalledWith(1, mockAlert, {
+        targetPrice: 0.1,
+      });
       expect(result).toEqual({
         success: true,
         alertId: 1,
@@ -334,7 +338,7 @@ describe('JobProcessors', () => {
           alertId: 1,
           coinId: 1,
           alertType: 'price_above',
-          condition: { targetPrice: 0.10 },
+          condition: { targetPrice: 0.1 },
           userId: 1,
         },
         updateProgress: vi.fn(),
@@ -344,7 +348,7 @@ describe('JobProcessors', () => {
         id: 1,
         isActive: true,
         type: 'price_above',
-        condition: { targetPrice: 0.10 },
+        condition: { targetPrice: 0.1 },
         user: { id: 1 },
         coin: { symbol: 'DOGE' },
       };
@@ -434,7 +438,7 @@ describe('JobProcessors', () => {
       // Arrange
       const alert = {
         type: 'price_above',
-        condition: { targetPrice: 0.10 },
+        condition: { targetPrice: 0.1 },
         coinId: 1,
       };
       const condition = {};
@@ -454,7 +458,7 @@ describe('JobProcessors', () => {
       // Arrange
       const alert = {
         type: 'price_above',
-        condition: { targetPrice: 0.10 },
+        condition: { targetPrice: 0.1 },
         coinId: 1,
       };
       const condition = {};

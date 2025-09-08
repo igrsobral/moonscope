@@ -48,12 +48,7 @@ export class AlertTriggerService {
     private cache: CacheService,
     private notificationService: NotificationService
   ) {
-    this.alertService = new AlertService(
-      prisma,
-      logger,
-      cache,
-      notificationService
-    );
+    this.alertService = new AlertService(prisma, logger, cache, notificationService);
   }
 
   /**
@@ -70,16 +65,22 @@ export class AlertTriggerService {
 
       await this.alertService.checkAlerts(context);
 
-      this.logger.debug({
-        coinId: event.coinId,
-        price: event.price,
-        priceChange24h: event.priceChange24h,
-      }, 'Processed price update for alert checking');
+      this.logger.debug(
+        {
+          coinId: event.coinId,
+          price: event.price,
+          priceChange24h: event.priceChange24h,
+        },
+        'Processed price update for alert checking'
+      );
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        event,
-      }, 'Error processing price update for alerts');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          event,
+        },
+        'Error processing price update for alerts'
+      );
     }
   }
 
@@ -99,16 +100,22 @@ export class AlertTriggerService {
 
       await this.alertService.checkAlerts(context);
 
-      this.logger.debug({
-        coinId: event.coinId,
-        txHash: event.txHash,
-        usdValue: event.usdValue,
-      }, 'Processed whale movement for alert checking');
+      this.logger.debug(
+        {
+          coinId: event.coinId,
+          txHash: event.txHash,
+          usdValue: event.usdValue,
+        },
+        'Processed whale movement for alert checking'
+      );
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        event,
-      }, 'Error processing whale movement for alerts');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          event,
+        },
+        'Error processing whale movement for alerts'
+      );
     }
   }
 
@@ -124,16 +131,22 @@ export class AlertTriggerService {
 
       await this.alertService.checkAlerts(context);
 
-      this.logger.debug({
-        coinId: event.coinId,
-        platform: event.platform,
-        socialScore: event.socialScore,
-      }, 'Processed social spike for alert checking');
+      this.logger.debug(
+        {
+          coinId: event.coinId,
+          platform: event.platform,
+          socialScore: event.socialScore,
+        },
+        'Processed social spike for alert checking'
+      );
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        event,
-      }, 'Error processing social spike for alerts');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          event,
+        },
+        'Error processing social spike for alerts'
+      );
     }
   }
 
@@ -149,16 +162,22 @@ export class AlertTriggerService {
 
       await this.alertService.checkAlerts(context);
 
-      this.logger.debug({
-        coinId: event.coinId,
-        volume24h: event.volume24h,
-        volumeChange24h: event.volumeChange24h,
-      }, 'Processed volume spike for alert checking');
+      this.logger.debug(
+        {
+          coinId: event.coinId,
+          volume24h: event.volume24h,
+          volumeChange24h: event.volumeChange24h,
+        },
+        'Processed volume spike for alert checking'
+      );
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        event,
-      }, 'Error processing volume spike for alerts');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          event,
+        },
+        'Error processing volume spike for alerts'
+      );
     }
   }
 
@@ -172,12 +191,7 @@ export class AlertTriggerService {
     recentTriggers: number;
   }> {
     try {
-      const [
-        totalAlerts,
-        activeAlerts,
-        alertsByType,
-        recentTriggers,
-      ] = await Promise.all([
+      const [totalAlerts, activeAlerts, alertsByType, recentTriggers] = await Promise.all([
         this.prisma.alert.count(),
         this.prisma.alert.count({ where: { isActive: true } }),
         this.prisma.alert.groupBy({
@@ -193,10 +207,13 @@ export class AlertTriggerService {
         }),
       ]);
 
-      const alertTypeStats = alertsByType.reduce((acc, item) => {
-        acc[item.type] = item._count.type;
-        return acc;
-      }, {} as Record<string, number>);
+      const alertTypeStats = alertsByType.reduce(
+        (acc, item) => {
+          acc[item.type] = item._count.type;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
       return {
         totalAlerts,
@@ -205,9 +222,12 @@ export class AlertTriggerService {
         recentTriggers,
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }, 'Error getting alert statistics');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Error getting alert statistics'
+      );
 
       return {
         totalAlerts: 0,
@@ -224,7 +244,7 @@ export class AlertTriggerService {
   async cleanupNotificationHistory(olderThanDays: number = 30): Promise<number> {
     try {
       const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
-      
+
       const result = await this.prisma.notificationHistory.deleteMany({
         where: {
           createdAt: {
@@ -236,17 +256,23 @@ export class AlertTriggerService {
         },
       });
 
-      this.logger.info({
-        deletedCount: result.count,
-        cutoffDate,
-      }, 'Cleaned up old notification history');
+      this.logger.info(
+        {
+          deletedCount: result.count,
+          cutoffDate,
+        },
+        'Cleaned up old notification history'
+      );
 
       return result.count;
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        olderThanDays,
-      }, 'Error cleaning up notification history');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          olderThanDays,
+        },
+        'Error cleaning up notification history'
+      );
 
       return 0;
     }
@@ -276,24 +302,33 @@ export class AlertTriggerService {
           await this.notificationService.retryFailedNotification(notification.id);
           retriedCount++;
         } catch (error) {
-          this.logger.error({
-            error: error instanceof Error ? error.message : 'Unknown error',
-            notificationId: notification.id,
-          }, 'Error retrying failed notification');
+          this.logger.error(
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              notificationId: notification.id,
+            },
+            'Error retrying failed notification'
+          );
         }
       }
 
-      this.logger.info({
-        retriedCount,
-        totalFailed: failedNotifications.length,
-      }, 'Retried failed notifications');
+      this.logger.info(
+        {
+          retriedCount,
+          totalFailed: failedNotifications.length,
+        },
+        'Retried failed notifications'
+      );
 
       return retriedCount;
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        maxRetries,
-      }, 'Error retrying failed notifications');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          maxRetries,
+        },
+        'Error retrying failed notifications'
+      );
 
       return 0;
     }

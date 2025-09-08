@@ -43,7 +43,7 @@ export class EmailNotificationChannel implements NotificationChannel {
       fromName: string;
     },
     private logger: FastifyBaseLogger
-  ) { }
+  ) {}
 
   validateRecipient(recipient: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,18 +54,22 @@ export class EmailNotificationChannel implements NotificationChannel {
     try {
       // In a real implementation, you would use a library like nodemailer
       // For now, we'll simulate the email sending
-      this.logger.info({
-        method: 'email',
-        recipient: delivery.recipient,
-        subject: delivery.subject,
-        alertId: delivery.alertId,
-      }, 'Sending email notification');
+      this.logger.info(
+        {
+          method: 'email',
+          recipient: delivery.recipient,
+          subject: delivery.subject,
+          alertId: delivery.alertId,
+        },
+        'Sending email notification'
+      );
 
       // Simulate email sending delay
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Simulate occasional failures for testing retry logic
-      if (Math.random() < 0.05) { // 5% failure rate
+      if (Math.random() < 0.05) {
+        // 5% failure rate
         throw new Error('SMTP server temporarily unavailable');
       }
 
@@ -76,12 +80,15 @@ export class EmailNotificationChannel implements NotificationChannel {
         messageId,
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        method: 'email',
-        recipient: delivery.recipient,
-        alertId: delivery.alertId,
-      }, 'Failed to send email notification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          method: 'email',
+          recipient: delivery.recipient,
+          alertId: delivery.alertId,
+        },
+        'Failed to send email notification'
+      );
 
       return {
         success: false,
@@ -99,7 +106,7 @@ export class PushNotificationChannel implements NotificationChannel {
       apnsCertificate?: string;
     },
     private logger: FastifyBaseLogger
-  ) { }
+  ) {}
 
   validateRecipient(recipient: string): boolean {
     // Push notification recipient should be a device token
@@ -108,18 +115,22 @@ export class PushNotificationChannel implements NotificationChannel {
 
   async send(delivery: NotificationDelivery): Promise<NotificationResult> {
     try {
-      this.logger.info({
-        method: 'push',
-        recipient: delivery.recipient,
-        subject: delivery.subject,
-        alertId: delivery.alertId,
-      }, 'Sending push notification');
+      this.logger.info(
+        {
+          method: 'push',
+          recipient: delivery.recipient,
+          subject: delivery.subject,
+          alertId: delivery.alertId,
+        },
+        'Sending push notification'
+      );
 
       // Simulate push notification sending
       await new Promise(resolve => setTimeout(resolve, 50));
 
       // Simulate occasional failures
-      if (Math.random() < 0.03) { // 3% failure rate
+      if (Math.random() < 0.03) {
+        // 3% failure rate
         throw new Error('Push service unavailable');
       }
 
@@ -130,12 +141,15 @@ export class PushNotificationChannel implements NotificationChannel {
         messageId,
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        method: 'push',
-        recipient: delivery.recipient,
-        alertId: delivery.alertId,
-      }, 'Failed to send push notification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          method: 'push',
+          recipient: delivery.recipient,
+          alertId: delivery.alertId,
+        },
+        'Failed to send push notification'
+      );
 
       return {
         success: false,
@@ -154,7 +168,7 @@ export class SMSNotificationChannel implements NotificationChannel {
       fromPhoneNumber: string;
     },
     private logger: FastifyBaseLogger
-  ) { }
+  ) {}
 
   validateRecipient(recipient: string): boolean {
     // Basic phone number validation
@@ -164,17 +178,21 @@ export class SMSNotificationChannel implements NotificationChannel {
 
   async send(delivery: NotificationDelivery): Promise<NotificationResult> {
     try {
-      this.logger.info({
-        method: 'sms',
-        recipient: delivery.recipient,
-        alertId: delivery.alertId,
-      }, 'Sending SMS notification');
+      this.logger.info(
+        {
+          method: 'sms',
+          recipient: delivery.recipient,
+          alertId: delivery.alertId,
+        },
+        'Sending SMS notification'
+      );
 
       // Simulate SMS sending
       await new Promise(resolve => setTimeout(resolve, 200));
 
       // Simulate occasional failures
-      if (Math.random() < 0.02) { // 2% failure rate
+      if (Math.random() < 0.02) {
+        // 2% failure rate
         throw new Error('SMS service rate limit exceeded');
       }
 
@@ -185,12 +203,15 @@ export class SMSNotificationChannel implements NotificationChannel {
         messageId,
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        method: 'sms',
-        recipient: delivery.recipient,
-        alertId: delivery.alertId,
-      }, 'Failed to send SMS notification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          method: 'sms',
+          recipient: delivery.recipient,
+          alertId: delivery.alertId,
+        },
+        'Failed to send SMS notification'
+      );
 
       return {
         success: false,
@@ -241,7 +262,9 @@ export class NotificationService {
     }
   }
 
-  async sendNotification(delivery: NotificationDelivery): Promise<ApiResponse<NotificationHistory>> {
+  async sendNotification(
+    delivery: NotificationDelivery
+  ): Promise<ApiResponse<NotificationHistory>> {
     try {
       const channel = this.channels.get(delivery.method);
       if (!channel) {
@@ -283,7 +306,7 @@ export class NotificationService {
           content: delivery.content,
           status: 'pending',
           retryCount: 0,
-          metadata: delivery.metadata as any || {},
+          metadata: (delivery.metadata as any) || {},
         },
       });
 
@@ -293,20 +316,25 @@ export class NotificationService {
       return {
         success: result.success,
         data: result.history,
-        error: result.success ? undefined : {
-          code: 'NOTIFICATION_FAILED',
-          message: result.error || 'Failed to send notification',
-        },
+        error: result.success
+          ? undefined
+          : {
+              code: 'NOTIFICATION_FAILED',
+              message: result.error || 'Failed to send notification',
+            },
         meta: {
           timestamp: new Date().toISOString(),
           requestId: `notif_${notificationHistory.id}`,
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        delivery,
-      }, 'Error in sendNotification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          delivery,
+        },
+        'Error in sendNotification'
+      );
 
       return {
         success: false,
@@ -442,10 +470,13 @@ export class NotificationService {
         },
       };
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        alertId,
-      }, 'Error getting notification history');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          alertId,
+        },
+        'Error getting notification history'
+      );
 
       return {
         success: false,
@@ -508,10 +539,13 @@ export class NotificationService {
       // Send notification
       return await this.sendNotification(delivery);
     } catch (error) {
-      this.logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        historyId,
-      }, 'Error retrying notification');
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          historyId,
+        },
+        'Error retrying notification'
+      );
 
       return {
         success: false,

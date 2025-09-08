@@ -22,7 +22,7 @@ describe('Liquidity Routes', () => {
 
   beforeEach(async () => {
     app = Fastify({ logger: false });
-    
+
     // Mock required plugins
     app.decorate('prisma', {
       liquidityPool: {
@@ -30,10 +30,10 @@ describe('Liquidity Routes', () => {
         findMany: vi.fn(),
       },
     });
-    
+
     app.decorate('cache', {});
     app.decorate('realtime', {});
-    
+
     // Mock authentication
     app.decorate('authenticate', async (request: any) => {
       request.user = { id: 1 };
@@ -46,7 +46,7 @@ describe('Liquidity Routes', () => {
   describe('Route Registration', () => {
     it('should register all liquidity routes', async () => {
       const routes = app.printRoutes();
-      
+
       // Check that key routes are registered
       expect(routes).toContain('GET /api/v1/liquidity/coins/:coinId/pools');
       expect(routes).toContain('GET /api/v1/liquidity/coins/:coinId/analysis');

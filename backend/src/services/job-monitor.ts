@@ -78,7 +78,13 @@ export class JobMonitor {
    * Set up queue event listeners
    */
   private async setupQueueEventListeners(): Promise<void> {
-    const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
+    const queues = [
+      'price-updates',
+      'social-scraping',
+      'alert-processing',
+      'risk-assessment',
+      'maintenance',
+    ];
 
     for (const queueName of queues) {
       try {
@@ -106,7 +112,10 @@ export class JobMonitor {
 
         this.logger.debug({ queueName }, 'Queue event listeners set up');
       } catch (error) {
-        this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to set up queue event listeners');
+        this.logger.error(
+          { queueName, error: error instanceof Error ? error.message : String(error) },
+          'Failed to set up queue event listeners'
+        );
       }
     }
   }
@@ -114,17 +123,25 @@ export class JobMonitor {
   /**
    * Record job completion
    */
-  private async recordJobCompletion(queueName: string, jobId: string, returnValue: any): Promise<void> {
+  private async recordJobCompletion(
+    queueName: string,
+    jobId: string,
+    returnValue: any
+  ): Promise<void> {
     try {
       const key = `job:metrics:${queueName}:completed`;
       const timestamp = Date.now();
-      
+
       // Store completion record
-      await this.redis.zadd(key, timestamp, JSON.stringify({
-        jobId,
+      await this.redis.zadd(
+        key,
         timestamp,
-        returnValue,
-      }));
+        JSON.stringify({
+          jobId,
+          timestamp,
+          returnValue,
+        })
+      );
 
       // Set expiry for cleanup
       await this.redis.expire(key, 86400); // 24 hours
@@ -134,21 +151,28 @@ export class JobMonitor {
 
       this.logger.debug({ queueName, jobId }, 'Job completion recorded');
     } catch (error) {
-      this.logger.error({ queueName, jobId, error: error instanceof Error ? error.message : String(error) }, 'Failed to record job completion');
+      this.logger.error(
+        { queueName, jobId, error: error instanceof Error ? error.message : String(error) },
+        'Failed to record job completion'
+      );
     }
   }
 
   /**
    * Record job failure
    */
-  private async recordJobFailure(queueName: string, jobId: string, failedReason: string): Promise<void> {
+  private async recordJobFailure(
+    queueName: string,
+    jobId: string,
+    failedReason: string
+  ): Promise<void> {
     try {
       const key = `job:metrics:${queueName}:failed`;
       const timestamp = Date.now();
-      
+
       // Get job details
       const job = await this.queueManager.getJob(queueName, jobId);
-      
+
       const failureRecord: JobFailure = {
         queueName,
         jobName: job?.name || 'unknown',
@@ -173,7 +197,10 @@ export class JobMonitor {
 
       this.logger.warn({ queueName, jobId, error: failedReason }, 'Job failure recorded');
     } catch (error) {
-      this.logger.error({ queueName, jobId, error: error instanceof Error ? error.message : String(error) }, 'Failed to record job failure');
+      this.logger.error(
+        { queueName, jobId, error: error instanceof Error ? error.message : String(error) },
+        'Failed to record job failure'
+      );
     }
   }
 
@@ -183,15 +210,22 @@ export class JobMonitor {
   private async recordJobProgress(queueName: string, jobId: string, progress: any): Promise<void> {
     try {
       const key = `job:progress:${queueName}:${jobId}`;
-      
-      await this.redis.setex(key, 3600, JSON.stringify({
-        progress,
-        timestamp: Date.now(),
-      }));
+
+      await this.redis.setex(
+        key,
+        3600,
+        JSON.stringify({
+          progress,
+          timestamp: Date.now(),
+        })
+      );
 
       this.logger.debug({ queueName, jobId, progress }, 'Job progress recorded');
     } catch (error) {
-      this.logger.error({ queueName, jobId, error: error instanceof Error ? error.message : String(error) }, 'Failed to record job progress');
+      this.logger.error(
+        { queueName, jobId, error: error instanceof Error ? error.message : String(error) },
+        'Failed to record job progress'
+      );
     }
   }
 
@@ -202,17 +236,24 @@ export class JobMonitor {
     try {
       const key = `job:metrics:${queueName}:stalled`;
       const timestamp = Date.now();
-      
-      await this.redis.zadd(key, timestamp, JSON.stringify({
-        jobId,
+
+      await this.redis.zadd(
+        key,
         timestamp,
-      }));
+        JSON.stringify({
+          jobId,
+          timestamp,
+        })
+      );
 
       await this.redis.expire(key, 86400); // 24 hours
 
       this.logger.warn({ queueName, jobId }, 'Job stall recorded');
     } catch (error) {
-      this.logger.error({ queueName, jobId, error: error instanceof Error ? error.message : String(error) }, 'Failed to record job stall');
+      this.logger.error(
+        { queueName, jobId, error: error instanceof Error ? error.message : String(error) },
+        'Failed to record job stall'
+      );
     }
   }
 
@@ -223,15 +264,21 @@ export class JobMonitor {
     try {
       // This would store in a job_failures table if it existed
       // For now, we'll just log it
-      this.logger.error({
-        queueName: failure.queueName,
-        jobName: failure.jobName,
-        jobId: failure.jobId,
-        error: failure.error,
-        attemptsMade: failure.attemptsMade,
-      }, 'Job failure stored');
+      this.logger.error(
+        {
+          queueName: failure.queueName,
+          jobName: failure.jobName,
+          jobId: failure.jobId,
+          error: failure.error,
+          attemptsMade: failure.attemptsMade,
+        },
+        'Job failure stored'
+      );
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store job failure in database');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to store job failure in database'
+      );
     }
   }
 
@@ -243,7 +290,10 @@ export class JobMonitor {
       const metrics = await this.calculateQueueMetrics(queueName);
       this.metricsCache.set(queueName, metrics);
     } catch (error) {
-      this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to update metrics cache');
+      this.logger.error(
+        { queueName, error: error instanceof Error ? error.message : String(error) },
+        'Failed to update metrics cache'
+      );
     }
   }
 
@@ -257,7 +307,7 @@ export class JobMonitor {
 
       // Get completion and failure counts from Redis
       const now = Date.now();
-      const oneDayAgo = now - (24 * 60 * 60 * 1000);
+      const oneDayAgo = now - 24 * 60 * 60 * 1000;
 
       const [completedCount, failedCount] = await Promise.all([
         this.redis.zcount(`job:metrics:${queueName}:completed`, oneDayAgo, now),
@@ -274,10 +324,14 @@ export class JobMonitor {
         this.redis.zrevrange(`job:metrics:${queueName}:failed`, 0, 0, 'WITHSCORES'),
       ]);
 
-      const lastProcessed = lastCompletedData.length > 0 && lastCompletedData[1] ? 
-        new Date(parseInt(lastCompletedData[1])) : null;
-      const lastFailure = lastFailedData.length > 0 && lastFailedData[1] ? 
-        new Date(parseInt(lastFailedData[1])) : null;
+      const lastProcessed =
+        lastCompletedData.length > 0 && lastCompletedData[1]
+          ? new Date(parseInt(lastCompletedData[1]))
+          : null;
+      const lastFailure =
+        lastFailedData.length > 0 && lastFailedData[1]
+          ? new Date(parseInt(lastFailedData[1]))
+          : null;
 
       // Calculate average processing time (placeholder - would need more detailed tracking)
       const averageProcessingTime = 0; // TODO: Implement proper timing
@@ -285,7 +339,8 @@ export class JobMonitor {
       return {
         queueName,
         jobName: 'all', // This could be broken down by job type
-        totalJobs: queueStatus.waiting + queueStatus.active + queueStatus.completed + queueStatus.failed,
+        totalJobs:
+          queueStatus.waiting + queueStatus.active + queueStatus.completed + queueStatus.failed,
         completedJobs: completedCount,
         failedJobs: failedCount,
         activeJobs: queueStatus.active,
@@ -297,8 +352,11 @@ export class JobMonitor {
         lastFailure,
       };
     } catch (error) {
-      this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to calculate queue metrics');
-      
+      this.logger.error(
+        { queueName, error: error instanceof Error ? error.message : String(error) },
+        'Failed to calculate queue metrics'
+      );
+
       // Return default metrics on error
       return {
         queueName,
@@ -321,13 +379,22 @@ export class JobMonitor {
    * Collect metrics for all queues
    */
   async collectMetrics(): Promise<void> {
-    const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
+    const queues = [
+      'price-updates',
+      'social-scraping',
+      'alert-processing',
+      'risk-assessment',
+      'maintenance',
+    ];
 
     for (const queueName of queues) {
       try {
         await this.updateMetricsCache(queueName);
       } catch (error) {
-        this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to collect metrics for queue');
+        this.logger.error(
+          { queueName, error: error instanceof Error ? error.message : String(error) },
+          'Failed to collect metrics for queue'
+        );
       }
     }
 
@@ -346,7 +413,7 @@ export class JobMonitor {
     // Calculate and cache metrics
     const metrics = await this.calculateQueueMetrics(queueName);
     this.metricsCache.set(queueName, metrics);
-    
+
     return metrics;
   }
 
@@ -354,7 +421,13 @@ export class JobMonitor {
    * Get metrics for all queues
    */
   async getAllQueueMetrics(): Promise<JobMetrics[]> {
-    const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
+    const queues = [
+      'price-updates',
+      'social-scraping',
+      'alert-processing',
+      'risk-assessment',
+      'maintenance',
+    ];
     const metrics: JobMetrics[] = [];
 
     for (const queueName of queues) {
@@ -362,7 +435,10 @@ export class JobMonitor {
         const queueMetrics = await this.getQueueMetrics(queueName);
         metrics.push(queueMetrics);
       } catch (error) {
-        this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to get queue metrics');
+        this.logger.error(
+          { queueName, error: error instanceof Error ? error.message : String(error) },
+          'Failed to get queue metrics'
+        );
       }
     }
 
@@ -375,7 +451,15 @@ export class JobMonitor {
   async getRecentFailures(queueName?: string, limit: number = 50): Promise<JobFailure[]> {
     try {
       const failures: JobFailure[] = [];
-      const queues = queueName ? [queueName] : ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
+      const queues = queueName
+        ? [queueName]
+        : [
+            'price-updates',
+            'social-scraping',
+            'alert-processing',
+            'risk-assessment',
+            'maintenance',
+          ];
 
       for (const queue of queues) {
         const key = `job:metrics:${queue}:failed`;
@@ -395,7 +479,10 @@ export class JobMonitor {
       failures.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       return failures.slice(0, limit);
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to get recent failures');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to get recent failures'
+      );
       return [];
     }
   }
@@ -405,14 +492,20 @@ export class JobMonitor {
    */
   async getHealthStatus(): Promise<{
     overall: 'healthy' | 'warning' | 'critical';
-    queues: Record<string, {
-      status: 'healthy' | 'warning' | 'critical';
-      issues: string[];
-    }>;
+    queues: Record<
+      string,
+      {
+        status: 'healthy' | 'warning' | 'critical';
+        issues: string[];
+      }
+    >;
   }> {
     const metrics = await this.getAllQueueMetrics();
-    const queueStatuses: Record<string, { status: 'healthy' | 'warning' | 'critical'; issues: string[] }> = {};
-    
+    const queueStatuses: Record<
+      string,
+      { status: 'healthy' | 'warning' | 'critical'; issues: string[] }
+    > = {};
+
     let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
 
     for (const metric of metrics) {
@@ -432,7 +525,7 @@ export class JobMonitor {
       if (metric.lastFailure && metric.lastProcessed) {
         const timeSinceLastFailure = Date.now() - metric.lastFailure.getTime();
         const timeSinceLastProcessed = Date.now() - metric.lastProcessed.getTime();
-        
+
         if (timeSinceLastFailure < timeSinceLastProcessed) {
           if (status !== 'critical') status = 'warning';
           issues.push('Recent failures detected');
@@ -466,23 +559,32 @@ export class JobMonitor {
    */
   private async cleanupOldMetrics(): Promise<void> {
     try {
-      const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
-      const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+      const queues = [
+        'price-updates',
+        'social-scraping',
+        'alert-processing',
+        'risk-assessment',
+        'maintenance',
+      ];
+      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
 
       for (const queueName of queues) {
         // Clean up old completion records
         await this.redis.zremrangebyscore(`job:metrics:${queueName}:completed`, 0, oneDayAgo);
-        
+
         // Clean up old failure records
         await this.redis.zremrangebyscore(`job:metrics:${queueName}:failed`, 0, oneDayAgo);
-        
+
         // Clean up old stall records
         await this.redis.zremrangebyscore(`job:metrics:${queueName}:stalled`, 0, oneDayAgo);
       }
 
       this.logger.debug('Old metrics cleaned up');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to cleanup old metrics');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to cleanup old metrics'
+      );
     }
   }
 
@@ -506,7 +608,10 @@ export class JobMonitor {
 
       this.logger.info({ queueName }, 'Queue metrics reset');
     } catch (error) {
-      this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to reset queue metrics');
+      this.logger.error(
+        { queueName, error: error instanceof Error ? error.message : String(error) },
+        'Failed to reset queue metrics'
+      );
       throw error;
     }
   }

@@ -37,11 +37,14 @@ export function createRealtimeService(fastify: FastifyInstance): RealtimeService
 
       fastify.websocketManager.broadcastToCoin(coinId, event);
 
-      fastify.log.debug({ 
-        coinId, 
-        price: priceData.price, 
-        change: priceData.priceChange24h 
-      }, 'Broadcasted price update');
+      fastify.log.debug(
+        {
+          coinId,
+          price: priceData.price,
+          change: priceData.priceChange24h,
+        },
+        'Broadcasted price update'
+      );
     },
 
     /**
@@ -65,12 +68,15 @@ export function createRealtimeService(fastify: FastifyInstance): RealtimeService
 
       fastify.websocketManager.broadcastToUser(userId, event);
 
-      fastify.log.info({ 
-        userId, 
-        alertId: alert.id, 
-        alertType: alert.type, 
-        coinId: alert.coinId 
-      }, 'Broadcasted alert triggered');
+      fastify.log.info(
+        {
+          userId,
+          alertId: alert.id,
+          alertType: alert.type,
+          coinId: alert.coinId,
+        },
+        'Broadcasted alert triggered'
+      );
     },
 
     /**
@@ -94,11 +100,14 @@ export function createRealtimeService(fastify: FastifyInstance): RealtimeService
 
       fastify.websocketManager.broadcastToCoin(coinId, event);
 
-      fastify.log.info({ 
-        coinId, 
-        txHash: transaction.txHash, 
-        usdValue: transaction.usdValue 
-      }, 'Broadcasted whale movement');
+      fastify.log.info(
+        {
+          coinId,
+          txHash: transaction.txHash,
+          usdValue: transaction.usdValue,
+        },
+        'Broadcasted whale movement'
+      );
     },
 
     /**
@@ -122,11 +131,14 @@ export function createRealtimeService(fastify: FastifyInstance): RealtimeService
 
       fastify.websocketManager.broadcastToCoin(coinId, event);
 
-      fastify.log.info({ 
-        coinId, 
-        platform: socialData.platform, 
-        mentions: socialData.mentions24h 
-      }, 'Broadcasted social spike');
+      fastify.log.info(
+        {
+          coinId,
+          platform: socialData.platform,
+          mentions: socialData.mentions24h,
+        },
+        'Broadcasted social spike'
+      );
     },
 
     /**

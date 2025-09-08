@@ -112,7 +112,7 @@ describe('Cache Plugin Integration', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    
+
     const data = JSON.parse(response.payload);
     expect(data.status).toBe('healthy');
     expect(data.services).toBeDefined();
@@ -134,7 +134,7 @@ describe('Cache Plugin Integration', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    
+
     const data = JSON.parse(response.payload);
     expect(data.cache).toBeDefined();
     expect(data.sessions).toBeDefined();
@@ -151,7 +151,7 @@ describe('Cache Plugin Integration', () => {
     }
 
     const { CacheService } = await import('../services/cache.js');
-    
+
     expect(CacheService.TTL_STRATEGIES).toBeDefined();
     expect(CacheService.TTL_STRATEGIES.PRICE_DATA).toBe(30);
     expect(CacheService.TTL_STRATEGIES.USER_SESSIONS).toBe(86400);
@@ -194,7 +194,7 @@ describe('Cache Plugin Integration', () => {
     const sessionId = await app.session.createSession(userId, walletAddress, {
       email: 'test@example.com',
     });
-    
+
     // Due to mocking, this might return null, but should not throw
     expect(typeof sessionId === 'string' || sessionId === null).toBe(true);
   });
@@ -206,11 +206,11 @@ describe('Cache Plugin Integration', () => {
     }
 
     const stats = app.cacheWarming.getWarmingStats();
-    
+
     expect(stats.totalStrategies).toBeGreaterThan(0);
     expect(stats.enabledStrategies).toBeGreaterThan(0);
     expect(Array.isArray(stats.strategies)).toBe(true);
-    
+
     // Check for some expected default strategies
     const strategyNames = stats.strategies.map(s => s.name);
     expect(strategyNames).toContain('top_coins');

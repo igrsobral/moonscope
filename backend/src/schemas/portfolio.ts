@@ -3,7 +3,9 @@ import { z } from 'zod';
 export const PortfolioQuerySchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(20),
-  sortBy: z.enum(['amount', 'currentValue', 'profitLoss', 'profitLossPercentage', 'createdAt']).default('currentValue'),
+  sortBy: z
+    .enum(['amount', 'currentValue', 'profitLoss', 'profitLossPercentage', 'createdAt'])
+    .default('currentValue'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   coinId: z.number().positive().optional(),
 });

@@ -31,35 +31,35 @@ export class CacheService {
     // Price data - short TTL for real-time updates
     PRICE_DATA: 30, // 30 seconds
     PRICE_HISTORY: 300, // 5 minutes
-    
+
     // Market data - medium TTL
     MARKET_CAP: 60, // 1 minute
     VOLUME_DATA: 120, // 2 minutes
     LIQUIDITY_DATA: 180, // 3 minutes
-    
+
     // Social data - medium to long TTL
     SOCIAL_METRICS: 600, // 10 minutes
     SENTIMENT_SCORES: 900, // 15 minutes
     TRENDING_DATA: 300, // 5 minutes
-    
+
     // Risk assessments - longer TTL as they change less frequently
     RISK_SCORES: 1800, // 30 minutes
     SECURITY_ANALYSIS: 3600, // 1 hour
-    
+
     // User data - session-based TTL
     USER_SESSIONS: 86400, // 24 hours
     USER_PREFERENCES: 3600, // 1 hour
     USER_PORTFOLIOS: 300, // 5 minutes
-    
+
     // API responses - variable TTL
     COIN_LIST: 300, // 5 minutes
     COIN_DETAILS: 180, // 3 minutes
     SEARCH_RESULTS: 600, // 10 minutes
-    
+
     // Background job results
     WHALE_TRANSACTIONS: 900, // 15 minutes
     LIQUIDITY_ANALYSIS: 1800, // 30 minutes
-    
+
     // Static or rarely changing data
     COIN_METADATA: 86400, // 24 hours
     EXCHANGE_INFO: 3600, // 1 hour
@@ -82,30 +82,29 @@ export class CacheService {
   /**
    * Set a value in cache with TTL
    */
-  async set<T>(
-    key: string, 
-    value: T, 
-    options: CacheOptions = {}
-  ): Promise<boolean> {
+  async set<T>(key: string, value: T, options: CacheOptions = {}): Promise<boolean> {
     try {
       const cacheKey = this.generateKey(key, options.prefix);
       const serializedValue = JSON.stringify(value);
-      
+
       let result: string | null;
       if (options.ttl) {
         result = await this.redis.setex(cacheKey, options.ttl, serializedValue);
       } else {
         result = await this.redis.set(cacheKey, serializedValue);
       }
-      
+
       this.stats.sets++;
-      
-      this.logger.debug({
-        key: cacheKey,
-        ttl: options.ttl,
-        size: serializedValue.length,
-      }, 'Cache set operation');
-      
+
+      this.logger.debug(
+        {
+          key: cacheKey,
+          ttl: options.ttl,
+          size: serializedValue.length,
+        },
+        'Cache set operation'
+      );
+
       return result === 'OK';
     } catch (error) {
       this.stats.errors++;
@@ -121,16 +120,16 @@ export class CacheService {
     try {
       const cacheKey = this.generateKey(key, prefix);
       const value = await this.redis.get(cacheKey);
-      
+
       if (value === null) {
         this.stats.misses++;
         this.logger.debug({ key: cacheKey }, 'Cache miss');
         return null;
       }
-      
+
       this.stats.hits++;
       this.logger.debug({ key: cacheKey }, 'Cache hit');
-      
+
       return JSON.parse(value) as T;
     } catch (error) {
       this.stats.errors++;
@@ -146,10 +145,10 @@ export class CacheService {
     try {
       const cacheKey = this.generateKey(key, prefix);
       const result = await this.redis.del(cacheKey);
-      
+
       this.stats.deletes++;
       this.logger.debug({ key: cacheKey }, 'Cache delete operation');
-      
+
       return result > 0;
     } catch (error) {
       this.stats.errors++;
@@ -216,24 +215,27 @@ export class CacheService {
   /**
    * Set multiple values at once
    */
-  async mset(entries: Array<{ key: string; value: any; ttl?: number }>, prefix?: string): Promise<boolean> {
+  async mset(
+    entries: Array<{ key: string; value: any; ttl?: number }>,
+    prefix?: string
+  ): Promise<boolean> {
     try {
       const pipeline = this.redis.pipeline();
-      
+
       for (const entry of entries) {
         const cacheKey = this.generateKey(entry.key, prefix);
         const serializedValue = JSON.stringify(entry.value);
-        
+
         if (entry.ttl) {
           pipeline.setex(cacheKey, entry.ttl, serializedValue);
         } else {
           pipeline.set(cacheKey, serializedValue);
         }
       }
-      
+
       const results = await pipeline.exec();
       this.stats.sets += entries.length;
-      
+
       return results?.every(([error, result]) => error === null && result === 'OK') ?? false;
     } catch (error) {
       this.stats.errors++;
@@ -249,7 +251,7 @@ export class CacheService {
     try {
       const cacheKeys = keys.map(key => this.generateKey(key, prefix));
       const values = await this.redis.mget(...cacheKeys);
-      
+
       return values.map(value => {
         if (value === null) {
           this.stats.misses++;
@@ -272,14 +274,14 @@ export class CacheService {
     try {
       const pattern = this.generateKey('*', prefix);
       const keys = await this.redis.keys(pattern);
-      
+
       if (keys.length === 0) {
         return 0;
       }
-      
+
       const result = await this.redis.del(...keys);
       this.stats.deletes += result;
-      
+
       this.logger.info({ prefix, count: result }, 'Cache prefix cleared');
       return result;
     } catch (error) {
@@ -320,33 +322,37 @@ export class CacheService {
   /**
    * Warm cache with frequently accessed data
    */
-  async warmCache(warmingData: Array<{
-    key: string;
-    value: any;
-    ttl: number;
-    prefix?: string;
-  }>): Promise<number> {
+  async warmCache(
+    warmingData: Array<{
+      key: string;
+      value: any;
+      ttl: number;
+      prefix?: string;
+    }>
+  ): Promise<number> {
     try {
       const pipeline = this.redis.pipeline();
-      
+
       for (const item of warmingData) {
         const cacheKey = this.generateKey(item.key, item.prefix);
         const serializedValue = JSON.stringify(item.value);
         pipeline.setex(cacheKey, item.ttl, serializedValue);
       }
-      
+
       const results = await pipeline.exec();
-      const successCount = results?.filter(([error, result]) => 
-        error === null && result === 'OK'
-      ).length ?? 0;
-      
+      const successCount =
+        results?.filter(([error, result]) => error === null && result === 'OK').length ?? 0;
+
       this.stats.sets += successCount;
-      
-      this.logger.info({
-        total: warmingData.length,
-        successful: successCount,
-      }, 'Cache warming completed');
-      
+
+      this.logger.info(
+        {
+          total: warmingData.length,
+          successful: successCount,
+        },
+        'Cache warming completed'
+      );
+
       return successCount;
     } catch (error) {
       this.stats.errors++;

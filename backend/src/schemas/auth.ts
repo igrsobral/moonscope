@@ -58,9 +58,7 @@ export const updatePreferencesSchema = z.object({
 
 // Link wallet schema
 export const linkWalletSchema = z.object({
-  walletAddress: z
-    .string()
-    .regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum wallet address'),
+  walletAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum wallet address'),
 });
 
 // Change password schema

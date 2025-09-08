@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { PortfolioQuerySchema, CreatePortfolioSchema, UpdatePortfolioSchema } from '../schemas/portfolio.js';
+import {
+  PortfolioQuerySchema,
+  CreatePortfolioSchema,
+  UpdatePortfolioSchema,
+} from '../schemas/portfolio.js';
 
 describe('Portfolio Routes', () => {
-
   describe('Portfolio Schema Validation', () => {
     it('should validate portfolio query schema', () => {
       const validQuery = {

@@ -92,10 +92,10 @@ describe('WebSocket Plugin', () => {
     const mockConnection1 = {
       id: 'test-connection-1',
       userId: 1,
-      socket: { 
-        send: mockSend, 
+      socket: {
+        send: mockSend,
         readyState: 1, // OPEN
-        OPEN: 1 
+        OPEN: 1,
       } as any,
       subscriptions: new Set(['coin:bitcoin']),
       lastPing: new Date(),
@@ -105,10 +105,10 @@ describe('WebSocket Plugin', () => {
     const mockConnection2 = {
       id: 'test-connection-2',
       userId: 2,
-      socket: { 
-        send: mockSend, 
+      socket: {
+        send: mockSend,
         readyState: 1, // OPEN
-        OPEN: 1 
+        OPEN: 1,
       } as any,
       subscriptions: new Set(['coin:ethereum']),
       lastPing: new Date(),
@@ -131,7 +131,7 @@ describe('WebSocket Plugin', () => {
     mockSend.mockClear();
 
     // Broadcast with filter
-    app.websocketManager.broadcast(testEvent, (conn) => conn.userId === 1);
+    app.websocketManager.broadcast(testEvent, conn => conn.userId === 1);
     expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
@@ -142,10 +142,10 @@ describe('WebSocket Plugin', () => {
     const mockConnection1 = {
       id: 'test-connection-1',
       userId: 1,
-      socket: { 
-        send: mockSend1, 
+      socket: {
+        send: mockSend1,
         readyState: 1, // OPEN
-        OPEN: 1 
+        OPEN: 1,
       } as any,
       subscriptions: new Set(),
       lastPing: new Date(),
@@ -155,10 +155,10 @@ describe('WebSocket Plugin', () => {
     const mockConnection2 = {
       id: 'test-connection-2',
       userId: 2,
-      socket: { 
-        send: mockSend2, 
+      socket: {
+        send: mockSend2,
         readyState: 1, // OPEN
-        OPEN: 1 
+        OPEN: 1,
       } as any,
       subscriptions: new Set(),
       lastPing: new Date(),
@@ -187,10 +187,10 @@ describe('WebSocket Plugin', () => {
     const mockConnection1 = {
       id: 'test-connection-1',
       userId: 1,
-      socket: { 
-        send: mockSend1, 
+      socket: {
+        send: mockSend1,
         readyState: 1, // OPEN
-        OPEN: 1 
+        OPEN: 1,
       } as any,
       subscriptions: new Set(['coin:bitcoin']),
       lastPing: new Date(),
@@ -200,10 +200,10 @@ describe('WebSocket Plugin', () => {
     const mockConnection2 = {
       id: 'test-connection-2',
       userId: 2,
-      socket: { 
-        send: mockSend2, 
+      socket: {
+        send: mockSend2,
         readyState: 1, // OPEN
-        OPEN: 1 
+        OPEN: 1,
       } as any,
       subscriptions: new Set(['coin:ethereum']),
       lastPing: new Date(),

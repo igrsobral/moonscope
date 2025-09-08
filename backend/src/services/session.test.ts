@@ -58,15 +58,11 @@ describe('SessionService', () => {
       };
       mockRedis.pipeline.mockReturnValue(mockPipeline);
 
-      const sessionId = await sessionService.createSession(
-        1,
-        '0x1234567890abcdef',
-        {
-          email: 'test@example.com',
-          ipAddress: '127.0.0.1',
-          userAgent: 'test-agent',
-        }
-      );
+      const sessionId = await sessionService.createSession(1, '0x1234567890abcdef', {
+        email: 'test@example.com',
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+      });
 
       expect(sessionId).toBeTruthy();
       expect(typeof sessionId).toBe('string');
@@ -181,7 +177,7 @@ describe('SessionService', () => {
 
       expect(result).toBe(true);
       expect(mockRedis.setex).toHaveBeenCalled();
-      
+
       const setexCall = mockRedis.setex.mock.calls[0];
       const updatedData = JSON.parse(setexCall[2]);
       expect(updatedData.email).toBe('updated@example.com');
@@ -316,10 +312,7 @@ describe('SessionService', () => {
 
   describe('cleanupExpiredSessions', () => {
     it('should cleanup expired sessions successfully', async () => {
-      const userSessionKeys = [
-        'mca:user_sessions:1',
-        'mca:user_sessions:2',
-      ];
+      const userSessionKeys = ['mca:user_sessions:1', 'mca:user_sessions:2'];
       mockRedis.keys.mockResolvedValue(userSessionKeys);
 
       mockRedis.smembers
@@ -340,15 +333,8 @@ describe('SessionService', () => {
       const result = await sessionService.cleanupExpiredSessions();
 
       expect(result).toBe(3); // Total expired sessions cleaned
-      expect(mockRedis.srem).toHaveBeenCalledWith(
-        'mca:user_sessions:1',
-        'session2',
-        'session3'
-      );
-      expect(mockRedis.srem).toHaveBeenCalledWith(
-        'mca:user_sessions:2',
-        'session5'
-      );
+      expect(mockRedis.srem).toHaveBeenCalledWith('mca:user_sessions:1', 'session2', 'session3');
+      expect(mockRedis.srem).toHaveBeenCalledWith('mca:user_sessions:2', 'session5');
     });
   });
 
@@ -357,9 +343,7 @@ describe('SessionService', () => {
       const sessionKeys = ['session1', 'session2', 'session3'];
       const userSessionKeys = ['user1', 'user2'];
 
-      mockRedis.keys
-        .mockResolvedValueOnce(sessionKeys)
-        .mockResolvedValueOnce(userSessionKeys);
+      mockRedis.keys.mockResolvedValueOnce(sessionKeys).mockResolvedValueOnce(userSessionKeys);
 
       const result = await sessionService.getSessionStats();
 
@@ -369,9 +353,7 @@ describe('SessionService', () => {
     });
 
     it('should handle division by zero', async () => {
-      mockRedis.keys
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockRedis.keys.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await sessionService.getSessionStats();
 

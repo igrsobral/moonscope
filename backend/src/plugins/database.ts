@@ -8,11 +8,9 @@ declare module 'fastify' {
   }
 }
 
-const databasePlugin: FastifyPluginAsync = async (fastify) => {
+const databasePlugin: FastifyPluginAsync = async fastify => {
   const prisma = new PrismaClient({
-    log: fastify.config.NODE_ENV === 'development' 
-      ? ['query', 'info', 'warn', 'error'] 
-      : ['error'],
+    log: fastify.config.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
     errorFormat: 'pretty',
   });
 
@@ -21,14 +19,14 @@ const databasePlugin: FastifyPluginAsync = async (fastify) => {
     fastify.log.info('Database connected successfully');
   } catch (error) {
     fastify.log.error({ error }, 'Failed to connect to database');
-    
+
     if (fastify.config.NODE_ENV === 'test' || fastify.config.NODE_ENV === 'development') {
       fastify.log.warn('Database connection failed, creating mock database instance...');
-      
+
       const mockPrisma = {
         $connect: async () => {},
         $disconnect: async () => {},
-        $queryRaw: async () => [{ "1": 1 }],
+        $queryRaw: async () => [{ '1': 1 }],
         user: {
           findUnique: async () => null,
           create: async (data: any) => ({ id: 1, ...data.data }),
@@ -48,7 +46,7 @@ const databasePlugin: FastifyPluginAsync = async (fastify) => {
           create: async (data: any) => ({ id: 1, ...data.data }),
         },
       };
-      
+
       fastify.decorate('prisma', mockPrisma as any);
       fastify.log.info('Mock database instance created');
       return;
@@ -59,7 +57,7 @@ const databasePlugin: FastifyPluginAsync = async (fastify) => {
 
   fastify.decorate('prisma', prisma);
 
-  fastify.addHook('onClose', async (instance) => {
+  fastify.addHook('onClose', async instance => {
     instance.log.info('Disconnecting from database...');
     await instance.prisma.$disconnect();
     instance.log.info('Database disconnected');
@@ -71,7 +69,7 @@ const databasePlugin: FastifyPluginAsync = async (fastify) => {
       fastify.log.info('Database health check passed');
     } catch (error) {
       fastify.log.error({ error }, 'Database health check failed');
-      
+
       if (fastify.config.NODE_ENV !== 'test' && fastify.config.NODE_ENV !== 'development') {
         throw error;
       }

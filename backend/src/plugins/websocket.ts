@@ -52,14 +52,20 @@ async function websocketPlugin(fastify: FastifyInstance): Promise<void> {
 
     addConnection(connection: WebSocketConnection) {
       connections.set(connection.id, connection);
-      fastify.log.info({ connectionId: connection.id, userId: connection.userId }, 'WebSocket connection added');
+      fastify.log.info(
+        { connectionId: connection.id, userId: connection.userId },
+        'WebSocket connection added'
+      );
     },
 
     removeConnection(connectionId: string) {
       const connection = connections.get(connectionId);
       if (connection) {
         connections.delete(connectionId);
-        fastify.log.info({ connectionId, userId: connection.userId }, 'WebSocket connection removed');
+        fastify.log.info(
+          { connectionId, userId: connection.userId },
+          'WebSocket connection removed'
+        );
       }
     },
 
@@ -89,7 +95,10 @@ async function websocketPlugin(fastify: FastifyInstance): Promise<void> {
             this.removeConnection(connection.id);
           }
         } catch (error) {
-          fastify.log.error({ error, connectionId: connection.id }, 'Failed to send WebSocket message');
+          fastify.log.error(
+            { error, connectionId: connection.id },
+            'Failed to send WebSocket message'
+          );
           this.removeConnection(connection.id);
         }
       }
@@ -98,11 +107,11 @@ async function websocketPlugin(fastify: FastifyInstance): Promise<void> {
     },
 
     broadcastToUser(userId: number, event: WebSocketEvent) {
-      this.broadcast(event, (conn) => conn.userId === userId);
+      this.broadcast(event, conn => conn.userId === userId);
     },
 
     broadcastToCoin(coinId: string, event: WebSocketEvent) {
-      this.broadcast(event, (conn) => conn.subscriptions.has(`coin:${coinId}`));
+      this.broadcast(event, conn => conn.subscriptions.has(`coin:${coinId}`));
     },
   };
 
@@ -125,7 +134,7 @@ async function websocketPlugin(fastify: FastifyInstance): Promise<void> {
   // Cleanup on close
   fastify.addHook('onClose', async () => {
     clearInterval(cleanupInterval);
-    
+
     // Close all connections
     for (const connection of connections.values()) {
       try {
@@ -134,7 +143,7 @@ async function websocketPlugin(fastify: FastifyInstance): Promise<void> {
         fastify.log.error({ error }, 'Error closing WebSocket connection');
       }
     }
-    
+
     connections.clear();
   });
 }

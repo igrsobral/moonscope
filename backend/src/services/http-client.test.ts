@@ -122,7 +122,7 @@ describe('HttpClient', () => {
     httpClient = new HttpClient({
       baseUrl: 'https://api.example.com',
       timeout: 5000,
-      headers: { 'Authorization': 'Bearer test-token' },
+      headers: { Authorization: 'Bearer test-token' },
       logger: mockLogger,
     });
 
@@ -153,7 +153,7 @@ describe('HttpClient', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
             'User-Agent': 'MemeAnalyzer/1.0',
-            'Authorization': 'Bearer test-token',
+            Authorization: 'Bearer test-token',
           }),
         })
       );
@@ -259,10 +259,10 @@ describe('HttpClient', () => {
         .mockResolvedValueOnce(successResponse as any);
 
       const requestPromise = httpClient.get('/test');
-      
+
       // Fast-forward through the retry delay
       await vi.runAllTimersAsync();
-      
+
       const result = await requestPromise;
 
       expect(result).toEqual({ data: 'success' });
@@ -288,10 +288,10 @@ describe('HttpClient', () => {
         .mockResolvedValueOnce(successResponse as any);
 
       const requestPromise = httpClient.get('/test');
-      
+
       // Fast-forward through the retry delay
       await vi.runAllTimersAsync();
-      
+
       const result = await requestPromise;
 
       expect(result).toEqual({ data: 'success' });
@@ -326,10 +326,10 @@ describe('HttpClient', () => {
       vi.spyOn(Date, 'now').mockImplementation(() => startTime);
 
       const requestPromise = httpClient.get('/test');
-      
+
       // Fast-forward through all retry delays
       await vi.runAllTimersAsync();
-      
+
       await expect(requestPromise).rejects.toThrow(HttpError);
 
       // Should have made initial request + 3 retries
@@ -347,10 +347,10 @@ describe('HttpClient', () => {
       mockRequest.mockResolvedValue(serverError as any);
 
       const requestPromise = httpClient.get('/test');
-      
+
       // Fast-forward through all retry delays
       await vi.runAllTimersAsync();
-      
+
       await expect(requestPromise).rejects.toThrow(HttpError);
 
       // Should have made initial request + maxRetries (3)

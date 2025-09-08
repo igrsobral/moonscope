@@ -12,7 +12,7 @@ declare module 'fastify' {
   }
 }
 
-const cachePlugin: FastifyPluginAsync = async (fastify) => {
+const cachePlugin: FastifyPluginAsync = async fastify => {
   const cacheService = new CacheService(fastify.redis, fastify.log);
 
   const sessionService = new SessionService(fastify.redis, fastify.log);
@@ -30,29 +30,35 @@ const cachePlugin: FastifyPluginAsync = async (fastify) => {
       const results = await cacheWarmingService.warmAllCaches();
       const successfulWarmings = results.filter(r => r.success).length;
 
-      fastify.log.info({
-        totalStrategies: results.length,
-        successfulWarmings,
-      }, 'Initial cache warming completed');
+      fastify.log.info(
+        {
+          totalStrategies: results.length,
+          successfulWarmings,
+        },
+        'Initial cache warming completed'
+      );
     } catch (error) {
       fastify.log.error({ error }, 'Failed to start cache warming');
     }
   });
 
   // Schedule periodic session cleanup
-  const sessionCleanupInterval = setInterval(async () => {
-    try {
-      const cleanedCount = await sessionService.cleanupExpiredSessions();
-      if (cleanedCount > 0) {
-        fastify.log.info({ cleanedCount }, 'Session cleanup completed');
+  const sessionCleanupInterval = setInterval(
+    async () => {
+      try {
+        const cleanedCount = await sessionService.cleanupExpiredSessions();
+        if (cleanedCount > 0) {
+          fastify.log.info({ cleanedCount }, 'Session cleanup completed');
+        }
+      } catch (error) {
+        fastify.log.error({ error }, 'Session cleanup failed');
       }
-    } catch (error) {
-      fastify.log.error({ error }, 'Session cleanup failed');
-    }
-  }, 60 * 60 * 1000); // Run every hour
+    },
+    60 * 60 * 1000
+  ); // Run every hour
 
   // Graceful shutdown
-  fastify.addHook('onClose', async (instance) => {
+  fastify.addHook('onClose', async instance => {
     instance.log.info('Shutting down cache services...');
 
     // Stop cache warming
@@ -66,20 +72,23 @@ const cachePlugin: FastifyPluginAsync = async (fastify) => {
     const sessionStats = await sessionService.getSessionStats();
     const warmingStats = cacheWarmingService.getWarmingStats();
 
-    instance.log.info({
-      cache: {
-        hits: cacheStats.hits,
-        misses: cacheStats.misses,
-        hitRatio: cacheService.getHitRatio(),
-        operations: cacheStats.sets + cacheStats.deletes,
-        errors: cacheStats.errors,
+    instance.log.info(
+      {
+        cache: {
+          hits: cacheStats.hits,
+          misses: cacheStats.misses,
+          hitRatio: cacheService.getHitRatio(),
+          operations: cacheStats.sets + cacheStats.deletes,
+          errors: cacheStats.errors,
+        },
+        sessions: sessionStats,
+        warming: {
+          totalStrategies: warmingStats.totalStrategies,
+          enabledStrategies: warmingStats.enabledStrategies,
+        },
       },
-      sessions: sessionStats,
-      warming: {
-        totalStrategies: warmingStats.totalStrategies,
-        enabledStrategies: warmingStats.enabledStrategies,
-      },
-    }, 'Cache services shutdown complete');
+      'Cache services shutdown complete'
+    );
   });
 
   // Add health check endpoints for cache services
@@ -126,7 +135,8 @@ const cachePlugin: FastifyPluginAsync = async (fastify) => {
             hits: cacheStats.hits,
             misses: cacheStats.misses,
             hitRatio: Math.round(cacheService.getHitRatio() * 10000) / 100, // Percentage with 2 decimals
-            totalOperations: cacheStats.sets + cacheStats.deletes + cacheStats.hits + cacheStats.misses,
+            totalOperations:
+              cacheStats.sets + cacheStats.deletes + cacheStats.hits + cacheStats.misses,
             errors: cacheStats.errors,
           },
           sessions: sessionStats,

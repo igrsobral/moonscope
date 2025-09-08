@@ -270,17 +270,20 @@ export class CacheWarmingService {
    */
   addStrategy(strategy: WarmingStrategy): void {
     this.strategies.set(strategy.name, strategy);
-    
+
     if (strategy.enabled) {
       this.scheduleStrategy(strategy);
     }
-    
-    this.logger.info({
-      strategy: strategy.name,
-      priority: strategy.priority,
-      interval: strategy.interval,
-      enabled: strategy.enabled,
-    }, 'Cache warming strategy added');
+
+    this.logger.info(
+      {
+        strategy: strategy.name,
+        priority: strategy.priority,
+        interval: strategy.interval,
+        enabled: strategy.enabled,
+      },
+      'Cache warming strategy added'
+    );
   }
 
   /**
@@ -291,10 +294,10 @@ export class CacheWarmingService {
     if (!strategy) {
       return false;
     }
-    
+
     this.unscheduleStrategy(name);
     this.strategies.delete(name);
-    
+
     this.logger.info({ strategy: name }, 'Cache warming strategy removed');
     return true;
   }
@@ -307,20 +310,23 @@ export class CacheWarmingService {
     if (!strategy) {
       return false;
     }
-    
+
     strategy.enabled = enabled;
-    
+
     if (enabled) {
       this.scheduleStrategy(strategy);
     } else {
       this.unscheduleStrategy(name);
     }
-    
-    this.logger.info({
-      strategy: name,
-      enabled,
-    }, 'Cache warming strategy toggled');
-    
+
+    this.logger.info(
+      {
+        strategy: name,
+        enabled,
+      },
+      'Cache warming strategy toggled'
+    );
+
     return true;
   }
 
@@ -330,13 +336,13 @@ export class CacheWarmingService {
   private scheduleStrategy(strategy: WarmingStrategy): void {
     // Clear existing interval if any
     this.unscheduleStrategy(strategy.name);
-    
+
     const interval = setInterval(async () => {
       await this.executeStrategy(strategy.name);
     }, strategy.interval);
-    
+
     this.warmingIntervals.set(strategy.name, interval);
-    
+
     // Execute immediately on first schedule
     setImmediate(() => this.executeStrategy(strategy.name));
   }
@@ -366,35 +372,38 @@ export class CacheWarmingService {
         error: 'Strategy not found or disabled',
       };
     }
-    
+
     const startTime = Date.now();
-    
+
     try {
       this.logger.debug({ strategy: name }, 'Executing cache warming strategy');
-      
+
       const warmingData = await strategy.execute();
       const itemsWarmed = await this.cacheService.warmCache(warmingData);
       const duration = Date.now() - startTime;
-      
+
       const result: WarmingResult = {
         strategy: name,
         itemsWarmed,
         duration,
         success: true,
       };
-      
-      this.logger.info({
-        strategy: name,
-        itemsWarmed,
-        duration,
-        priority: strategy.priority,
-      }, 'Cache warming strategy executed successfully');
-      
+
+      this.logger.info(
+        {
+          strategy: name,
+          itemsWarmed,
+          duration,
+          priority: strategy.priority,
+        },
+        'Cache warming strategy executed successfully'
+      );
+
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       const result: WarmingResult = {
         strategy: name,
         itemsWarmed: 0,
@@ -402,13 +411,16 @@ export class CacheWarmingService {
         success: false,
         error: errorMessage,
       };
-      
-      this.logger.error({
-        error,
-        strategy: name,
-        duration,
-      }, 'Cache warming strategy failed');
-      
+
+      this.logger.error(
+        {
+          error,
+          strategy: name,
+          duration,
+        },
+        'Cache warming strategy failed'
+      );
+
       return result;
     }
   }
@@ -421,40 +433,46 @@ export class CacheWarmingService {
       this.logger.warn('Cache warming already in progress, skipping');
       return [];
     }
-    
+
     this.isWarming = true;
-    
+
     try {
       const enabledStrategies = Array.from(this.strategies.values())
         .filter(s => s.enabled)
         .sort((a, b) => b.priority - a.priority); // Sort by priority (highest first)
-      
-      this.logger.info({
-        strategiesCount: enabledStrategies.length,
-      }, 'Starting cache warming for all strategies');
-      
+
+      this.logger.info(
+        {
+          strategiesCount: enabledStrategies.length,
+        },
+        'Starting cache warming for all strategies'
+      );
+
       const results: WarmingResult[] = [];
-      
+
       // Execute strategies in priority order
       for (const strategy of enabledStrategies) {
         const result = await this.executeStrategy(strategy.name);
         results.push(result);
-        
+
         // Small delay between strategies to avoid overwhelming the system
         await new Promise(resolve => setTimeout(resolve, 100));
       }
-      
+
       const totalItemsWarmed = results.reduce((sum, r) => sum + r.itemsWarmed, 0);
       const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
       const successfulStrategies = results.filter(r => r.success).length;
-      
-      this.logger.info({
-        totalStrategies: results.length,
-        successfulStrategies,
-        totalItemsWarmed,
-        totalDuration,
-      }, 'Cache warming completed for all strategies');
-      
+
+      this.logger.info(
+        {
+          totalStrategies: results.length,
+          successfulStrategies,
+          totalItemsWarmed,
+          totalDuration,
+        },
+        'Cache warming completed for all strategies'
+      );
+
       return results;
     } finally {
       this.isWarming = false;
@@ -475,7 +493,7 @@ export class CacheWarmingService {
     }>;
   } {
     const strategies = Array.from(this.strategies.values());
-    
+
     return {
       totalStrategies: strategies.length,
       enabledStrategies: strategies.filter(s => s.enabled).length,
@@ -495,7 +513,7 @@ export class CacheWarmingService {
     for (const name of this.warmingIntervals.keys()) {
       this.unscheduleStrategy(name);
     }
-    
+
     this.logger.info('All cache warming strategies stopped');
   }
 
@@ -503,16 +521,18 @@ export class CacheWarmingService {
    * Start all enabled strategies
    */
   startAllStrategies(): void {
-    const enabledStrategies = Array.from(this.strategies.values())
-      .filter(s => s.enabled);
-    
+    const enabledStrategies = Array.from(this.strategies.values()).filter(s => s.enabled);
+
     for (const strategy of enabledStrategies) {
       this.scheduleStrategy(strategy);
     }
-    
-    this.logger.info({
-      count: enabledStrategies.length,
-    }, 'All enabled cache warming strategies started');
+
+    this.logger.info(
+      {
+        count: enabledStrategies.length,
+      },
+      'All enabled cache warming strategies started'
+    );
   }
 }
 

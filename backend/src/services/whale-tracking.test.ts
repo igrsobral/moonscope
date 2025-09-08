@@ -21,25 +21,25 @@ describe('WhaleTrackingService', () => {
         create: vi.fn(),
         findMany: vi.fn(),
         count: vi.fn(),
-      }
+      },
     };
-    
+
     mockExternalApiService = {
       getWhaleTransactions: vi.fn(),
     };
-    
+
     mockCacheService = {
       get: vi.fn(),
       set: vi.fn(),
       TTL: {
         WHALE_TRANSACTIONS: 900,
-      }
+      },
     };
-    
+
     mockRealtimeService = {
       broadcastWhaleMovement: vi.fn(),
     };
-    
+
     mockLogger = {
       info: vi.fn(),
       error: vi.fn(),
@@ -83,7 +83,7 @@ describe('WhaleTrackingService', () => {
           usdValue: 25000,
           timestamp: '2024-01-01T01:00:00Z',
           blockNumber: '12346',
-        }
+        },
       ];
 
       const mockCreatedTransactions = [
@@ -106,7 +106,7 @@ describe('WhaleTrackingService', () => {
           amount: '2000000000000000000000',
           usdValue: 25000,
           timestamp: new Date('2024-01-01T01:00:00Z'),
-        }
+        },
       ];
 
       mockExternalApiService.getWhaleTransactions.mockResolvedValue(mockExternalTransactions);
@@ -146,7 +146,7 @@ describe('WhaleTrackingService', () => {
           usdValue: 15000,
           timestamp: '2024-01-01T00:00:00Z',
           blockNumber: '12345',
-        }
+        },
       ];
 
       const existingTransaction = {
@@ -176,8 +176,9 @@ describe('WhaleTrackingService', () => {
 
       mockExternalApiService.getWhaleTransactions.mockRejectedValue(new Error('API Error'));
 
-      await expect(service.processWhaleTransactions(coinId, contractAddress, network))
-        .rejects.toThrow('API Error');
+      await expect(
+        service.processWhaleTransactions(coinId, contractAddress, network)
+      ).rejects.toThrow('API Error');
     });
   });
 
@@ -206,7 +207,7 @@ describe('WhaleTrackingService', () => {
           amount: '2000000000000000000000',
           usdValue: 25000,
           timestamp: new Date('2024-01-01T01:00:00Z'),
-        }
+        },
       ];
 
       mockPrisma.whaleTransaction.findMany.mockResolvedValue(mockTransactions as any);
@@ -258,7 +259,7 @@ describe('WhaleTrackingService', () => {
           amount: '1000000000000000000000',
           usdValue: 15000,
           timestamp: new Date('2024-01-01T00:00:00Z'),
-        }
+        },
       ];
 
       mockPrisma.whaleTransaction.findMany.mockResolvedValue(mockTransactions as any);
@@ -288,7 +289,7 @@ describe('WhaleTrackingService', () => {
           timestamp: {
             gte: fromDate,
             lte: toDate,
-          }
+          },
         },
         orderBy: { timestamp: 'desc' },
         take: 50,
@@ -340,7 +341,7 @@ describe('WhaleTrackingService', () => {
           amount: '2000000000000000000000',
           usdValue: 75000,
           timestamp: new Date('2024-01-01T12:00:00Z'),
-        }
+        },
       ];
 
       mockCacheService.get.mockResolvedValue(null);
@@ -392,7 +393,7 @@ describe('WhaleTrackingService', () => {
           toAddress: '0xother3',
           usdValue: 50000,
           timestamp: new Date('2024-01-01T02:00:00Z'),
-        }
+        },
       ];
 
       mockPrisma.whaleTransaction.findMany.mockResolvedValue(mockTransactions as any);

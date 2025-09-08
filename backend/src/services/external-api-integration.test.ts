@@ -16,13 +16,20 @@ vi.mock('./http-client.js', () => {
   return {
     HttpClient: vi.fn().mockImplementation(() => mockHttpClient),
     HttpError: class HttpError extends Error {
-      constructor(message: string, public statusCode: number, public responseBody?: string) {
+      constructor(
+        message: string,
+        public statusCode: number,
+        public responseBody?: string
+      ) {
         super(message);
         this.name = 'HttpError';
       }
     },
     RateLimitError: class RateLimitError extends Error {
-      constructor(message: string, public retryAfter?: number) {
+      constructor(
+        message: string,
+        public retryAfter?: number
+      ) {
         super(message);
         this.name = 'RateLimitError';
       }
@@ -152,9 +159,7 @@ describe('External API Integration', () => {
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('category=meme-token')
       );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('per_page=50')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('per_page=50'));
     });
 
     it('should handle rate limiting gracefully', async () => {
@@ -162,7 +167,9 @@ describe('External API Integration', () => {
       (rateLimitError as any).statusCode = 429;
       mockHttpClient.get.mockRejectedValue(rateLimitError);
 
-      await expect(coinGeckoClient.getCoinsMarkets()).rejects.toThrow('CoinGecko API rate limit exceeded');
+      await expect(coinGeckoClient.getCoinsMarkets()).rejects.toThrow(
+        'CoinGecko API rate limit exceeded'
+      );
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: 429,
@@ -182,7 +189,8 @@ describe('External API Integration', () => {
           decimals: '18',
           logo: 'https://logo.moralis.io/0x1_0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce_a578c5277503e5b0a8c5d9cb5e4e4e8e',
           logo_hash: 'a578c5277503e5b0a8c5d9cb5e4e4e8e',
-          thumbnail: 'https://logo.moralis.io/0x1_0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce_a578c5277503e5b0a8c5d9cb5e4e4e8e',
+          thumbnail:
+            'https://logo.moralis.io/0x1_0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce_a578c5277503e5b0a8c5d9cb5e4e4e8e',
           block_number: '10329791',
           validated: 1,
           created_at: '2022-01-20T10:41:03.000Z',
@@ -191,7 +199,9 @@ describe('External API Integration', () => {
 
       mockHttpClient.get.mockResolvedValue(mockTokenMetadata);
 
-      const result = await moralisClient.getTokenMetadata('0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce');
+      const result = await moralisClient.getTokenMetadata(
+        '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce'
+      );
 
       expect(result).toEqual(mockTokenMetadata);
       expect(result[0].symbol).toBe('SHIB');
@@ -232,12 +242,8 @@ describe('External API Integration', () => {
 
       expect(result).toEqual(mockTokenTransfers);
       expect(result.result[0].value).toBe('1000000000000000000000000');
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('limit=100')
-      );
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('order=DESC')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('limit=100'));
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('order=DESC'));
     });
 
     it('should fetch token holder distribution', async () => {

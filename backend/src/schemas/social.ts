@@ -47,10 +47,12 @@ export const SentimentAnalysisRequestSchema = z.object({
 export const SentimentAnalysisResponseSchema = z.object({
   score: z.number().min(-1).max(1),
   comparative: z.number(),
-  calculation: z.array(z.object({
-    word: z.string(),
-    score: z.number(),
-  })),
+  calculation: z.array(
+    z.object({
+      word: z.string(),
+      score: z.number(),
+    })
+  ),
   tokens: z.array(z.string()),
   words: z.array(z.string()),
   positive: z.array(z.string()),
@@ -84,13 +86,15 @@ export const SocialAggregationResponseSchema = z.object({
   totalMentions24h: z.number(),
   totalFollowers: z.number(),
   averageTrendingScore: z.number(),
-  platformBreakdown: z.array(z.object({
-    platform: SocialPlatformSchema,
-    sentiment: z.number(),
-    mentions: z.number(),
-    followers: z.number(),
-    trendingScore: z.number(),
-  })),
+  platformBreakdown: z.array(
+    z.object({
+      platform: SocialPlatformSchema,
+      sentiment: z.number(),
+      mentions: z.number(),
+      followers: z.number(),
+      trendingScore: z.number(),
+    })
+  ),
   timestamp: z.date(),
 });
 

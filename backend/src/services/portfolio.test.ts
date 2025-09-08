@@ -598,7 +598,7 @@ describe('PortfolioService', () => {
       expect(result.data?.values).toHaveLength(2);
       expect(result.data?.profitLoss).toHaveLength(2);
       expect(result.data?.profitLossPercentage).toHaveLength(2);
-      
+
       // Check that values are calculated correctly
       expect(result.data?.values[0]).toBe(1.0); // 1000 * 0.001
       expect(result.data?.values[1]).toBe(1.5); // 1000 * 0.0015

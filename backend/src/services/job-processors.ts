@@ -146,24 +146,27 @@ export class JobProcessors {
 
     // Set up error handlers
     for (const [queueName, worker] of this.workers) {
-      worker.on('completed', (job) => {
+      worker.on('completed', job => {
         logger.info({ queueName, jobId: job.id }, 'Job completed successfully');
       });
 
       worker.on('failed', (job, err) => {
-        logger.error({ 
-          queueName, 
-          jobId: job?.id, 
-          error: err.message,
-          stack: err.stack 
-        }, 'Job failed');
+        logger.error(
+          {
+            queueName,
+            jobId: job?.id,
+            error: err.message,
+            stack: err.stack,
+          },
+          'Job failed'
+        );
       });
 
-      worker.on('error', (err) => {
+      worker.on('error', err => {
         logger.error({ queueName, error: err.message }, 'Worker error');
       });
 
-      worker.on('stalled', (jobId) => {
+      worker.on('stalled', jobId => {
         logger.warn({ queueName, jobId }, 'Job stalled');
       });
     }
@@ -190,7 +193,7 @@ export class JobProcessors {
         priceChange24h: 5.2,
         volumeChange24h: 10.5,
       };
-      
+
       if (!priceData) {
         throw new Error(`No price data available for coin ${symbol}`);
       }
@@ -219,18 +222,20 @@ export class JobProcessors {
         timestamp: new Date(),
       });
 
-
       logger.debug({ coinId }, 'Portfolio value update should be triggered');
 
       // Update job progress
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        price: priceData.price,
-        change24h: priceData.priceChange24h 
-      }, 'Price update job completed');
+      logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          price: priceData.price,
+          change24h: priceData.priceChange24h,
+        },
+        'Price update job completed'
+      );
 
       return {
         success: true,
@@ -239,11 +244,14 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        coinId, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Price update job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          coinId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Price update job failed'
+      );
       throw error;
     }
   }
@@ -256,12 +264,15 @@ export class JobProcessors {
     const { logger, socialService } = this.dependencies;
 
     try {
-      logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        keywords, 
-        platforms 
-      }, 'Processing social scraping job');
+      logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          keywords,
+          platforms,
+        },
+        'Processing social scraping job'
+      );
 
       // Update progress
       await job.updateProgress(25);
@@ -282,12 +293,15 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        metricsCount: socialMetrics.length,
-        isTrending: !!coinTrending 
-      }, 'Social scraping job completed');
+      logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          metricsCount: socialMetrics.length,
+          isTrending: !!coinTrending,
+        },
+        'Social scraping job completed'
+      );
 
       return {
         success: true,
@@ -298,11 +312,14 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        coinId, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Social scraping job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          coinId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Social scraping job failed'
+      );
       throw error;
     }
   }
@@ -315,12 +332,15 @@ export class JobProcessors {
     const { logger, prisma, realtimeService } = this.dependencies;
 
     try {
-      logger.info({ 
-        jobId: job.id, 
-        alertId, 
-        coinId, 
-        alertType 
-      }, 'Processing alert job');
+      logger.info(
+        {
+          jobId: job.id,
+          alertId,
+          coinId,
+          alertType,
+        },
+        'Processing alert job'
+      );
 
       // Get alert details
       const alert = await prisma.alert.findUnique({
@@ -364,11 +384,14 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id, 
-        alertId, 
-        notificationsSent: notifications.length 
-      }, 'Alert job completed');
+      logger.info(
+        {
+          jobId: job.id,
+          alertId,
+          notificationsSent: notifications.length,
+        },
+        'Alert job completed'
+      );
 
       return {
         success: true,
@@ -378,11 +401,14 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        alertId, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Alert job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          alertId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Alert job failed'
+      );
       throw error;
     }
   }
@@ -417,7 +443,11 @@ export class JobProcessors {
       // Gather risk assessment data - using placeholder data for now
       const liquidityData = { totalLiquidity: 1000000 };
       const holderData = { topHoldersPercentage: 15, holderCount: 5000 };
-      const contractData = { isVerified: coin.contractVerified, hasOwnershipRenounced: false, hasProxyContract: false };
+      const contractData = {
+        isVerified: coin.contractVerified,
+        hasOwnershipRenounced: false,
+        hasProxyContract: false,
+      };
 
       await job.updateProgress(60);
 
@@ -431,10 +461,7 @@ export class JobProcessors {
 
       // Calculate overall risk score
       const overallScore = Math.round(
-        (liquidityScore * 0.3) +
-        (holderScore * 0.25) +
-        (contractScore * 0.25) +
-        (socialScore * 0.2)
+        liquidityScore * 0.3 + holderScore * 0.25 + contractScore * 0.25 + socialScore * 0.2
       );
 
       // Store risk assessment
@@ -457,12 +484,15 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        overallScore,
-        riskAssessmentId: riskAssessment.id 
-      }, 'Risk assessment job completed');
+      logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          overallScore,
+          riskAssessmentId: riskAssessment.id,
+        },
+        'Risk assessment job completed'
+      );
 
       return {
         success: true,
@@ -472,11 +502,14 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        coinId, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Risk assessment job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          coinId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Risk assessment job failed'
+      );
       throw error;
     }
   }
@@ -486,7 +519,7 @@ export class JobProcessors {
    */
   private async processWhaleTrackingJob(job: Job<WhaleJobData>): Promise<any> {
     const { logger, whaleTrackingService, alertTriggerService } = this.dependencies;
-    
+
     const whaleJobProcessor = new WhaleJobProcessor(
       whaleTrackingService,
       alertTriggerService,
@@ -506,10 +539,13 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Whale tracking job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Whale tracking job failed'
+      );
       throw error;
     }
   }
@@ -534,24 +570,24 @@ export class JobProcessors {
     switch (alert.type) {
       case 'price_above':
         return currentPrice >= alertCondition.targetPrice;
-      
+
       case 'price_below':
         return currentPrice <= alertCondition.targetPrice;
-      
+
       case 'volume_spike':
         const avgVolume = condition.averageVolume || 0;
         const currentVolume = Number(latestPrice.volume24h);
         const volumeIncrease = avgVolume > 0 ? (currentVolume / avgVolume - 1) * 100 : 0;
         return volumeIncrease >= (alertCondition.volumeThreshold || 50);
-      
+
       case 'whale_movement':
         // This would check recent whale transactions
         return condition.whaleActivity || false;
-      
+
       case 'social_spike':
         // This would check social metrics
         return condition.socialActivity || false;
-      
+
       default:
         return false;
     }
@@ -562,10 +598,10 @@ export class JobProcessors {
    */
   private async sendAlertNotifications(alert: any, _condition: any): Promise<string[]> {
     const notifications: string[] = [];
-    
+
     // This is a placeholder - in a real implementation, you would integrate with
     // email services, push notification services, SMS services, etc.
-    
+
     for (const method of alert.notificationMethods || []) {
       try {
         switch (method) {
@@ -573,23 +609,26 @@ export class JobProcessors {
             // await emailService.sendAlert(alert.user.email, alert, condition);
             notifications.push('email');
             break;
-          
+
           case 'push':
             // await pushService.sendAlert(alert.userId, alert, condition);
             notifications.push('push');
             break;
-          
+
           case 'sms':
             // await smsService.sendAlert(alert.user.phone, alert, condition);
             notifications.push('sms');
             break;
         }
       } catch (error) {
-        this.dependencies.logger.error({ 
-          method, 
-          alertId: alert.id, 
-          error: error instanceof Error ? error.message : String(error)
-        }, 'Failed to send notification');
+        this.dependencies.logger.error(
+          {
+            method,
+            alertId: alert.id,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'Failed to send notification'
+        );
       }
     }
 
@@ -601,23 +640,23 @@ export class JobProcessors {
    */
   private generateAlertMessage(alert: any, _condition: any): string {
     const coinSymbol = alert.coin?.symbol || 'Unknown';
-    
+
     switch (alert.type) {
       case 'price_above':
         return `${coinSymbol} price is now above $${alert.condition.targetPrice}`;
-      
+
       case 'price_below':
         return `${coinSymbol} price is now below $${alert.condition.targetPrice}`;
-      
+
       case 'volume_spike':
         return `${coinSymbol} is experiencing high trading volume`;
-      
+
       case 'whale_movement':
         return `Large ${coinSymbol} transaction detected`;
-      
+
       case 'social_spike':
         return `${coinSymbol} is trending on social media`;
-      
+
       default:
         return `Alert triggered for ${coinSymbol}`;
     }
@@ -628,16 +667,16 @@ export class JobProcessors {
    */
   private calculateLiquidityScore(liquidityData: any): number {
     if (!liquidityData || !liquidityData.totalLiquidity) return 0;
-    
+
     const liquidity = liquidityData.totalLiquidity;
-    
+
     // Score based on liquidity thresholds
     if (liquidity >= 1000000) return 100; // $1M+
-    if (liquidity >= 500000) return 80;   // $500K+
-    if (liquidity >= 100000) return 60;   // $100K+
-    if (liquidity >= 50000) return 40;    // $50K+
-    if (liquidity >= 10000) return 20;    // $10K+
-    
+    if (liquidity >= 500000) return 80; // $500K+
+    if (liquidity >= 100000) return 60; // $100K+
+    if (liquidity >= 50000) return 40; // $50K+
+    if (liquidity >= 10000) return 20; // $10K+
+
     return 10; // Below $10K
   }
 
@@ -646,16 +685,16 @@ export class JobProcessors {
    */
   private calculateHolderDistributionScore(holderData: any): number {
     if (!holderData || !holderData.topHoldersPercentage) return 50;
-    
+
     const topHoldersPercentage = holderData.topHoldersPercentage;
-    
+
     // Lower percentage of top holders is better
     if (topHoldersPercentage <= 10) return 100;
     if (topHoldersPercentage <= 20) return 80;
     if (topHoldersPercentage <= 30) return 60;
     if (topHoldersPercentage <= 50) return 40;
     if (topHoldersPercentage <= 70) return 20;
-    
+
     return 10; // Very concentrated
   }
 
@@ -664,14 +703,14 @@ export class JobProcessors {
    */
   private calculateContractSecurityScore(contractData: any): number {
     if (!contractData) return 0;
-    
+
     let score = 0;
-    
+
     if (contractData.isVerified) score += 40;
     if (contractData.hasOwnershipRenounced) score += 30;
     if (!contractData.hasProxyContract) score += 20;
     if (contractData.hasLiquidityLocked) score += 10;
-    
+
     return Math.min(score, 100);
   }
 
@@ -682,10 +721,10 @@ export class JobProcessors {
     try {
       const { socialService } = this.dependencies;
       const aggregatedMetrics = await socialService.getAggregatedSocialMetrics(coinId);
-      
+
       // Convert sentiment (-1 to 1) to score (0 to 100)
       const sentimentScore = ((aggregatedMetrics.aggregatedSentiment + 1) / 2) * 100;
-      
+
       return Math.round(sentimentScore);
     } catch (error) {
       return 50; // Default neutral score
@@ -740,7 +779,7 @@ export class JobProcessors {
       for (const holding of holdings) {
         const amount = Number(holding.amount);
         const avgPrice = Number(holding.avgPrice);
-        
+
         const currentValue = amount * currentPrice;
         const invested = amount * avgPrice;
         const profitLoss = currentValue - invested;
@@ -783,13 +822,16 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id, 
-        coinId, 
-        userId,
-        updatedCount: updatedHoldings.length,
-        currentPrice 
-      }, 'Portfolio update job completed');
+      logger.info(
+        {
+          jobId: job.id,
+          coinId,
+          userId,
+          updatedCount: updatedHoldings.length,
+          currentPrice,
+        },
+        'Portfolio update job completed'
+      );
 
       return {
         success: true,
@@ -800,12 +842,15 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        coinId, 
-        userId,
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Portfolio update job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          coinId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Portfolio update job failed'
+      );
       throw error;
     }
   }
@@ -823,22 +868,25 @@ export class JobProcessors {
       switch (jobName) {
         case 'cleanup-old-price-data':
           return await this.cleanupOldPriceData(job);
-        
+
         case 'cleanup-old-social-metrics':
           return await this.cleanupOldSocialMetrics(job);
-        
+
         case 'warm-cache':
           return await this.warmCache(job);
-        
+
         default:
           throw new Error(`Unknown maintenance job: ${jobName}`);
       }
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        jobName,
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Maintenance job failed');
+      logger.error(
+        {
+          jobId: job.id,
+          jobName,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Maintenance job failed'
+      );
       throw error;
     }
   }
@@ -866,12 +914,15 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id,
-        deletedCount: deleteResult.count,
-        retentionDays,
-        cutoffDate 
-      }, 'Old price data cleanup completed');
+      logger.info(
+        {
+          jobId: job.id,
+          deletedCount: deleteResult.count,
+          retentionDays,
+          cutoffDate,
+        },
+        'Old price data cleanup completed'
+      );
 
       return {
         success: true,
@@ -881,10 +932,13 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Failed to cleanup old price data');
+      logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to cleanup old price data'
+      );
       throw error;
     }
   }
@@ -912,12 +966,15 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id,
-        deletedCount: deleteResult.count,
-        retentionDays,
-        cutoffDate 
-      }, 'Old social metrics cleanup completed');
+      logger.info(
+        {
+          jobId: job.id,
+          deletedCount: deleteResult.count,
+          retentionDays,
+          cutoffDate,
+        },
+        'Old social metrics cleanup completed'
+      );
 
       return {
         success: true,
@@ -927,10 +984,13 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Failed to cleanup old social metrics');
+      logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to cleanup old social metrics'
+      );
       throw error;
     }
   }
@@ -987,12 +1047,15 @@ export class JobProcessors {
 
       await job.updateProgress(100);
 
-      logger.info({ 
-        jobId: job.id,
-        cachedCoins,
-        marketDataCached: true,
-        trendingCoinsCached: trendingCoins.length 
-      }, 'Cache warming completed');
+      logger.info(
+        {
+          jobId: job.id,
+          cachedCoins,
+          marketDataCached: true,
+          trendingCoinsCached: trendingCoins.length,
+        },
+        'Cache warming completed'
+      );
 
       return {
         success: true,
@@ -1002,10 +1065,13 @@ export class JobProcessors {
         timestamp: new Date(),
       };
     } catch (error) {
-      logger.error({ 
-        jobId: job.id, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Failed to warm cache');
+      logger.error(
+        {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to warm cache'
+      );
       throw error;
     }
   }
@@ -1015,14 +1081,14 @@ export class JobProcessors {
    */
   async close(): Promise<void> {
     const { logger } = this.dependencies;
-    
+
     logger.info('Closing job processors...');
-    
+
     for (const [queueName, worker] of this.workers) {
       await worker.close();
       logger.info({ queueName }, 'Worker closed');
     }
-    
+
     this.workers.clear();
     logger.info('All job processors closed');
   }

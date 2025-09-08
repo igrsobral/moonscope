@@ -102,7 +102,9 @@ describe('External API Integration Tests', () => {
       };
       mockRequest.mockResolvedValue(mockResponse as any);
 
-      await expect(coinGeckoClient.getCoinsMarkets()).rejects.toThrow('CoinGecko API rate limit exceeded');
+      await expect(coinGeckoClient.getCoinsMarkets()).rejects.toThrow(
+        'CoinGecko API rate limit exceeded'
+      );
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'getCoinsMarkets',
@@ -133,10 +135,10 @@ describe('External API Integration Tests', () => {
         .mockResolvedValueOnce(successResponse as any);
 
       const pingPromise = coinGeckoClient.ping();
-      
+
       // Fast-forward through retry delay
       await vi.runAllTimersAsync();
-      
+
       const result = await pingPromise;
 
       expect(result).toEqual({ gecko_says: '(V3) To the Moon!' });
@@ -164,9 +166,7 @@ describe('External API Integration Tests', () => {
       }
 
       // Next request should fail immediately due to open circuit
-      await expect(coinGeckoClient.ping()).rejects.toThrow(
-        'Circuit breaker is OPEN'
-      );
+      await expect(coinGeckoClient.ping()).rejects.toThrow('Circuit breaker is OPEN');
 
       const status = coinGeckoClient.getStatus();
       expect(status.circuitBreaker.state).toBe('OPEN');
@@ -192,7 +192,8 @@ describe('External API Integration Tests', () => {
           decimals: '18',
           logo: 'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5',
           logo_hash: 'a578c5277503e5b0d7a3e7c3d3e5c5e5',
-          thumbnail: 'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5_thumb',
+          thumbnail:
+            'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5_thumb',
           block_number: '4281611',
           validated: 1,
           created_at: '2022-01-20T10:39:55.818Z',
@@ -207,7 +208,9 @@ describe('External API Integration Tests', () => {
       };
       mockRequest.mockResolvedValue(mockResponse as any);
 
-      const result = await moralisClient.getTokenMetadata('0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7');
+      const result = await moralisClient.getTokenMetadata(
+        '0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7'
+      );
 
       expect(result).toEqual(mockTokenMetadata);
       expect(mockRequest).toHaveBeenCalledWith(
@@ -225,7 +228,8 @@ describe('External API Integration Tests', () => {
       const mockTokenPrice = {
         tokenName: 'Chainlink Token',
         tokenSymbol: 'LINK',
-        tokenLogo: 'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5',
+        tokenLogo:
+          'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5',
         tokenDecimals: '18',
         nativePrice: {
           value: '8850000000000000000',
@@ -249,7 +253,9 @@ describe('External API Integration Tests', () => {
       };
       mockRequest.mockResolvedValue(mockResponse as any);
 
-      const result = await moralisClient.getTokenPrice('0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7');
+      const result = await moralisClient.getTokenPrice(
+        '0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7'
+      );
 
       expect(result).toEqual(mockTokenPrice);
       expect(mockRequest).toHaveBeenCalledWith(
@@ -269,7 +275,9 @@ describe('External API Integration Tests', () => {
       };
       mockRequest.mockResolvedValue(mockResponse as any);
 
-      await expect(moralisClient.getTokenMetadata('0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7')).rejects.toThrow('Moralis API rate limit exceeded');
+      await expect(
+        moralisClient.getTokenMetadata('0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7')
+      ).rejects.toThrow('Moralis API rate limit exceeded');
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'getTokenMetadata',
@@ -290,7 +298,8 @@ describe('External API Integration Tests', () => {
             name: 'Chainlink Token',
             symbol: 'LINK',
             logo: 'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5',
-            thumbnail: 'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5_thumb',
+            thumbnail:
+              'https://logo.moralis.io/0x1_0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7_a578c5277503e5b0d7a3e7c3d3e5c5e5_thumb',
             decimals: 18,
             balance: '158972296077000000000',
             possible_spam: false,
@@ -332,19 +341,23 @@ describe('External API Integration Tests', () => {
       const successResponse = {
         statusCode: 200,
         body: {
-          text: vi.fn().mockResolvedValue('[{"address":"0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7","name":"Chainlink Token","symbol":"LINK","decimals":"18"}]'),
+          text: vi
+            .fn()
+            .mockResolvedValue(
+              '[{"address":"0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7","name":"Chainlink Token","symbol":"LINK","decimals":"18"}]'
+            ),
         },
       };
 
-      mockRequest
-        .mockRejectedValueOnce(networkError)
-        .mockResolvedValueOnce(successResponse as any);
+      mockRequest.mockRejectedValueOnce(networkError).mockResolvedValueOnce(successResponse as any);
 
-      const metadataPromise = moralisClient.getTokenMetadata('0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7');
-      
+      const metadataPromise = moralisClient.getTokenMetadata(
+        '0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7'
+      );
+
       // Fast-forward through retry delay
       await vi.runAllTimersAsync();
-      
+
       const result = await metadataPromise;
 
       expect(result).toHaveLength(1);
@@ -380,7 +393,11 @@ describe('External API Integration Tests', () => {
       const mockMoralisResponse = {
         statusCode: 200,
         body: {
-          text: vi.fn().mockResolvedValue('[{"address":"0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7","name":"Chainlink Token","symbol":"LINK","decimals":"18"}]'),
+          text: vi
+            .fn()
+            .mockResolvedValue(
+              '[{"address":"0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7","name":"Chainlink Token","symbol":"LINK","decimals":"18"}]'
+            ),
         },
       };
 
@@ -424,7 +441,7 @@ describe('External API Integration Tests', () => {
 
       expect(results[0].status).toBe('fulfilled');
       expect(results[1].status).toBe('rejected');
-      
+
       if (results[0].status === 'fulfilled') {
         expect(results[0].value).toEqual({ gecko_says: '(V3) To the Moon!' });
       }
@@ -464,12 +481,18 @@ describe('External API Integration Tests', () => {
       const mockMoralisSuccess = {
         statusCode: 200,
         body: {
-          text: vi.fn().mockResolvedValue('[{"address":"0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7","name":"Test","symbol":"TEST","decimals":"18"}]'),
+          text: vi
+            .fn()
+            .mockResolvedValue(
+              '[{"address":"0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7","name":"Test","symbol":"TEST","decimals":"18"}]'
+            ),
         },
       };
       mockRequest.mockResolvedValueOnce(mockMoralisSuccess as any);
 
-      const result = await moralisClient.getTokenMetadata('0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7');
+      const result = await moralisClient.getTokenMetadata(
+        '0xa0b86a33e6441e8c8c7014c8c7014c8c7014c8c7'
+      );
       expect(result).toHaveLength(1);
     });
   });

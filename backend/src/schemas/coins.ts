@@ -7,7 +7,9 @@ export const NetworkSchema = z.enum(['ethereum', 'bsc', 'polygon', 'solana']);
 export const CoinQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
-  sortBy: z.enum(['price', 'marketCap', 'volume', 'riskScore', 'name', 'symbol']).default('marketCap'),
+  sortBy: z
+    .enum(['price', 'marketCap', 'volume', 'riskScore', 'name', 'symbol'])
+    .default('marketCap'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   network: NetworkSchema.optional(),
   minMarketCap: z.coerce.number().positive().optional(),
@@ -25,11 +27,13 @@ export const CreateCoinSchema = z.object({
   logoUrl: z.string().url().optional(),
   description: z.string().max(1000).optional(),
   website: z.string().url().optional(),
-  socialLinks: z.object({
-    twitter: z.string().url().optional(),
-    telegram: z.string().url().optional(),
-    discord: z.string().url().optional(),
-  }).default({}),
+  socialLinks: z
+    .object({
+      twitter: z.string().url().optional(),
+      telegram: z.string().url().optional(),
+      discord: z.string().url().optional(),
+    })
+    .default({}),
 });
 
 // Coin update schema

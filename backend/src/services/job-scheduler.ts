@@ -17,11 +17,7 @@ export class JobScheduler {
   private logger: FastifyBaseLogger;
   // private scheduledJobs: Map<string, any> = new Map(); // Unused for now
 
-  constructor(
-    prisma: PrismaClient,
-    queueManager: QueueManager,
-    logger: FastifyBaseLogger
-  ) {
+  constructor(prisma: PrismaClient, queueManager: QueueManager, logger: FastifyBaseLogger) {
     this.prisma = prisma;
     this.queueManager = queueManager;
     this.logger = logger;
@@ -91,7 +87,10 @@ export class JobScheduler {
 
       this.logger.info({ coinCount: coins.length }, 'Price update jobs scheduled');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule price update jobs');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to schedule price update jobs'
+      );
       throw error;
     }
   }
@@ -136,7 +135,10 @@ export class JobScheduler {
 
       this.logger.info({ coinCount: coins.length }, 'Social scraping jobs scheduled');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule social scraping jobs');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to schedule social scraping jobs'
+      );
       throw error;
     }
   }
@@ -177,7 +179,10 @@ export class JobScheduler {
 
       this.logger.info({ coinCount: coins.length }, 'Risk assessment jobs scheduled');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule risk assessment jobs');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to schedule risk assessment jobs'
+      );
       throw error;
     }
   }
@@ -206,7 +211,7 @@ export class JobScheduler {
             network: coin.network,
             options: {
               minUsdValue: 10000, // $10k minimum for whale transactions
-            }
+            },
           },
           {
             repeat: {
@@ -231,7 +236,7 @@ export class JobScheduler {
             network: coin.network,
             options: {
               timeframe: '24h',
-            }
+            },
           },
           {
             repeat: {
@@ -248,7 +253,10 @@ export class JobScheduler {
 
       this.logger.info({ coinCount: coins.length }, 'Whale tracking jobs scheduled');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule whale tracking jobs');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to schedule whale tracking jobs'
+      );
       throw error;
     }
   }
@@ -273,7 +281,10 @@ export class JobScheduler {
 
       this.logger.info('Alert processing jobs scheduled');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule alert processing jobs');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to schedule alert processing jobs'
+      );
       throw error;
     }
   }
@@ -328,7 +339,10 @@ export class JobScheduler {
 
       this.logger.info('Cleanup jobs scheduled');
     } catch (error) {
-      this.logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to schedule cleanup jobs');
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to schedule cleanup jobs'
+      );
       throw error;
     }
   }
@@ -336,26 +350,27 @@ export class JobScheduler {
   /**
    * Add a one-time job
    */
-  async addOneTimeJob(
-    queueName: string,
-    jobName: string,
-    data: any,
-    options?: any
-  ): Promise<void> {
+  async addOneTimeJob(queueName: string, jobName: string, data: any, options?: any): Promise<void> {
     try {
       await this.queueManager.addJob(queueName, jobName, data, options);
-      
-      this.logger.info({ 
-        queueName, 
-        jobName, 
-        data: Object.keys(data) 
-      }, 'One-time job added');
+
+      this.logger.info(
+        {
+          queueName,
+          jobName,
+          data: Object.keys(data),
+        },
+        'One-time job added'
+      );
     } catch (error) {
-      this.logger.error({ 
-        queueName, 
-        jobName, 
-        error: error instanceof Error ? error.message : String(error)
-      }, 'Failed to add one-time job');
+      this.logger.error(
+        {
+          queueName,
+          jobName,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to add one-time job'
+      );
       throw error;
     }
   }
@@ -473,14 +488,23 @@ export class JobScheduler {
    * Get queue statistics
    */
   async getQueueStats(): Promise<Record<string, any>> {
-    const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
+    const queues = [
+      'price-updates',
+      'social-scraping',
+      'alert-processing',
+      'risk-assessment',
+      'maintenance',
+    ];
     const stats: Record<string, any> = {};
 
     for (const queueName of queues) {
       try {
         stats[queueName] = await this.queueManager.getQueueStatus(queueName);
       } catch (error) {
-        this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to get queue stats');
+        this.logger.error(
+          { queueName, error: error instanceof Error ? error.message : String(error) },
+          'Failed to get queue stats'
+        );
         stats[queueName] = { error: error instanceof Error ? error.message : String(error) };
       }
     }
@@ -492,14 +516,23 @@ export class JobScheduler {
    * Pause all scheduled jobs
    */
   async pauseAllJobs(): Promise<void> {
-    const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
-    
+    const queues = [
+      'price-updates',
+      'social-scraping',
+      'alert-processing',
+      'risk-assessment',
+      'maintenance',
+    ];
+
     for (const queueName of queues) {
       try {
         await this.queueManager.pauseQueue(queueName);
         this.logger.info({ queueName }, 'Queue paused');
       } catch (error) {
-        this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to pause queue');
+        this.logger.error(
+          { queueName, error: error instanceof Error ? error.message : String(error) },
+          'Failed to pause queue'
+        );
       }
     }
   }
@@ -508,14 +541,23 @@ export class JobScheduler {
    * Resume all scheduled jobs
    */
   async resumeAllJobs(): Promise<void> {
-    const queues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
-    
+    const queues = [
+      'price-updates',
+      'social-scraping',
+      'alert-processing',
+      'risk-assessment',
+      'maintenance',
+    ];
+
     for (const queueName of queues) {
       try {
         await this.queueManager.resumeQueue(queueName);
         this.logger.info({ queueName }, 'Queue resumed');
       } catch (error) {
-        this.logger.error({ queueName, error: error instanceof Error ? error.message : String(error) }, 'Failed to resume queue');
+        this.logger.error(
+          { queueName, error: error instanceof Error ? error.message : String(error) },
+          'Failed to resume queue'
+        );
       }
     }
   }

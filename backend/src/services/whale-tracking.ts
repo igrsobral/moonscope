@@ -1,7 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import type { FastifyBaseLogger } from 'fastify';
 import type { WhaleTransaction } from '../types/index.js';
-import { ExternalApiService, WhaleTransaction as ExternalWhaleTransaction } from './external-api-service.js';
+import {
+  ExternalApiService,
+  WhaleTransaction as ExternalWhaleTransaction,
+} from './external-api-service.js';
 import { CacheService } from './cache.js';
 import { RealtimeService } from './realtime.js';
 
@@ -68,7 +71,11 @@ export class WhaleTrackingService {
   /**
    * Process and store whale transactions for a specific coin
    */
-  async processWhaleTransactions(coinId: number, contractAddress: string, network: string): Promise<WhaleTransaction[]> {
+  async processWhaleTransactions(
+    coinId: number,
+    contractAddress: string,
+    network: string
+  ): Promise<WhaleTransaction[]> {
     try {
       this.logger?.info({ coinId, contractAddress, network }, 'Processing whale transactions');
 
@@ -88,7 +95,7 @@ export class WhaleTrackingService {
       for (const extTx of externalTransactions) {
         // Check if transaction already exists
         const existingTx = await this.prisma.whaleTransaction.findUnique({
-          where: { txHash: extTx.hash }
+          where: { txHash: extTx.hash },
         });
 
         if (existingTx) {
@@ -105,7 +112,7 @@ export class WhaleTrackingService {
             amount: extTx.value,
             usdValue: extTx.usdValue,
             timestamp: new Date(extTx.timestamp),
-          }
+          },
         });
 
         // Convert Prisma Decimal to number for the interface
@@ -118,8 +125,16 @@ export class WhaleTrackingService {
         processedTransactions.push(convertedTransaction);
 
         // Update whale wallet tracking
-        await this.updateWhaleWalletTracking(extTx.fromAddress, extTx.usdValue, new Date(extTx.timestamp));
-        await this.updateWhaleWalletTracking(extTx.toAddress, extTx.usdValue, new Date(extTx.timestamp));
+        await this.updateWhaleWalletTracking(
+          extTx.fromAddress,
+          extTx.usdValue,
+          new Date(extTx.timestamp)
+        );
+        await this.updateWhaleWalletTracking(
+          extTx.toAddress,
+          extTx.usdValue,
+          new Date(extTx.timestamp)
+        );
 
         // Generate alerts if needed
         const alert = await this.generateWhaleAlert(coinId, extTx);
@@ -136,46 +151,56 @@ export class WhaleTrackingService {
         { ttl: 900 } // 15 minutes
       );
 
-      this.logger?.info({
-        coinId,
-        processedCount: processedTransactions.length,
-        totalFetched: externalTransactions.length
-      }, 'Successfully processed whale transactions');
+      this.logger?.info(
+        {
+          coinId,
+          processedCount: processedTransactions.length,
+          totalFetched: externalTransactions.length,
+        },
+        'Successfully processed whale transactions'
+      );
 
       return processedTransactions;
     } catch (error) {
-      this.logger?.error({
-        coinId,
-        contractAddress,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to process whale transactions');
+      this.logger?.error(
+        {
+          coinId,
+          contractAddress,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to process whale transactions'
+      );
       throw error;
     }
-  }  /*
-*
+  } /*
+   *
    * Update whale wallet tracking information
    */
-  private async updateWhaleWalletTracking(address: string, transactionValue: number, timestamp: Date): Promise<void> {
+  private async updateWhaleWalletTracking(
+    address: string,
+    transactionValue: number,
+    timestamp: Date
+  ): Promise<void> {
     const cacheKey = `whale_wallet:${address.toLowerCase()}`;
-    
+
     try {
       // Get existing whale wallet data from cache or database
       let whaleWallet = await this.cacheService.get<WhaleWallet>(cacheKey);
-      
+
       if (!whaleWallet) {
         // Check if wallet exists in our tracking
         const existingTransactions = await this.prisma.whaleTransaction.findMany({
           where: {
-            OR: [
-              { fromAddress: address.toLowerCase() },
-              { toAddress: address.toLowerCase() }
-            ]
+            OR: [{ fromAddress: address.toLowerCase() }, { toAddress: address.toLowerCase() }],
           },
-          orderBy: { timestamp: 'asc' }
+          orderBy: { timestamp: 'asc' },
         });
 
         if (existingTransactions.length > 0) {
-          const totalVolume = existingTransactions.reduce((sum, tx) => sum + Number(tx.usdValue), 0);
+          const totalVolume = existingTransactions.reduce(
+            (sum, tx) => sum + Number(tx.usdValue),
+            0
+          );
           const firstSeen = existingTransactions[0].timestamp;
           const lastSeen = existingTransactions[existingTransactions.length - 1].timestamp;
 
@@ -206,23 +231,34 @@ export class WhaleTrackingService {
         whaleWallet.totalVolume += transactionValue;
         whaleWallet.lastSeen = timestamp;
         whaleWallet.isActive = this.isWalletActive(timestamp);
-        whaleWallet.category = this.categorizeWallet(address, whaleWallet.totalVolume, whaleWallet.totalTransactions);
+        whaleWallet.category = this.categorizeWallet(
+          address,
+          whaleWallet.totalVolume,
+          whaleWallet.totalTransactions
+        );
       }
 
       // Cache updated whale wallet data
       await this.cacheService.set(cacheKey, whaleWallet, { ttl: 900 }); // 15 minutes
     } catch (error) {
-      this.logger?.error({
-        address,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to update whale wallet tracking');
+      this.logger?.error(
+        {
+          address,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to update whale wallet tracking'
+      );
     }
   }
 
   /**
    * Categorize wallet based on behavior patterns
    */
-  private categorizeWallet(address: string, totalVolume: number, transactionCount: number): WhaleWallet['category'] {
+  private categorizeWallet(
+    address: string,
+    totalVolume: number,
+    transactionCount: number
+  ): WhaleWallet['category'] {
     // Known exchange addresses (simplified - in production, maintain a comprehensive list)
     const knownExchanges = [
       '0x28c6c06298d514db089934071355e5743bf21d60', // Binance
@@ -260,7 +296,10 @@ export class WhaleTrackingService {
   /**
    * Generate whale alert based on transaction characteristics
    */
-  private async generateWhaleAlert(coinId: number, transaction: ExternalWhaleTransaction): Promise<WhaleAlert | null> {
+  private async generateWhaleAlert(
+    coinId: number,
+    transaction: ExternalWhaleTransaction
+  ): Promise<WhaleAlert | null> {
     try {
       let alertType: WhaleAlert['alertType'];
       let severity: WhaleAlert['severity'];
@@ -294,23 +333,29 @@ export class WhaleTrackingService {
           usdValue: transaction.usdValue,
           tokenAmount: transaction.value,
           timestamp: transaction.timestamp,
-        }
+        },
       };
 
-      this.logger?.info({
-        coinId,
-        alertType,
-        severity,
-        usdValue: transaction.usdValue
-      }, 'Generated whale alert');
+      this.logger?.info(
+        {
+          coinId,
+          alertType,
+          severity,
+          usdValue: transaction.usdValue,
+        },
+        'Generated whale alert'
+      );
 
       return alert;
     } catch (error) {
-      this.logger?.error({
-        coinId,
-        transactionHash: transaction.hash,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to generate whale alert');
+      this.logger?.error(
+        {
+          coinId,
+          transactionHash: transaction.hash,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to generate whale alert'
+      );
       return null;
     }
   }
@@ -318,7 +363,10 @@ export class WhaleTrackingService {
   /**
    * Analyze whale movement patterns for a coin
    */
-  async analyzeWhaleMovements(coinId: number, timeframe: '1h' | '24h' | '7d' = '24h'): Promise<WhaleMovementAnalysis> {
+  async analyzeWhaleMovements(
+    coinId: number,
+    timeframe: '1h' | '24h' | '7d' = '24h'
+  ): Promise<WhaleMovementAnalysis> {
     try {
       const timeframeMs = this.getTimeframeMs(timeframe);
       const fromDate = new Date(Date.now() - timeframeMs);
@@ -327,10 +375,10 @@ export class WhaleTrackingService {
         where: {
           coinId,
           timestamp: {
-            gte: fromDate
-          }
+            gte: fromDate,
+          },
         },
-        orderBy: { timestamp: 'desc' }
+        orderBy: { timestamp: 'desc' },
       });
 
       const totalTransactions = transactions.length;
@@ -377,21 +425,27 @@ export class WhaleTrackingService {
         { ttl: 900 } // 15 minutes
       );
 
-      this.logger?.info({
-        coinId,
-        timeframe,
-        totalTransactions,
-        totalVolume,
-        netFlow
-      }, 'Completed whale movement analysis');
+      this.logger?.info(
+        {
+          coinId,
+          timeframe,
+          totalTransactions,
+          totalVolume,
+          netFlow,
+        },
+        'Completed whale movement analysis'
+      );
 
       return analysis;
     } catch (error) {
-      this.logger?.error({
-        coinId,
-        timeframe,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to analyze whale movements');
+      this.logger?.error(
+        {
+          coinId,
+          timeframe,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to analyze whale movements'
+      );
       throw error;
     }
   }
@@ -431,7 +485,7 @@ export class WhaleTrackingService {
           take: limit,
           skip: offset,
         }),
-        this.prisma.whaleTransaction.count({ where })
+        this.prisma.whaleTransaction.count({ where }),
       ]);
 
       // Convert Prisma Decimal to number for the interface
@@ -443,11 +497,14 @@ export class WhaleTrackingService {
 
       return { transactions, total };
     } catch (error) {
-      this.logger?.error({
-        coinId,
-        options,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to get whale transactions');
+      this.logger?.error(
+        {
+          coinId,
+          options,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to get whale transactions'
+      );
       throw error;
     }
   }
@@ -464,12 +521,9 @@ export class WhaleTrackingService {
         // Rebuild from database
         const transactions = await this.prisma.whaleTransaction.findMany({
           where: {
-            OR: [
-              { fromAddress: address.toLowerCase() },
-              { toAddress: address.toLowerCase() }
-            ]
+            OR: [{ fromAddress: address.toLowerCase() }, { toAddress: address.toLowerCase() }],
           },
-          orderBy: { timestamp: 'asc' }
+          orderBy: { timestamp: 'asc' },
         });
 
         if (transactions.length === 0) {
@@ -495,10 +549,13 @@ export class WhaleTrackingService {
 
       return whaleWallet;
     } catch (error) {
-      this.logger?.error({
-        address,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to get whale wallet');
+      this.logger?.error(
+        {
+          address,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to get whale wallet'
+      );
       throw error;
     }
   }
@@ -516,11 +573,14 @@ export class WhaleTrackingService {
           toAddress: true,
           usdValue: true,
           timestamp: true,
-        }
+        },
       });
 
       // Aggregate by address
-      const addressMap = new Map<string, { totalVolume: number; transactionCount: number; firstSeen: Date; lastSeen: Date }>();
+      const addressMap = new Map<
+        string,
+        { totalVolume: number; transactionCount: number; firstSeen: Date; lastSeen: Date }
+      >();
 
       for (const tx of transactions) {
         for (const address of [tx.fromAddress, tx.toAddress]) {
@@ -533,7 +593,8 @@ export class WhaleTrackingService {
 
           existing.totalVolume += Number(tx.usdValue);
           existing.transactionCount += 1;
-          existing.firstSeen = tx.timestamp < existing.firstSeen ? tx.timestamp : existing.firstSeen;
+          existing.firstSeen =
+            tx.timestamp < existing.firstSeen ? tx.timestamp : existing.firstSeen;
           existing.lastSeen = tx.timestamp > existing.lastSeen ? tx.timestamp : existing.lastSeen;
 
           addressMap.set(address, existing);
@@ -556,11 +617,14 @@ export class WhaleTrackingService {
 
       return whaleWallets;
     } catch (error) {
-      this.logger?.error({
-        coinId,
-        limit,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to get top whale wallets');
+      this.logger?.error(
+        {
+          coinId,
+          limit,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to get top whale wallets'
+      );
       throw error;
     }
   }
@@ -570,18 +634,25 @@ export class WhaleTrackingService {
    */
   private getChainFromNetwork(network: string): 'eth' | 'bsc' | 'polygon' {
     switch (network.toLowerCase()) {
-      case 'ethereum': return 'eth';
-      case 'bsc': return 'bsc';
-      case 'polygon': return 'polygon';
-      default: return 'eth';
+      case 'ethereum':
+        return 'eth';
+      case 'bsc':
+        return 'bsc';
+      case 'polygon':
+        return 'polygon';
+      default:
+        return 'eth';
     }
   }
 
   private getTimeframeMs(timeframe: '1h' | '24h' | '7d'): number {
     switch (timeframe) {
-      case '1h': return 60 * 60 * 1000;
-      case '24h': return 24 * 60 * 60 * 1000;
-      case '7d': return 7 * 24 * 60 * 60 * 1000;
+      case '1h':
+        return 60 * 60 * 1000;
+      case '24h':
+        return 24 * 60 * 60 * 1000;
+      case '7d':
+        return 7 * 24 * 60 * 60 * 1000;
     }
   }
 

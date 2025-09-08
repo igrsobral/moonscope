@@ -32,12 +32,14 @@ export type HealthResponse = z.infer<typeof healthResponseSchema>;
 /**
  * Check database connection health
  */
-async function checkDatabaseHealth(fastify: FastifyInstance): Promise<'connected' | 'disconnected' | 'unknown'> {
+async function checkDatabaseHealth(
+  fastify: FastifyInstance
+): Promise<'connected' | 'disconnected' | 'unknown'> {
   try {
     if (!fastify.prisma) {
       return 'unknown';
     }
-    
+
     await fastify.prisma.$queryRaw`SELECT 1`;
     return 'connected';
   } catch (error) {
@@ -49,12 +51,14 @@ async function checkDatabaseHealth(fastify: FastifyInstance): Promise<'connected
 /**
  * Check Redis connection health
  */
-async function checkRedisHealth(fastify: FastifyInstance): Promise<'connected' | 'disconnected' | 'unknown'> {
+async function checkRedisHealth(
+  fastify: FastifyInstance
+): Promise<'connected' | 'disconnected' | 'unknown'> {
   try {
     if (!fastify.redis) {
       return 'unknown';
     }
-    
+
     const result = await fastify.redis.ping();
     return result === 'PONG' ? 'connected' : 'disconnected';
   } catch (error) {
@@ -71,66 +75,73 @@ export async function healthRoutes(
   _options: FastifyPluginOptions
 ): Promise<void> {
   // Basic health check endpoint
-  fastify.get('/health', {
-    schema: {
-      description: 'Basic health check endpoint',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string', enum: ['ok'] },
-            timestamp: { type: 'string' },
+  fastify.get(
+    '/health',
+    {
+      schema: {
+        description: 'Basic health check endpoint',
+        tags: ['Health'],
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string', enum: ['ok'] },
+              timestamp: { type: 'string' },
+            },
           },
         },
       },
     },
-  }, async () => {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
-  });
+    async () => {
+      return {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+      };
+    }
+  );
 
   // Detailed health check endpoint
-  fastify.get('/health/detailed', {
-    schema: {
-      description: 'Detailed health check with system information',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string', enum: ['ok', 'degraded', 'unhealthy'] },
-            timestamp: { type: 'string' },
-            uptime: { type: 'number' },
-            version: { type: 'string' },
-            environment: { type: 'string' },
-            services: {
-              type: 'object',
-              properties: {
-                database: { type: 'string', enum: ['connected', 'disconnected', 'unknown'] },
-                redis: { type: 'string', enum: ['connected', 'disconnected', 'unknown'] },
+  fastify.get(
+    '/health/detailed',
+    {
+      schema: {
+        description: 'Detailed health check with system information',
+        tags: ['Health'],
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string', enum: ['ok', 'degraded', 'unhealthy'] },
+              timestamp: { type: 'string' },
+              uptime: { type: 'number' },
+              version: { type: 'string' },
+              environment: { type: 'string' },
+              services: {
+                type: 'object',
+                properties: {
+                  database: { type: 'string', enum: ['connected', 'disconnected', 'unknown'] },
+                  redis: { type: 'string', enum: ['connected', 'disconnected', 'unknown'] },
+                },
               },
-            },
-            memory: {
-              type: 'object',
-              properties: {
-                used: { type: 'number' },
-                total: { type: 'number' },
-                percentage: { type: 'number' },
+              memory: {
+                type: 'object',
+                properties: {
+                  used: { type: 'number' },
+                  total: { type: 'number' },
+                  percentage: { type: 'number' },
+                },
               },
-            },
-            system: {
-              type: 'object',
-              properties: {
-                platform: { type: 'string' },
-                nodeVersion: { type: 'string' },
-                cpuUsage: {
-                  type: 'object',
-                  properties: {
-                    user: { type: 'number' },
-                    system: { type: 'number' },
+              system: {
+                type: 'object',
+                properties: {
+                  platform: { type: 'string' },
+                  nodeVersion: { type: 'string' },
+                  cpuUsage: {
+                    type: 'object',
+                    properties: {
+                      user: { type: 'number' },
+                      system: { type: 'number' },
+                    },
                   },
                 },
               },
@@ -139,148 +150,160 @@ export async function healthRoutes(
         },
       },
     },
-  }, async (request, reply) => {
-    const startTime = process.hrtime();
-    
-    // Get memory usage
-    const memoryUsage = process.memoryUsage();
-    const totalMemory = memoryUsage.heapTotal + memoryUsage.external;
-    const usedMemory = memoryUsage.heapUsed;
-    const memoryPercentage = Math.round((usedMemory / totalMemory) * 100);
+    async (request, reply) => {
+      const startTime = process.hrtime();
 
-    // Get CPU usage
-    const cpuUsage = process.cpuUsage();
+      // Get memory usage
+      const memoryUsage = process.memoryUsage();
+      const totalMemory = memoryUsage.heapTotal + memoryUsage.external;
+      const usedMemory = memoryUsage.heapUsed;
+      const memoryPercentage = Math.round((usedMemory / totalMemory) * 100);
 
-    // Check service health
-    const services = {
-      database: await checkDatabaseHealth(fastify),
-      redis: await checkRedisHealth(fastify),
-    };
+      // Get CPU usage
+      const cpuUsage = process.cpuUsage();
 
-    // Determine overall status
-    let status: 'ok' | 'degraded' | 'unhealthy' = 'ok';
-    
-    // Consider degraded if memory usage is high
-    if (memoryPercentage > 85) {
-      status = 'degraded';
-    }
+      // Check service health
+      const services = {
+        database: await checkDatabaseHealth(fastify),
+        redis: await checkRedisHealth(fastify),
+      };
 
-    // Consider unhealthy if critical services are down
-    if (services.database === 'disconnected' || services.redis === 'disconnected') {
-      status = 'unhealthy';
-    }
+      // Determine overall status
+      let status: 'ok' | 'degraded' | 'unhealthy' = 'ok';
 
-    const healthData: HealthResponse = {
-      status,
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      version: process.env.npm_package_version || '1.0.0',
-      environment: fastify.config.NODE_ENV,
-      services,
-      memory: {
-        used: usedMemory,
-        total: totalMemory,
-        percentage: memoryPercentage,
-      },
-      system: {
-        platform: process.platform,
-        nodeVersion: process.version,
-        cpuUsage: {
-          user: cpuUsage.user / 1000000, // Convert to milliseconds
-          system: cpuUsage.system / 1000000,
-        },
-      },
-    };
+      // Consider degraded if memory usage is high
+      if (memoryPercentage > 85) {
+        status = 'degraded';
+      }
 
-    const endTime = process.hrtime(startTime);
-    const responseTime = endTime[0] * 1000 + endTime[1] / 1000000;
+      // Consider unhealthy if critical services are down
+      if (services.database === 'disconnected' || services.redis === 'disconnected') {
+        status = 'unhealthy';
+      }
 
-    // Log health check performance
-    request.log.debug({
-      healthCheck: {
+      const healthData: HealthResponse = {
         status,
-        responseTime: `${responseTime.toFixed(2)}ms`,
-        memoryUsage: `${memoryPercentage}%`,
-      },
-    }, 'Health check completed');
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        version: process.env.npm_package_version || '1.0.0',
+        environment: fastify.config.NODE_ENV,
+        services,
+        memory: {
+          used: usedMemory,
+          total: totalMemory,
+          percentage: memoryPercentage,
+        },
+        system: {
+          platform: process.platform,
+          nodeVersion: process.version,
+          cpuUsage: {
+            user: cpuUsage.user / 1000000, // Convert to milliseconds
+            system: cpuUsage.system / 1000000,
+          },
+        },
+      };
 
-    // Set appropriate status code based on health
-    if (status === 'unhealthy') {
-      reply.code(503);
-    } else if (status === 'degraded') {
-      reply.code(200);
+      const endTime = process.hrtime(startTime);
+      const responseTime = endTime[0] * 1000 + endTime[1] / 1000000;
+
+      // Log health check performance
+      request.log.debug(
+        {
+          healthCheck: {
+            status,
+            responseTime: `${responseTime.toFixed(2)}ms`,
+            memoryUsage: `${memoryPercentage}%`,
+          },
+        },
+        'Health check completed'
+      );
+
+      // Set appropriate status code based on health
+      if (status === 'unhealthy') {
+        reply.code(503);
+      } else if (status === 'degraded') {
+        reply.code(200);
+      }
+
+      return healthData;
     }
-
-    return healthData;
-  });
+  );
 
   // Readiness probe endpoint (for Kubernetes/Docker)
-  fastify.get('/health/ready', {
-    schema: {
-      description: 'Readiness probe endpoint',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            ready: { type: 'boolean' },
-            timestamp: { type: 'string' },
+  fastify.get(
+    '/health/ready',
+    {
+      schema: {
+        description: 'Readiness probe endpoint',
+        tags: ['Health'],
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              ready: { type: 'boolean' },
+              timestamp: { type: 'string' },
+            },
           },
-        },
-        503: {
-          type: 'object',
-          properties: {
-            ready: { type: 'boolean' },
-            timestamp: { type: 'string' },
-            reason: { type: 'string' },
+          503: {
+            type: 'object',
+            properties: {
+              ready: { type: 'boolean' },
+              timestamp: { type: 'string' },
+              reason: { type: 'string' },
+            },
           },
         },
       },
     },
-  }, async (_request, reply) => {
-    // Check if application is ready to serve requests
-    const dbHealth = await checkDatabaseHealth(fastify);
-    const redisHealth = await checkRedisHealth(fastify);
-    const isReady = dbHealth === 'connected' && redisHealth === 'connected';
+    async (_request, reply) => {
+      // Check if application is ready to serve requests
+      const dbHealth = await checkDatabaseHealth(fastify);
+      const redisHealth = await checkRedisHealth(fastify);
+      const isReady = dbHealth === 'connected' && redisHealth === 'connected';
 
-    if (!isReady) {
-      reply.code(503);
-      const reasons = [];
-      if (dbHealth !== 'connected') reasons.push('database');
-      if (redisHealth !== 'connected') reasons.push('redis');
-      
+      if (!isReady) {
+        reply.code(503);
+        const reasons = [];
+        if (dbHealth !== 'connected') reasons.push('database');
+        if (redisHealth !== 'connected') reasons.push('redis');
+
+        return {
+          ready: false,
+          timestamp: new Date().toISOString(),
+          reason: `Services not ready: ${reasons.join(', ')}`,
+        };
+      }
+
       return {
-        ready: false,
+        ready: true,
         timestamp: new Date().toISOString(),
-        reason: `Services not ready: ${reasons.join(', ')}`,
       };
     }
-
-    return {
-      ready: true,
-      timestamp: new Date().toISOString(),
-    };
-  });
+  );
 
   // Liveness probe endpoint (for Kubernetes/Docker)
-  fastify.get('/health/live', {
-    schema: {
-      description: 'Liveness probe endpoint',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            alive: { type: 'boolean' },
-            timestamp: { type: 'string' },
+  fastify.get(
+    '/health/live',
+    {
+      schema: {
+        description: 'Liveness probe endpoint',
+        tags: ['Health'],
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              alive: { type: 'boolean' },
+              timestamp: { type: 'string' },
+            },
           },
         },
       },
     },
-  }, async () => {
-    return {
-      alive: true,
-      timestamp: new Date().toISOString(),
-    };
-  });
+    async () => {
+      return {
+        alive: true,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  );
 }

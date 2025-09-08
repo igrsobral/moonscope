@@ -57,7 +57,7 @@ describe('CacheWarmingService', () => {
       const removed = cacheWarmingService.removeStrategy('test_strategy');
 
       expect(removed).toBe(true);
-      
+
       const stats = cacheWarmingService.getWarmingStats();
       expect(stats.strategies.some(s => s.name === 'test_strategy')).toBe(false);
     });
@@ -77,15 +77,15 @@ describe('CacheWarmingService', () => {
       };
 
       cacheWarmingService.addStrategy(strategy);
-      
+
       // Disable strategy
       const disabled = cacheWarmingService.toggleStrategy('test_strategy', false);
       expect(disabled).toBe(true);
-      
+
       const stats = cacheWarmingService.getWarmingStats();
       const testStrategy = stats.strategies.find(s => s.name === 'test_strategy');
       expect(testStrategy?.enabled).toBe(false);
-      
+
       // Re-enable strategy
       const enabled = cacheWarmingService.toggleStrategy('test_strategy', true);
       expect(enabled).toBe(true);
@@ -175,10 +175,10 @@ describe('CacheWarmingService', () => {
     it('should execute all enabled strategies in priority order', async () => {
       // Create a fresh service without default strategies for this test
       const freshService = new CacheWarmingService(mockCacheService, mockLogger);
-      
+
       // Stop default strategies and clear them
       freshService.stopAllStrategies();
-      
+
       const strategy1: WarmingStrategy = {
         name: 'low_priority',
         priority: 3,
@@ -221,7 +221,7 @@ describe('CacheWarmingService', () => {
       expect(results[0].strategy).toBe('high_priority'); // Higher priority first
       expect(results[1].strategy).toBe('low_priority');
       expect(strategy3.execute).not.toHaveBeenCalled(); // Disabled strategy not executed
-      
+
       // Clean up
       freshService.stopAllStrategies();
     });
@@ -232,24 +232,22 @@ describe('CacheWarmingService', () => {
         priority: 5,
         interval: 60000,
         enabled: true,
-        execute: vi.fn().mockImplementation(() => 
-          new Promise(resolve => setTimeout(() => resolve([]), 100))
-        ),
+        execute: vi
+          .fn()
+          .mockImplementation(() => new Promise(resolve => setTimeout(() => resolve([]), 100))),
       };
 
       cacheWarmingService.addStrategy(strategy);
 
       // Start first warming
       const firstWarmingPromise = cacheWarmingService.warmAllCaches();
-      
+
       // Try to start second warming while first is in progress
       const secondWarmingResult = await cacheWarmingService.warmAllCaches();
-      
+
       // Second warming should be skipped
       expect(secondWarmingResult).toEqual([]);
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Cache warming already in progress, skipping'
-      );
+      expect(mockLogger.warn).toHaveBeenCalledWith('Cache warming already in progress, skipping');
 
       // Wait for first warming to complete
       await firstWarmingPromise;
@@ -259,10 +257,10 @@ describe('CacheWarmingService', () => {
   describe('Default Strategies', () => {
     it('should initialize with default strategies', () => {
       const stats = cacheWarmingService.getWarmingStats();
-      
+
       expect(stats.totalStrategies).toBeGreaterThan(0);
       expect(stats.enabledStrategies).toBeGreaterThan(0);
-      
+
       // Check for some expected default strategies
       const strategyNames = stats.strategies.map(s => s.name);
       expect(strategyNames).toContain('top_coins');
@@ -299,7 +297,7 @@ describe('CacheWarmingService', () => {
       expect(stats).toHaveProperty('enabledStrategies');
       expect(stats).toHaveProperty('strategies');
       expect(Array.isArray(stats.strategies)).toBe(true);
-      
+
       const testStrategy = stats.strategies.find(s => s.name === 'test_strategy');
       expect(testStrategy).toBeDefined();
       expect(testStrategy?.priority).toBe(5);
@@ -340,9 +338,7 @@ describe('CacheWarmingService', () => {
       cacheWarmingService.startAllStrategies();
       cacheWarmingService.stopAllStrategies();
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        'All cache warming strategies stopped'
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith('All cache warming strategies stopped');
     });
   });
 });

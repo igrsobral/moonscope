@@ -63,19 +63,20 @@ describe('CacheService', () => {
       const result = await cacheService.set('test-key', { data: 'test' });
 
       expect(result).toBe(true);
-      expect(mockRedis.set).toHaveBeenCalledWith(
-        'mca:test-key',
-        JSON.stringify({ data: 'test' })
-      );
+      expect(mockRedis.set).toHaveBeenCalledWith('mca:test-key', JSON.stringify({ data: 'test' }));
     });
 
     it('should set value with prefix', async () => {
       mockRedis.setex.mockResolvedValue('OK');
 
-      const result = await cacheService.set('test-key', { data: 'test' }, { 
-        ttl: 300, 
-        prefix: 'coins' 
-      });
+      const result = await cacheService.set(
+        'test-key',
+        { data: 'test' },
+        {
+          ttl: 300,
+          prefix: 'coins',
+        }
+      );
 
       expect(result).toBe(true);
       expect(mockRedis.setex).toHaveBeenCalledWith(
@@ -206,10 +207,7 @@ describe('CacheService', () => {
         300,
         JSON.stringify({ data: 'test1' })
       );
-      expect(mockPipeline.set).toHaveBeenCalledWith(
-        'mca:key2',
-        JSON.stringify({ data: 'test2' })
-      );
+      expect(mockPipeline.set).toHaveBeenCalledWith('mca:key2', JSON.stringify({ data: 'test2' }));
     });
   });
 
@@ -307,7 +305,7 @@ describe('CacheService', () => {
 
       const hitRatio = cacheService.getHitRatio();
 
-      expect(hitRatio).toBe(2/3); // 2 hits out of 3 total
+      expect(hitRatio).toBe(2 / 3); // 2 hits out of 3 total
     });
 
     it('should reset statistics', () => {

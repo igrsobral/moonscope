@@ -45,12 +45,7 @@ describe('CoinService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    coinService = new CoinService(
-      mockPrisma,
-      mockLogger,
-      mockCache,
-      mockExternalApi
-    );
+    coinService = new CoinService(mockPrisma, mockLogger, mockCache, mockExternalApi);
   });
 
   describe('getCoins', () => {

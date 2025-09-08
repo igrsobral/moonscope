@@ -31,7 +31,9 @@ export const TopWhaleWalletsQuerySchema = z.object({
 export const WhaleAlertSubscriptionSchema = z.object({
   coinId: z.number().int().positive(),
   minUsdValue: z.number().positive().default(10000),
-  alertTypes: z.array(z.enum(['large_buy', 'large_sell', 'accumulation', 'distribution'])).default(['large_buy', 'large_sell']),
+  alertTypes: z
+    .array(z.enum(['large_buy', 'large_sell', 'accumulation', 'distribution']))
+    .default(['large_buy', 'large_sell']),
   notificationMethods: z.array(z.enum(['email', 'push', 'websocket'])).default(['websocket']),
 });
 

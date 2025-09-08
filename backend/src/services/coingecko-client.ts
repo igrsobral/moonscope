@@ -183,7 +183,7 @@ export class CoinGeckoClient {
 
   constructor(config: CoinGeckoConfig) {
     this.logger = config.logger;
-    
+
     const headers: Record<string, string> = {};
     if (config.apiKey) {
       headers['x-cg-demo-api-key'] = config.apiKey;
@@ -216,16 +216,24 @@ export class CoinGeckoClient {
   /**
    * Get list of coins with market data
    */
-  async getCoinsMarkets(options: {
-    vsCurrency?: string;
-    ids?: string[];
-    category?: string;
-    order?: 'market_cap_desc' | 'market_cap_asc' | 'volume_desc' | 'volume_asc' | 'id_asc' | 'id_desc';
-    perPage?: number;
-    page?: number;
-    sparkline?: boolean;
-    priceChangePercentage?: string;
-  } = {}): Promise<CoinGeckoCoin[]> {
+  async getCoinsMarkets(
+    options: {
+      vsCurrency?: string;
+      ids?: string[];
+      category?: string;
+      order?:
+        | 'market_cap_desc'
+        | 'market_cap_asc'
+        | 'volume_desc'
+        | 'volume_asc'
+        | 'id_asc'
+        | 'id_desc';
+      perPage?: number;
+      page?: number;
+      sparkline?: boolean;
+      priceChangePercentage?: string;
+    } = {}
+  ): Promise<CoinGeckoCoin[]> {
     const params = new URLSearchParams({
       vs_currency: options.vsCurrency || 'usd',
       order: options.order || 'market_cap_desc',
@@ -304,7 +312,9 @@ export class CoinGeckoClient {
     }
 
     try {
-      return await this.httpClient.get<CoinGeckoMarketData>(`/coins/${id}/market_chart?${params.toString()}`);
+      return await this.httpClient.get<CoinGeckoMarketData>(
+        `/coins/${id}/market_chart?${params.toString()}`
+      );
     } catch (error) {
       this.handleApiError(error, 'getCoinMarketChart');
       throw error;
@@ -369,7 +379,9 @@ export class CoinGeckoClient {
     }
 
     try {
-      return await this.httpClient.get<Record<string, Record<string, number>>>(`/simple/price?${params.toString()}`);
+      return await this.httpClient.get<Record<string, Record<string, number>>>(
+        `/simple/price?${params.toString()}`
+      );
     } catch (error) {
       this.handleApiError(error, 'getSimplePrice');
       throw error;
@@ -402,21 +414,27 @@ export class CoinGeckoClient {
 
   private handleApiError(error: any, method: string): void {
     if (error.statusCode === 429) {
-      this.logger?.warn({
-        method,
-        error: error.message,
-        statusCode: error.statusCode,
-      }, 'CoinGecko API rate limit exceeded');
-      
+      this.logger?.warn(
+        {
+          method,
+          error: error.message,
+          statusCode: error.statusCode,
+        },
+        'CoinGecko API rate limit exceeded'
+      );
+
       throw new RateLimitError('CoinGecko API rate limit exceeded');
     }
 
-    this.logger?.error({
-      method,
-      error: error.message,
-      statusCode: error.statusCode,
-      responseBody: error.responseBody,
-    }, 'CoinGecko API error');
+    this.logger?.error(
+      {
+        method,
+        error: error.message,
+        statusCode: error.statusCode,
+        responseBody: error.responseBody,
+      },
+      'CoinGecko API error'
+    );
   }
 
   /**

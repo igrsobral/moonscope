@@ -329,7 +329,7 @@ describe('LiquidityService', () => {
       };
 
       mockPrisma.liquidityAlert.findMany.mockResolvedValue(alerts);
-      
+
       // Mock the analyzeLiquidity method
       vi.spyOn(liquidityService, 'analyzeLiquidity').mockResolvedValue({
         success: true,
@@ -391,7 +391,7 @@ describe('LiquidityService', () => {
       };
 
       mockPrisma.liquidityAlert.findMany.mockResolvedValue(alerts);
-      
+
       vi.spyOn(liquidityService, 'analyzeLiquidity').mockResolvedValue({
         success: true,
         data: analysis,

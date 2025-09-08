@@ -2,14 +2,14 @@ import type { PrismaClient } from '@prisma/client';
 import type { Redis } from 'ioredis';
 import { SentimentAnalysisService } from './sentiment-analysis.js';
 import { SocialMediaClientManager, type SocialPost } from './social-media-clients.js';
-import type { 
+import type {
   SocialPlatform,
   SocialMetricsInput,
   SocialMetricsResponse,
   SocialMetricsQuery,
   SocialDataCollectionRequest,
   TrendingDetectionResponse,
-  SocialAggregationResponse
+  SocialAggregationResponse,
 } from '../schemas/social.js';
 
 export class SocialService {
@@ -27,7 +27,7 @@ export class SocialService {
   };
 
   constructor(
-    prisma: PrismaClient, 
+    prisma: PrismaClient,
     redis: Redis,
     socialConfig: {
       twitter?: {
@@ -54,7 +54,9 @@ export class SocialService {
   /**
    * Collect and store social metrics for a coin
    */
-  async collectSocialMetrics(request: SocialDataCollectionRequest): Promise<SocialMetricsResponse[]> {
+  async collectSocialMetrics(
+    request: SocialDataCollectionRequest
+  ): Promise<SocialMetricsResponse[]> {
     const { coinId, platforms, keywords, timeframe } = request;
 
     // Check cache first
@@ -255,23 +257,30 @@ export class SocialService {
 
         // Calculate mention increase
         const currentMentions = recentData.reduce((sum, m) => sum + m.mentions24h, 0);
-        const previousMentions = previousData ? 
-          previousData.reduce((sum, m) => sum + m.mentions24h, 0) : 0;
-        const mentionIncrease = previousMentions > 0 ? 
-          ((currentMentions - previousMentions) / previousMentions) * 100 : 
-          currentMentions > 0 ? 100 : 0;
+        const previousMentions = previousData
+          ? previousData.reduce((sum, m) => sum + m.mentions24h, 0)
+          : 0;
+        const mentionIncrease =
+          previousMentions > 0
+            ? ((currentMentions - previousMentions) / previousMentions) * 100
+            : currentMentions > 0
+              ? 100
+              : 0;
 
         // Calculate sentiment change
-        const currentSentiment = recentData.reduce((sum, m) => sum + Number(m.sentimentScore), 0) / recentData.length;
-        const previousSentiment = previousData ? 
-          previousData.reduce((sum, m) => sum + Number(m.sentimentScore), 0) / previousData.length : 0;
+        const currentSentiment =
+          recentData.reduce((sum, m) => sum + Number(m.sentimentScore), 0) / recentData.length;
+        const previousSentiment = previousData
+          ? previousData.reduce((sum, m) => sum + Number(m.sentimentScore), 0) / previousData.length
+          : 0;
         const sentimentChange = currentSentiment - previousSentiment;
 
         // Check influencer activity
         const influencerActivity = recentData.some(m => m.influencerMentions > 0);
 
         // Calculate trending score
-        const avgTrendingScore = recentData.reduce((sum, m) => sum + Number(m.trendingScore), 0) / recentData.length;
+        const avgTrendingScore =
+          recentData.reduce((sum, m) => sum + Number(m.trendingScore), 0) / recentData.length;
 
         // Detect viral potential
         const viralPotential = this.sentimentService.detectViralPotential(
@@ -300,7 +309,11 @@ export class SocialService {
       trendingResults.sort((a, b) => b.trendingScore - a.trendingScore);
 
       // Cache results
-      await this.redis.setex(cacheKey, this.CACHE_TTL.TRENDING_DATA, JSON.stringify(trendingResults));
+      await this.redis.setex(
+        cacheKey,
+        this.CACHE_TTL.TRENDING_DATA,
+        JSON.stringify(trendingResults)
+      );
 
       return trendingResults;
     } catch (error) {
@@ -347,20 +360,24 @@ export class SocialService {
       // Calculate aggregated metrics
       const totalMentions24h = metrics.reduce((sum, m) => sum + m.mentions24h, 0);
       const totalFollowers = metrics.reduce((sum, m) => sum + m.followers, 0);
-      const aggregatedSentiment = metrics.reduce((sum, m) => sum + Number(m.sentimentScore), 0) / metrics.length;
-      const averageTrendingScore = metrics.reduce((sum, m) => sum + Number(m.trendingScore), 0) / metrics.length;
+      const aggregatedSentiment =
+        metrics.reduce((sum, m) => sum + Number(m.sentimentScore), 0) / metrics.length;
+      const averageTrendingScore =
+        metrics.reduce((sum, m) => sum + Number(m.trendingScore), 0) / metrics.length;
 
       // Create platform breakdown
-      const platformBreakdown = Array.from(platformGroups.entries()).map(([platform, platformMetrics]) => {
-        const latestMetric = platformMetrics[0]; // Most recent
-        return {
-          platform,
-          sentiment: Number(latestMetric.sentimentScore),
-          mentions: latestMetric.mentions24h,
-          followers: latestMetric.followers,
-          trendingScore: Number(latestMetric.trendingScore),
-        };
-      });
+      const platformBreakdown = Array.from(platformGroups.entries()).map(
+        ([platform, platformMetrics]) => {
+          const latestMetric = platformMetrics[0]; // Most recent
+          return {
+            platform,
+            sentiment: Number(latestMetric.sentimentScore),
+            mentions: latestMetric.mentions24h,
+            followers: latestMetric.followers,
+            trendingScore: Number(latestMetric.trendingScore),
+          };
+        }
+      );
 
       const result: SocialAggregationResponse = {
         coinId,
@@ -393,10 +410,10 @@ export class SocialService {
     }
 
     const result = await this.sentimentService.analyzeSentiment({ text, platform });
-    
+
     // Cache sentiment analysis
     await this.redis.setex(cacheKey, this.CACHE_TTL.SENTIMENT_ANALYSIS, JSON.stringify(result));
-    
+
     return result;
   }
 
@@ -419,7 +436,7 @@ export class SocialService {
    */
   private groupMetricsByKey(metrics: any[]): Map<string, any[]> {
     const grouped = new Map<string, any[]>();
-    
+
     metrics.forEach(metric => {
       const key = `${metric.coinId}:${metric.platform}`;
       if (!grouped.has(key)) {
@@ -437,7 +454,7 @@ export class SocialService {
   async clearCache(pattern?: string): Promise<void> {
     const searchPattern = pattern || 'social:*';
     const keys = await this.redis.keys(searchPattern);
-    
+
     if (keys.length > 0) {
       await this.redis.del(...keys);
     }

@@ -45,9 +45,9 @@ declare module 'fastify' {
   }
 }
 
-const queuePlugin: FastifyPluginAsync = async (fastify) => {
+const queuePlugin: FastifyPluginAsync = async fastify => {
   const redis = fastify.redis as Redis;
-  
+
   // Store queues and queue events
   const queues = new Map<string, Queue>();
   const queueEvents = new Map<string, QueueEvents>();
@@ -134,21 +134,24 @@ const queuePlugin: FastifyPluginAsync = async (fastify) => {
     options: JobOptions = {}
   ): Promise<Job> {
     const queue = getQueue(queueName);
-    
+
     const jobOptions = {
       ...defaultJobOptions,
       ...options,
     };
 
     const job = await queue.add(jobName, data, jobOptions);
-    
-    fastify.log.info({ 
-      queueName, 
-      jobName, 
-      jobId: job.id,
-      data: Object.keys(data),
-      options: jobOptions 
-    }, 'Job added to queue');
+
+    fastify.log.info(
+      {
+        queueName,
+        jobName,
+        jobId: job.id,
+        data: Object.keys(data),
+        options: jobOptions,
+      },
+      'Job added to queue'
+    );
 
     return job;
   }
@@ -195,7 +198,7 @@ const queuePlugin: FastifyPluginAsync = async (fastify) => {
    */
   async function getQueueStatus(queueName: string) {
     const queue = getQueue(queueName);
-    
+
     const [waiting, active, completed, failed, delayed] = await Promise.all([
       queue.getWaiting(),
       queue.getActive(),
@@ -226,9 +229,9 @@ const queuePlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   // Graceful shutdown
-  fastify.addHook('onClose', async (instance) => {
+  fastify.addHook('onClose', async instance => {
     instance.log.info('Closing job queues...');
-    
+
     for (const [queueName, queue] of queues) {
       await queue.close();
       instance.log.info({ queueName }, 'Queue closed');

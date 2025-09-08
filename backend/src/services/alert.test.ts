@@ -49,12 +49,7 @@ describe('AlertService', () => {
       },
     });
 
-    alertService = new AlertService(
-      prisma,
-      mockLogger,
-      mockCache,
-      mockNotificationService
-    );
+    alertService = new AlertService(prisma, mockLogger, mockCache, mockNotificationService);
   });
 
   afterAll(async () => {

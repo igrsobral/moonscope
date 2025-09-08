@@ -2,12 +2,12 @@ import { PrismaClient, LiquidityPool, LiquidityData, LiquidityAlert } from '@pri
 import { FastifyBaseLogger } from 'fastify';
 import { CacheService } from './cache.js';
 import { RealtimeService } from './realtime.js';
-import { 
-  BaseDexClient, 
-  UniswapV2Client, 
-  SushiSwapClient, 
-  PancakeSwapClient, 
-  DexPoolData 
+import {
+  BaseDexClient,
+  UniswapV2Client,
+  SushiSwapClient,
+  PancakeSwapClient,
+  DexPoolData,
 } from './dex-clients.js';
 import { ApiResponse } from '../types/index.js';
 
@@ -73,7 +73,10 @@ export class LiquidityService {
   /**
    * Sync liquidity pools for a specific coin from all DEXs
    */
-  async syncLiquidityPools(coinId: number, tokenAddress: string): Promise<ApiResponse<LiquidityPool[]>> {
+  async syncLiquidityPools(
+    coinId: number,
+    tokenAddress: string
+  ): Promise<ApiResponse<LiquidityPool[]>> {
     try {
       this.logger.info({ coinId, tokenAddress }, 'Starting liquidity pool sync');
 
@@ -83,7 +86,7 @@ export class LiquidityService {
       for (const [exchange, client] of this.dexClients) {
         try {
           const poolsData = await client.getPoolData(tokenAddress);
-          
+
           for (const poolData of poolsData) {
             // Check if pool already exists
             let pool = await this.prisma.liquidityPool.findFirst({
@@ -133,22 +136,28 @@ export class LiquidityService {
             syncedPools.push(pool);
           }
         } catch (error) {
-          this.logger.warn({ 
-            error, 
-            exchange, 
-            tokenAddress 
-          }, `Failed to sync pools from ${exchange}`);
+          this.logger.warn(
+            {
+              error,
+              exchange,
+              tokenAddress,
+            },
+            `Failed to sync pools from ${exchange}`
+          );
         }
       }
 
       // Invalidate cache
       await this.cacheService.delete(`liquidity:${coinId}:*`);
 
-      this.logger.info({ 
-        coinId, 
-        tokenAddress, 
-        syncedCount: syncedPools.length 
-      }, 'Completed liquidity pool sync');
+      this.logger.info(
+        {
+          coinId,
+          tokenAddress,
+          syncedCount: syncedPools.length,
+        },
+        'Completed liquidity pool sync'
+      );
 
       return {
         success: true,
@@ -183,9 +192,16 @@ export class LiquidityService {
         const hoursDiff = timeDiff / (1000 * 60 * 60);
 
         // Only calculate change if previous data is within reasonable timeframe
-        if (hoursDiff <= 25) { // Within 25 hours for 24h change
-          liquidityChange24h = ((poolData.totalLiquidity - Number(previousData.totalLiquidity)) / Number(previousData.totalLiquidity)) * 100;
-          volumeChange24h = ((poolData.volume24h - Number(previousData.volume24h)) / Number(previousData.volume24h)) * 100;
+        if (hoursDiff <= 25) {
+          // Within 25 hours for 24h change
+          liquidityChange24h =
+            ((poolData.totalLiquidity - Number(previousData.totalLiquidity)) /
+              Number(previousData.totalLiquidity)) *
+            100;
+          volumeChange24h =
+            ((poolData.volume24h - Number(previousData.volume24h)) /
+              Number(previousData.volume24h)) *
+            100;
         }
       }
 
@@ -231,7 +247,7 @@ export class LiquidityService {
       }
 
       const pools = await this.prisma.liquidityPool.findMany({
-        where: { 
+        where: {
           coinId,
           isActive: true,
         },
@@ -289,7 +305,7 @@ export class LiquidityService {
       }
 
       const pools = await this.prisma.liquidityPool.findMany({
-        where: { 
+        where: {
           coinId,
           isActive: true,
         },
@@ -327,8 +343,8 @@ export class LiquidityService {
         exchangeLiquidity.set(pool.exchange, current + Number(pool.totalLiquidity));
       });
 
-      const topExchange = Array.from(exchangeLiquidity.entries())
-        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'unknown';
+      const topExchange =
+        Array.from(exchangeLiquidity.entries()).sort(([, a], [, b]) => b - a)[0]?.[0] || 'unknown';
 
       // Calculate price impact analysis (weighted average)
       let weightedImpact1k = 0;
@@ -432,7 +448,7 @@ export class LiquidityService {
    * Get liquidity trends over time
    */
   async getLiquidityTrends(
-    coinId: number, 
+    coinId: number,
     timeframe: '1h' | '24h' | '7d' | '30d' = '24h'
   ): Promise<ApiResponse<LiquidityTrend[]>> {
     try {
@@ -506,11 +522,14 @@ export class LiquidityService {
       const ttl = timeframe === '1h' ? 60 : timeframe === '24h' ? 300 : 600;
       await this.cacheService.set(cacheKey, trends, { ttl });
 
-      this.logger.info({ 
-        coinId, 
-        timeframe, 
-        dataPoints: trends.length 
-      }, 'Retrieved liquidity trends');
+      this.logger.info(
+        {
+          coinId,
+          timeframe,
+          dataPoints: trends.length,
+        },
+        'Retrieved liquidity trends'
+      );
 
       return {
         success: true,
@@ -555,12 +574,15 @@ export class LiquidityService {
         },
       });
 
-      this.logger.info({ 
-        alertId: alert.id, 
-        userId, 
-        coinId, 
-        type 
-      }, 'Created liquidity alert');
+      this.logger.info(
+        {
+          alertId: alert.id,
+          userId,
+          coinId,
+          type,
+        },
+        'Created liquidity alert'
+      );
 
       return {
         success: true,
@@ -607,12 +629,18 @@ export class LiquidityService {
         let triggerReason = '';
 
         // Check different alert conditions
-        if (condition.liquidityThreshold && analysis.totalLiquidity <= condition.liquidityThreshold) {
+        if (
+          condition.liquidityThreshold &&
+          analysis.totalLiquidity <= condition.liquidityThreshold
+        ) {
           shouldTrigger = true;
           triggerReason = `Total liquidity dropped to $${analysis.totalLiquidity.toLocaleString()}`;
         }
 
-        if (condition.priceImpactThreshold && analysis.priceImpactAnalysis.impact10k >= condition.priceImpactThreshold) {
+        if (
+          condition.priceImpactThreshold &&
+          analysis.priceImpactAnalysis.impact10k >= condition.priceImpactThreshold
+        ) {
           shouldTrigger = true;
           triggerReason = `Price impact for $10k trade reached ${analysis.priceImpactAnalysis.impact10k.toFixed(2)}%`;
         }
@@ -642,12 +670,15 @@ export class LiquidityService {
             timestamp: new Date().toISOString(),
           });
 
-          this.logger.info({ 
-            alertId: alert.id, 
-            userId: alert.userId, 
-            coinId, 
-            reason: triggerReason 
-          }, 'Triggered liquidity alert');
+          this.logger.info(
+            {
+              alertId: alert.id,
+              userId: alert.userId,
+              coinId,
+              reason: triggerReason,
+            },
+            'Triggered liquidity alert'
+          );
         }
       }
     } catch (error) {
@@ -698,9 +729,10 @@ export class LiquidityService {
   ): Promise<ApiResponse<LiquidityAlert>> {
     try {
       const updateData: any = {};
-      
+
       if (updates.condition !== undefined) updateData.condition = updates.condition;
-      if (updates.notificationMethods !== undefined) updateData.notificationMethods = updates.notificationMethods;
+      if (updates.notificationMethods !== undefined)
+        updateData.notificationMethods = updates.notificationMethods;
       if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;

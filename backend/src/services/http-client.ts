@@ -64,7 +64,7 @@ export class CircuitBreaker {
   private onFailure() {
     this.failures++;
     this.lastFailureTime = Date.now();
-    
+
     if (this.failures >= this.options.threshold) {
       this.state = 'OPEN';
     }
@@ -102,11 +102,19 @@ export class HttpClient {
     return this.request<T>('GET', path, options);
   }
 
-  async post<T = any>(path: string, body?: any, options?: Partial<Dispatcher.RequestOptions>): Promise<T> {
+  async post<T = any>(
+    path: string,
+    body?: any,
+    options?: Partial<Dispatcher.RequestOptions>
+  ): Promise<T> {
     return this.request<T>('POST', path, { ...options, body: JSON.stringify(body) });
   }
 
-  async put<T = any>(path: string, body?: any, options?: Partial<Dispatcher.RequestOptions>): Promise<T> {
+  async put<T = any>(
+    path: string,
+    body?: any,
+    options?: Partial<Dispatcher.RequestOptions>
+  ): Promise<T> {
     return this.request<T>('PUT', path, { ...options, body: JSON.stringify(body) });
   }
 
@@ -120,7 +128,7 @@ export class HttpClient {
     options?: Partial<Dispatcher.RequestOptions>
   ): Promise<T> {
     const url = `${this.options.baseUrl}${path}`;
-    
+
     return this.circuitBreaker.execute(async () => {
       return this.executeWithRetry<T>(method, url, options);
     });
@@ -148,15 +156,18 @@ export class HttpClient {
           ...options,
         };
 
-        this.options.logger?.debug({
-          method,
-          url,
-          attempt: attempt + 1,
-          maxRetries: this.retryOptions.maxRetries + 1,
-        }, 'Making HTTP request');
+        this.options.logger?.debug(
+          {
+            method,
+            url,
+            attempt: attempt + 1,
+            maxRetries: this.retryOptions.maxRetries + 1,
+          },
+          'Making HTTP request'
+        );
 
         const response = await request(url, requestOptions);
-        
+
         if (response.statusCode >= 400) {
           const errorBody = await response.body.text();
           throw new HttpError(
@@ -167,7 +178,7 @@ export class HttpClient {
         }
 
         const responseText = await response.body.text();
-        
+
         try {
           return JSON.parse(responseText) as T;
         } catch {
@@ -175,15 +186,23 @@ export class HttpClient {
         }
       } catch (error) {
         lastError = error as Error;
-        
-        this.options.logger?.warn({
-          method,
-          url,
-          attempt: attempt + 1,
-          error: error instanceof Error ? error.message : String(error),
-        }, 'HTTP request failed');
 
-        if (error instanceof HttpError && error.statusCode >= 400 && error.statusCode < 500 && error.statusCode !== 429) {
+        this.options.logger?.warn(
+          {
+            method,
+            url,
+            attempt: attempt + 1,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'HTTP request failed'
+        );
+
+        if (
+          error instanceof HttpError &&
+          error.statusCode >= 400 &&
+          error.statusCode < 500 &&
+          error.statusCode !== 429
+        ) {
           throw error;
         }
 
@@ -200,10 +219,13 @@ export class HttpClient {
         // Add jitter to prevent thundering herd
         const jitteredDelay = delay + Math.random() * 1000;
 
-        this.options.logger?.debug({
-          attempt: attempt + 1,
-          delay: jitteredDelay,
-        }, 'Retrying HTTP request after delay');
+        this.options.logger?.debug(
+          {
+            attempt: attempt + 1,
+            delay: jitteredDelay,
+          },
+          'Retrying HTTP request after delay'
+        );
 
         await this.sleep(jitteredDelay);
       }

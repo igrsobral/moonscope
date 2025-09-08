@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { FastifyBaseLogger } from 'fastify';
-import { NotificationService, EmailNotificationChannel, PushNotificationChannel, SMSNotificationChannel } from './notification.js';
+import {
+  NotificationService,
+  EmailNotificationChannel,
+  PushNotificationChannel,
+  SMSNotificationChannel,
+} from './notification.js';
 
 // Mock logger
 const mockLogger: FastifyBaseLogger = {
@@ -29,28 +34,24 @@ describe('NotificationService', () => {
       },
     });
 
-    notificationService = new NotificationService(
-      prisma,
-      mockLogger,
-      {
-        email: {
-          smtpHost: 'localhost',
-          smtpPort: 587,
-          smtpUser: 'test',
-          smtpPassword: 'test',
-          fromEmail: 'test@example.com',
-          fromName: 'Test',
-        },
-        push: {
-          fcmServerKey: 'test-key',
-        },
-        sms: {
-          twilioAccountSid: 'test-sid',
-          twilioAuthToken: 'test-token',
-          fromPhoneNumber: '+1234567890',
-        },
-      }
-    );
+    notificationService = new NotificationService(prisma, mockLogger, {
+      email: {
+        smtpHost: 'localhost',
+        smtpPort: 587,
+        smtpUser: 'test',
+        smtpPassword: 'test',
+        fromEmail: 'test@example.com',
+        fromName: 'Test',
+      },
+      push: {
+        fcmServerKey: 'test-key',
+      },
+      sms: {
+        twilioAccountSid: 'test-sid',
+        twilioAuthToken: 'test-token',
+        fromPhoneNumber: '+1234567890',
+      },
+    });
   });
 
   afterAll(async () => {
@@ -133,11 +134,7 @@ describe('NotificationService', () => {
     });
 
     it('should handle unavailable notification channel', async () => {
-      const serviceWithoutChannels = new NotificationService(
-        prisma,
-        mockLogger,
-        {}
-      );
+      const serviceWithoutChannels = new NotificationService(prisma, mockLogger, {});
 
       const delivery = {
         alertId,

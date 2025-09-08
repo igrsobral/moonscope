@@ -40,17 +40,20 @@ describe('Realtime Service', () => {
 
     app.realtime.broadcastPriceUpdate('bitcoin', priceData);
 
-    expect(mockBroadcastToCoin).toHaveBeenCalledWith('bitcoin', expect.objectContaining({
-      type: 'price_update',
-      data: expect.objectContaining({
+    expect(mockBroadcastToCoin).toHaveBeenCalledWith(
+      'bitcoin',
+      expect.objectContaining({
+        type: 'price_update',
+        data: expect.objectContaining({
+          coinId: 'bitcoin',
+          price: 50000,
+          marketCap: 1000000000,
+          volume24h: 50000000,
+          priceChange24h: 5.2,
+        }),
         coinId: 'bitcoin',
-        price: 50000,
-        marketCap: 1000000000,
-        volume24h: 50000000,
-        priceChange24h: 5.2,
-      }),
-      coinId: 'bitcoin',
-    }));
+      })
+    );
   });
 
   it('should broadcast alert triggered', () => {
@@ -71,18 +74,21 @@ describe('Realtime Service', () => {
 
     app.realtime.broadcastAlertTriggered(1, alert, coinData);
 
-    expect(mockBroadcastToUser).toHaveBeenCalledWith(1, expect.objectContaining({
-      type: 'alert_triggered',
-      data: expect.objectContaining({
-        alertId: 1,
-        alertType: 'price_above',
-        coinId: 1,
-        condition: { targetPrice: 50000 },
-        coinData,
-      }),
-      userId: '1',
-      coinId: '1',
-    }));
+    expect(mockBroadcastToUser).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        type: 'alert_triggered',
+        data: expect.objectContaining({
+          alertId: 1,
+          alertType: 'price_above',
+          coinId: 1,
+          condition: { targetPrice: 50000 },
+          coinData,
+        }),
+        userId: '1',
+        coinId: '1',
+      })
+    );
   });
 
   it('should broadcast whale movements', () => {
@@ -101,18 +107,21 @@ describe('Realtime Service', () => {
 
     app.realtime.broadcastWhaleMovement('bitcoin', whaleTransaction);
 
-    expect(mockBroadcastToCoin).toHaveBeenCalledWith('bitcoin', expect.objectContaining({
-      type: 'whale_movement',
-      data: expect.objectContaining({
+    expect(mockBroadcastToCoin).toHaveBeenCalledWith(
+      'bitcoin',
+      expect.objectContaining({
+        type: 'whale_movement',
+        data: expect.objectContaining({
+          coinId: 'bitcoin',
+          txHash: '0x123456789abcdef',
+          fromAddress: '0xfrom123',
+          toAddress: '0xto456',
+          amount: 1000,
+          usdValue: 50000000,
+        }),
         coinId: 'bitcoin',
-        txHash: '0x123456789abcdef',
-        fromAddress: '0xfrom123',
-        toAddress: '0xto456',
-        amount: 1000,
-        usdValue: 50000000,
-      }),
-      coinId: 'bitcoin',
-    }));
+      })
+    );
   });
 
   it('should broadcast social spikes', () => {
@@ -129,18 +138,21 @@ describe('Realtime Service', () => {
 
     app.realtime.broadcastSocialSpike('bitcoin', socialData);
 
-    expect(mockBroadcastToCoin).toHaveBeenCalledWith('bitcoin', expect.objectContaining({
-      type: 'social_spike',
-      data: expect.objectContaining({
+    expect(mockBroadcastToCoin).toHaveBeenCalledWith(
+      'bitcoin',
+      expect.objectContaining({
+        type: 'social_spike',
+        data: expect.objectContaining({
+          coinId: 'bitcoin',
+          platform: 'twitter',
+          mentions24h: 5000,
+          sentimentScore: 0.8,
+          trendingScore: 95,
+          change: 150,
+        }),
         coinId: 'bitcoin',
-        platform: 'twitter',
-        mentions24h: 5000,
-        sentimentScore: 0.8,
-        trendingScore: 95,
-        change: 150,
-      }),
-      coinId: 'bitcoin',
-    }));
+      })
+    );
   });
 
   it('should broadcast to user', () => {

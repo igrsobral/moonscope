@@ -1,35 +1,31 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { 
+import {
   SocialMetricsQuerySchema,
   SocialDataCollectionRequestSchema,
   SentimentAnalysisRequestSchema,
   type SocialMetricsQuery,
   type SocialDataCollectionRequest,
   type SentimentAnalysisRequest,
-  type SocialPlatform
+  type SocialPlatform,
 } from '../schemas/social.js';
 import { SocialService } from '../services/social.js';
 
 export default async function socialRoutes(fastify: FastifyInstance) {
-  const socialService = new SocialService(
-    fastify.prisma,
-    fastify.redis,
-    {
-      twitter: {
-        apiKey: process.env.TWITTER_API_KEY || '',
-        apiSecret: process.env.TWITTER_API_SECRET || '',
-        bearerToken: process.env.TWITTER_BEARER_TOKEN || '',
-      },
-      reddit: {
-        clientId: process.env.REDDIT_CLIENT_ID || '',
-        clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
-        userAgent: process.env.REDDIT_USER_AGENT || 'MemeAnalyzer/1.0',
-      },
-      telegram: {
-        botToken: process.env.TELEGRAM_BOT_TOKEN || '',
-      },
-    }
-  );
+  const socialService = new SocialService(fastify.prisma, fastify.redis, {
+    twitter: {
+      apiKey: process.env.TWITTER_API_KEY || '',
+      apiSecret: process.env.TWITTER_API_SECRET || '',
+      bearerToken: process.env.TWITTER_BEARER_TOKEN || '',
+    },
+    reddit: {
+      clientId: process.env.REDDIT_CLIENT_ID || '',
+      clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
+      userAgent: process.env.REDDIT_USER_AGENT || 'MemeAnalyzer/1.0',
+    },
+    telegram: {
+      botToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    },
+  });
 
   // Get social metrics for a coin
   fastify.get<{
@@ -72,10 +68,13 @@ export default async function socialRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    handler: async (request: FastifyRequest<{ Querystring: SocialMetricsQuery }>, reply: FastifyReply) => {
+    handler: async (
+      request: FastifyRequest<{ Querystring: SocialMetricsQuery }>,
+      reply: FastifyReply
+    ) => {
       try {
         const result = await socialService.getSocialMetrics(request.query);
-        
+
         return reply.send({
           success: true,
           data: result,
@@ -128,10 +127,13 @@ export default async function socialRoutes(fastify: FastifyInstance) {
       },
     },
     preHandler: [fastify.authenticate], // Require authentication
-    handler: async (request: FastifyRequest<{ Body: SocialDataCollectionRequest }>, reply: FastifyReply) => {
+    handler: async (
+      request: FastifyRequest<{ Body: SocialDataCollectionRequest }>,
+      reply: FastifyReply
+    ) => {
       try {
         const result = await socialService.collectSocialMetrics(request.body);
-        
+
         return reply.send({
           success: true,
           data: result,
@@ -196,7 +198,10 @@ export default async function socialRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    handler: async (request: FastifyRequest<{ Params: { coinId: string } }>, reply: FastifyReply) => {
+    handler: async (
+      request: FastifyRequest<{ Params: { coinId: string } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const coinId = parseInt(request.params.coinId);
         if (isNaN(coinId) || coinId <= 0) {
@@ -210,7 +215,7 @@ export default async function socialRoutes(fastify: FastifyInstance) {
         }
 
         const result = await socialService.getAggregatedSocialMetrics(coinId);
-        
+
         return reply.send({
           success: true,
           data: result,
@@ -241,12 +246,12 @@ export default async function socialRoutes(fastify: FastifyInstance) {
       querystring: {
         type: 'object',
         properties: {
-          platforms: { 
+          platforms: {
             type: 'string',
             description: 'Comma-separated list of platforms (twitter,reddit,telegram)',
           },
-          timeframe: { 
-            type: 'string', 
+          timeframe: {
+            type: 'string',
             enum: ['1h', '6h', '24h'],
             default: '24h',
           },
@@ -277,27 +282,30 @@ export default async function socialRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    handler: async (request: FastifyRequest<{ 
-      Querystring: { platforms?: string; timeframe?: '1h' | '6h' | '24h' } 
-    }>, reply: FastifyReply) => {
+    handler: async (
+      request: FastifyRequest<{
+        Querystring: { platforms?: string; timeframe?: '1h' | '6h' | '24h' };
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         const { platforms: platformsParam, timeframe = '24h' } = request.query;
-        
+
         // Parse platforms parameter
         let platforms: SocialPlatform[] = ['twitter', 'reddit', 'telegram'];
         if (platformsParam) {
           const parsedPlatforms = platformsParam.split(',').map(p => p.trim());
-          const validPlatforms = parsedPlatforms.filter(p => 
+          const validPlatforms = parsedPlatforms.filter(p =>
             ['twitter', 'reddit', 'telegram'].includes(p)
           ) as SocialPlatform[];
-          
+
           if (validPlatforms.length > 0) {
             platforms = validPlatforms;
           }
         }
 
         const result = await socialService.detectTrending(platforms, timeframe);
-        
+
         return reply.send({
           success: true,
           data: result,
@@ -353,11 +361,14 @@ export default async function socialRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    handler: async (request: FastifyRequest<{ Body: SentimentAnalysisRequest }>, reply: FastifyReply) => {
+    handler: async (
+      request: FastifyRequest<{ Body: SentimentAnalysisRequest }>,
+      reply: FastifyReply
+    ) => {
       try {
         const { text, platform } = request.body;
         const result = await socialService.analyzeSentiment(text, platform);
-        
+
         return reply.send({
           success: true,
           data: result,
@@ -397,12 +408,15 @@ export default async function socialRoutes(fastify: FastifyInstance) {
       },
     },
     preHandler: [fastify.authenticate], // Require authentication
-    handler: async (request: FastifyRequest<{ 
-      Querystring: { pattern?: string } 
-    }>, reply: FastifyReply) => {
+    handler: async (
+      request: FastifyRequest<{
+        Querystring: { pattern?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         await socialService.clearCache(request.query.pattern);
-        
+
         return reply.send({
           success: true,
           message: 'Cache cleared successfully',

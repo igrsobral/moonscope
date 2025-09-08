@@ -8,12 +8,12 @@ describe('JWT Plugin', () => {
 
   beforeEach(async () => {
     app = Fastify({ logger: false });
-    
+
     // Mock the config
     app.decorate('config', {
       JWT_SECRET: 'test-jwt-secret-key-for-testing-purposes-only-32-chars',
     });
-    
+
     await app.register(jwtPlugin);
   });
 
@@ -77,11 +77,15 @@ describe('JWT Plugin', () => {
     const token = app.jwt.sign(payload);
 
     // Add a test route that requires authentication
-    app.get('/test-auth', {
-      preHandler: [app.authenticate],
-    }, async (request) => {
-      return { user: request.user };
-    });
+    app.get(
+      '/test-auth',
+      {
+        preHandler: [app.authenticate],
+      },
+      async request => {
+        return { user: request.user };
+      }
+    );
 
     await app.ready();
 
@@ -100,11 +104,15 @@ describe('JWT Plugin', () => {
 
   it('should reject requests without authorization header', async () => {
     // Add a test route that requires authentication
-    app.get('/test-auth-required', {
-      preHandler: [app.authenticate],
-    }, async () => {
-      return { message: 'authenticated' };
-    });
+    app.get(
+      '/test-auth-required',
+      {
+        preHandler: [app.authenticate],
+      },
+      async () => {
+        return { message: 'authenticated' };
+      }
+    );
 
     await app.ready();
 
@@ -122,11 +130,15 @@ describe('JWT Plugin', () => {
 
   it('should reject requests with invalid authorization format', async () => {
     // Add a test route that requires authentication
-    app.get('/test-auth-format', {
-      preHandler: [app.authenticate],
-    }, async () => {
-      return { message: 'authenticated' };
-    });
+    app.get(
+      '/test-auth-format',
+      {
+        preHandler: [app.authenticate],
+      },
+      async () => {
+        return { message: 'authenticated' };
+      }
+    );
 
     await app.ready();
 
@@ -147,11 +159,15 @@ describe('JWT Plugin', () => {
 
   it('should reject requests with invalid tokens', async () => {
     // Add a test route that requires authentication
-    app.get('/test-auth-invalid', {
-      preHandler: [app.authenticate],
-    }, async () => {
-      return { message: 'authenticated' };
-    });
+    app.get(
+      '/test-auth-invalid',
+      {
+        preHandler: [app.authenticate],
+      },
+      async () => {
+        return { message: 'authenticated' };
+      }
+    );
 
     await app.ready();
 

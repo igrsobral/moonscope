@@ -20,86 +20,93 @@ type WebSocketConnection = any;
  */
 export async function websocketRoutes(fastify: FastifyInstance): Promise<void> {
   // WebSocket endpoint
-  fastify.get('/ws', { websocket: true }, async (connection: WebSocketConnection, request: FastifyRequest) => {
-    const connectionId = `ws_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-    
-    const wsConnection: WebSocketConnection = {
-      id: connectionId,
-      socket: connection,
-      subscriptions: new Set(),
-      lastPing: new Date(),
-      isAuthenticated: false,
-    };
+  fastify.get(
+    '/ws',
+    { websocket: true },
+    async (connection: WebSocketConnection, request: FastifyRequest) => {
+      const connectionId = `ws_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
-    // Add connection to manager
-    fastify.websocketManager.addConnection(wsConnection);
+      const wsConnection: WebSocketConnection = {
+        id: connectionId,
+        socket: connection,
+        subscriptions: new Set(),
+        lastPing: new Date(),
+        isAuthenticated: false,
+      };
 
-    // Send welcome message
-    const welcomeEvent: WebSocketEvent = {
-      type: 'price_update',
-      data: {
-        message: 'Connected to Meme Coin Analyzer WebSocket',
-        connectionId,
+      // Add connection to manager
+      fastify.websocketManager.addConnection(wsConnection);
+
+      // Send welcome message
+      const welcomeEvent: WebSocketEvent = {
+        type: 'price_update',
+        data: {
+          message: 'Connected to Meme Coin Analyzer WebSocket',
+          connectionId,
+          timestamp: new Date().toISOString(),
+        },
         timestamp: new Date().toISOString(),
-      },
-      timestamp: new Date().toISOString(),
-    };
+      };
 
-    connection.send(JSON.stringify(welcomeEvent));
+      connection.send(JSON.stringify(welcomeEvent));
 
-    // Handle incoming messages
-    connection.on('message', async (rawMessage: Buffer) => {
-      try {
-        const message: WebSocketMessage = JSON.parse(rawMessage.toString());
-        await handleWebSocketMessage(fastify, wsConnection, message, request);
-      } catch (error) {
-        fastify.log.error({ error, connectionId }, 'Error parsing WebSocket message');
-        
-        const errorEvent: WebSocketEvent = {
-          type: 'price_update',
-          data: {
-            error: 'Invalid message format',
-            message: 'Message must be valid JSON',
-          },
-          timestamp: new Date().toISOString(),
-        };
-        
-        connection.send(JSON.stringify(errorEvent));
-      }
-    });
+      // Handle incoming messages
+      connection.on('message', async (rawMessage: Buffer) => {
+        try {
+          const message: WebSocketMessage = JSON.parse(rawMessage.toString());
+          await handleWebSocketMessage(fastify, wsConnection, message, request);
+        } catch (error) {
+          fastify.log.error({ error, connectionId }, 'Error parsing WebSocket message');
 
-    // Handle connection close
-    connection.on('close', () => {
-      fastify.log.info({ connectionId, userId: wsConnection.userId }, 'WebSocket connection closed');
-      fastify.websocketManager.removeConnection(connectionId);
-    });
+          const errorEvent: WebSocketEvent = {
+            type: 'price_update',
+            data: {
+              error: 'Invalid message format',
+              message: 'Message must be valid JSON',
+            },
+            timestamp: new Date().toISOString(),
+          };
 
-    // Handle connection error
-    connection.on('error', (error: Error) => {
-      fastify.log.error({ error, connectionId }, 'WebSocket connection error');
-      fastify.websocketManager.removeConnection(connectionId);
-    });
+          connection.send(JSON.stringify(errorEvent));
+        }
+      });
 
-    // Send periodic ping to keep connection alive
-    const pingInterval = setInterval(() => {
-      if (connection.readyState === connection.OPEN) {
-        const pingEvent: WebSocketEvent = {
-          type: 'price_update',
-          data: { type: 'ping' },
-          timestamp: new Date().toISOString(),
-        };
-        
-        connection.send(JSON.stringify(pingEvent));
-      } else {
+      // Handle connection close
+      connection.on('close', () => {
+        fastify.log.info(
+          { connectionId, userId: wsConnection.userId },
+          'WebSocket connection closed'
+        );
+        fastify.websocketManager.removeConnection(connectionId);
+      });
+
+      // Handle connection error
+      connection.on('error', (error: Error) => {
+        fastify.log.error({ error, connectionId }, 'WebSocket connection error');
+        fastify.websocketManager.removeConnection(connectionId);
+      });
+
+      // Send periodic ping to keep connection alive
+      const pingInterval = setInterval(() => {
+        if (connection.readyState === connection.OPEN) {
+          const pingEvent: WebSocketEvent = {
+            type: 'price_update',
+            data: { type: 'ping' },
+            timestamp: new Date().toISOString(),
+          };
+
+          connection.send(JSON.stringify(pingEvent));
+        } else {
+          clearInterval(pingInterval);
+        }
+      }, 30000); // Ping every 30 seconds
+
+      // Cleanup interval on connection close
+      connection.on('close', () => {
         clearInterval(pingInterval);
-      }
-    }, 30000); // Ping every 30 seconds
-
-    // Cleanup interval on connection close
-    connection.on('close', () => {
-      clearInterval(pingInterval);
-    });
-  });
+      });
+    }
+  );
 }
 
 /**
@@ -131,8 +138,11 @@ async function handleWebSocketMessage(
       break;
 
     default:
-      fastify.log.warn({ messageType: type, connectionId: connection.id }, 'Unknown WebSocket message type');
-      
+      fastify.log.warn(
+        { messageType: type, connectionId: connection.id },
+        'Unknown WebSocket message type'
+      );
+
       const errorEvent: WebSocketEvent = {
         type: 'price_update',
         data: {
@@ -141,7 +151,7 @@ async function handleWebSocketMessage(
         },
         timestamp: new Date().toISOString(),
       };
-      
+
       connection.socket.send(JSON.stringify(errorEvent));
   }
 }
@@ -164,7 +174,7 @@ async function handleAuthentication(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(errorEvent));
     return;
   }
@@ -172,7 +182,7 @@ async function handleAuthentication(
   try {
     // Verify JWT token
     const decoded = fastify.jwt.verify(token) as any;
-    
+
     connection.userId = decoded.id;
     connection.isAuthenticated = true;
 
@@ -187,17 +197,19 @@ async function handleAuthentication(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(successEvent));
 
-    fastify.log.info({ 
-      connectionId: connection.id, 
-      userId: decoded.id 
-    }, 'WebSocket authentication successful');
-
+    fastify.log.info(
+      {
+        connectionId: connection.id,
+        userId: decoded.id,
+      },
+      'WebSocket authentication successful'
+    );
   } catch (error) {
     fastify.log.error({ error, connectionId: connection.id }, 'WebSocket authentication failed');
-    
+
     const errorEvent: WebSocketEvent = {
       type: 'price_update',
       data: {
@@ -206,7 +218,7 @@ async function handleAuthentication(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(errorEvent));
   }
 }
@@ -224,7 +236,7 @@ async function handleSubscription(
   if (coinId) {
     const subscription = `coin:${coinId}`;
     connection.subscriptions.add(subscription);
-    
+
     const successEvent: WebSocketEvent = {
       type: 'price_update',
       data: {
@@ -234,19 +246,22 @@ async function handleSubscription(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(successEvent));
 
-    fastify.log.info({ 
-      connectionId: connection.id, 
-      coinId, 
-      subscription 
-    }, 'WebSocket subscription added');
+    fastify.log.info(
+      {
+        connectionId: connection.id,
+        coinId,
+        subscription,
+      },
+      'WebSocket subscription added'
+    );
   }
 
   if (channel) {
     connection.subscriptions.add(channel);
-    
+
     const successEvent: WebSocketEvent = {
       type: 'price_update',
       data: {
@@ -255,13 +270,16 @@ async function handleSubscription(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(successEvent));
 
-    fastify.log.info({ 
-      connectionId: connection.id, 
-      channel 
-    }, 'WebSocket channel subscription added');
+    fastify.log.info(
+      {
+        connectionId: connection.id,
+        channel,
+      },
+      'WebSocket channel subscription added'
+    );
   }
 
   if (!coinId && !channel) {
@@ -273,7 +291,7 @@ async function handleSubscription(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(errorEvent));
   }
 }
@@ -291,7 +309,7 @@ async function handleUnsubscription(
   if (coinId) {
     const subscription = `coin:${coinId}`;
     connection.subscriptions.delete(subscription);
-    
+
     const successEvent: WebSocketEvent = {
       type: 'price_update',
       data: {
@@ -301,19 +319,22 @@ async function handleUnsubscription(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(successEvent));
 
-    fastify.log.info({ 
-      connectionId: connection.id, 
-      coinId, 
-      subscription 
-    }, 'WebSocket subscription removed');
+    fastify.log.info(
+      {
+        connectionId: connection.id,
+        coinId,
+        subscription,
+      },
+      'WebSocket subscription removed'
+    );
   }
 
   if (channel) {
     connection.subscriptions.delete(channel);
-    
+
     const successEvent: WebSocketEvent = {
       type: 'price_update',
       data: {
@@ -322,13 +343,16 @@ async function handleUnsubscription(
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     connection.socket.send(JSON.stringify(successEvent));
 
-    fastify.log.info({ 
-      connectionId: connection.id, 
-      channel 
-    }, 'WebSocket channel subscription removed');
+    fastify.log.info(
+      {
+        connectionId: connection.id,
+        channel,
+      },
+      'WebSocket channel subscription removed'
+    );
   }
 }
 
@@ -340,12 +364,12 @@ async function handlePing(
   connection: import('../plugins/websocket.js').WebSocketConnection
 ): Promise<void> {
   connection.lastPing = new Date();
-  
+
   const pongEvent: WebSocketEvent = {
     type: 'price_update',
     data: { type: 'pong' },
     timestamp: new Date().toISOString(),
   };
-  
+
   connection.socket.send(JSON.stringify(pongEvent));
 }

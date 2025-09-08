@@ -10,11 +10,11 @@ describe('Database Plugin', () => {
     process.env.DATABASE_URL = 'file:./test.db';
     process.env.REDIS_URL = 'redis://localhost:6379';
     process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-only-32-chars';
-    
+
     try {
-      app = await buildApp({ 
+      app = await buildApp({
         logger: false,
-        disableRequestLogging: true 
+        disableRequestLogging: true,
       });
       await app.ready();
     } catch (error) {
@@ -33,7 +33,7 @@ describe('Database Plugin', () => {
       console.warn('App not initialized, skipping test');
       return;
     }
-    
+
     expect(app.prisma).toBeDefined();
     expect(typeof app.prisma.$connect).toBe('function');
     expect(typeof app.prisma.$disconnect).toBe('function');
@@ -44,7 +44,7 @@ describe('Database Plugin', () => {
       console.warn('App not initialized, skipping test');
       return;
     }
-    
+
     try {
       const result = await app.prisma.$queryRaw`SELECT 1 as test`;
       expect(result).toBeDefined();
@@ -58,7 +58,7 @@ describe('Database Plugin', () => {
       console.warn('App not initialized, skipping test');
       return;
     }
-    
+
     expect(app.prisma.user).toBeDefined();
     expect(app.prisma.coin).toBeDefined();
     expect(app.prisma.priceData).toBeDefined();

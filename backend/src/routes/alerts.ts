@@ -13,21 +13,17 @@ import { NotificationService } from '../services/notification.js';
  */
 export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
   // Initialize notification service
-  const notificationService = new NotificationService(
-    fastify.prisma,
-    fastify.log,
-    {
-      email: {
-        smtpHost: fastify.config.SMTP_HOST || 'localhost',
-        smtpPort: parseInt(fastify.config.SMTP_PORT || '587'),
-        smtpUser: fastify.config.SMTP_USER || '',
-        smtpPassword: fastify.config.SMTP_PASSWORD || '',
-        fromEmail: fastify.config.FROM_EMAIL || 'noreply@memecoin-analyzer.com',
-        fromName: fastify.config.FROM_NAME || 'Meme Coin Analyzer',
-      },
-      // Add other notification channels as needed
-    }
-  );
+  const notificationService = new NotificationService(fastify.prisma, fastify.log, {
+    email: {
+      smtpHost: fastify.config.SMTP_HOST || 'localhost',
+      smtpPort: parseInt(fastify.config.SMTP_PORT || '587'),
+      smtpUser: fastify.config.SMTP_USER || '',
+      smtpPassword: fastify.config.SMTP_PASSWORD || '',
+      fromEmail: fastify.config.FROM_EMAIL || 'noreply@memecoin-analyzer.com',
+      fromName: fastify.config.FROM_NAME || 'Meme Coin Analyzer',
+    },
+    // Add other notification channels as needed
+  });
 
   const alertService = new AlertService(
     fastify.prisma,
@@ -44,13 +40,13 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
     handler: async (request: any, reply: FastifyReply) => {
       const query = AlertQuerySchema.parse(request.query);
       const result = await alertService.getAlerts(request.user.id, query);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 
   // Get specific alert
@@ -61,13 +57,13 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
     handler: async (request: any, reply: FastifyReply) => {
       const alertId = Number((request.params as any).alertId);
       const result = await alertService.getAlert(request.user.id, alertId);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 
   // Create new alert
@@ -78,7 +74,7 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
     handler: async (request: any, reply: FastifyReply) => {
       const data = CreateAlertSchema.parse(request.body);
       const result = await alertService.createAlert(request.user.id, data);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
@@ -94,12 +90,12 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
           timestamp: new Date().toISOString(),
           userId: request.user.id.toString(),
         };
-        
+
         fastify.realtime.broadcastToUser(request.user.id, event);
       }
-      
+
       return reply.code(201).send(result);
-    }
+    },
   });
 
   // Update alert
@@ -111,7 +107,7 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
       const alertId = Number((request.params as any).alertId);
       const data = UpdateAlertSchema.parse(request.body);
       const result = await alertService.updateAlert(request.user.id, alertId, data);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
@@ -127,12 +123,12 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
           timestamp: new Date().toISOString(),
           userId: request.user.id.toString(),
         };
-        
+
         fastify.realtime.broadcastToUser(request.user.id, event);
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 
   // Delete alert
@@ -143,7 +139,7 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
     handler: async (request: any, reply: FastifyReply) => {
       const alertId = Number((request.params as any).alertId);
       const result = await alertService.deleteAlert(request.user.id, alertId);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
@@ -159,12 +155,12 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
           timestamp: new Date().toISOString(),
           userId: request.user.id.toString(),
         };
-        
+
         fastify.realtime.broadcastToUser(request.user.id, event);
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 
   // Perform alert action (pause, resume, test)
@@ -176,7 +172,7 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
       const alertId = Number((request.params as any).alertId);
       const action = AlertActionSchema.parse(request.body);
       const result = await alertService.performAlertAction(request.user.id, alertId, action);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
@@ -193,12 +189,12 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
           timestamp: new Date().toISOString(),
           userId: request.user.id.toString(),
         };
-        
+
         fastify.realtime.broadcastToUser(request.user.id, event);
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 
   // Get notification history for an alert
@@ -217,13 +213,13 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
       }
 
       const result = await notificationService.getNotificationHistory(alertId, { page, limit });
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 
   // Retry failed notification
@@ -242,12 +238,12 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
       }
 
       const result = await notificationService.retryFailedNotification(notificationId);
-      
+
       if (result.meta) {
         result.meta.requestId = request.id;
       }
-      
+
       return reply.send(result);
-    }
+    },
   });
 }

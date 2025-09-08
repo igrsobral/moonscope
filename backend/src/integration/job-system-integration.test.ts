@@ -287,7 +287,7 @@ describe('Job System Integration', () => {
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.payload);
       expect(data.success).toBe(true);
-      
+
       // Should have at least one queue with metrics
       const maintenanceQueue = data.data.find((q: any) => q.queueName === 'maintenance');
       expect(maintenanceQueue).toBeDefined();
@@ -302,9 +302,15 @@ describe('Job System Integration', () => {
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.payload);
       expect(data.success).toBe(true);
-      
+
       // Should have health status for all expected queues
-      const expectedQueues = ['price-updates', 'social-scraping', 'alert-processing', 'risk-assessment', 'maintenance'];
+      const expectedQueues = [
+        'price-updates',
+        'social-scraping',
+        'alert-processing',
+        'risk-assessment',
+        'maintenance',
+      ];
       for (const queueName of expectedQueues) {
         expect(data.data.queues[queueName]).toBeDefined();
         expect(data.data.queues[queueName].status).toMatch(/^(healthy|warning|critical)$/);
@@ -316,7 +322,7 @@ describe('Job System Integration', () => {
   describe('Rate Limiting', () => {
     it('should respect rate limits for job triggering', async () => {
       const promises = [];
-      
+
       // Trigger multiple jobs rapidly
       for (let i = 0; i < 5; i++) {
         promises.push(
@@ -333,7 +339,7 @@ describe('Job System Integration', () => {
       }
 
       const responses = await Promise.all(promises);
-      
+
       // All should succeed (rate limiting is handled by BullMQ, not HTTP)
       responses.forEach(response => {
         expect(response.statusCode).toBe(200);

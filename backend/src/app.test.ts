@@ -11,7 +11,7 @@ describe('Fastify App', () => {
     process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
     process.env.REDIS_URL = 'redis://localhost:6379';
     process.env.JWT_SECRET = 'test-jwt-secret-that-is-long-enough-for-validation';
-    
+
     app = await buildApp({ logger: false });
     await app.ready();
   });
@@ -43,7 +43,7 @@ describe('Fastify App', () => {
 
       expect(response.statusCode).toBe(200);
       const payload = JSON.parse(response.payload);
-      
+
       expect(payload.status).toMatch(/^(ok|degraded|unhealthy)$/);
       expect(payload.timestamp).toBeDefined();
       expect(payload.uptime).toBeTypeOf('number');

@@ -23,14 +23,14 @@ describe('Auth Routes', () => {
 
   beforeEach(async () => {
     app = Fastify({ logger: false });
-    
+
     // Mock the config and prisma
     app.decorate('config', {
       JWT_SECRET: 'test-jwt-secret-key-for-testing-purposes-only-32-chars',
     });
-    
+
     app.decorate('prisma', {});
-    
+
     await app.register(jwtPlugin);
     await app.register(authRoutes, { prefix: '/api/v1/auth' });
     await app.ready();
@@ -193,7 +193,9 @@ describe('Auth Routes', () => {
         password: 'WrongPassword123!',
       };
 
-      (mockUserService.authenticateUser as any).mockRejectedValue(new Error('Invalid email or password'));
+      (mockUserService.authenticateUser as any).mockRejectedValue(
+        new Error('Invalid email or password')
+      );
 
       const response = await app.inject({
         method: 'POST',
@@ -465,7 +467,9 @@ describe('Auth Routes', () => {
         newPassword: 'NewPassword123!',
       };
 
-      (mockUserService.changePassword as any).mockRejectedValue(new Error('Current password is incorrect'));
+      (mockUserService.changePassword as any).mockRejectedValue(
+        new Error('Current password is incorrect')
+      );
 
       const token = app.jwt.sign({
         id: 1,

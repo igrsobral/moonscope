@@ -27,7 +27,7 @@ export const CreateLiquidityAlertSchema = z.object({
     'volume_spike',
     'price_impact_high',
     'pool_count_low',
-    'liquidity_change'
+    'liquidity_change',
   ]),
   condition: z.object({
     liquidityThreshold: z.number().positive().optional(),
@@ -43,14 +43,19 @@ export const CreateLiquidityAlertSchema = z.object({
 
 // Liquidity alert update schema
 export const UpdateLiquidityAlertSchema = z.object({
-  condition: z.object({
-    liquidityThreshold: z.number().positive().optional(),
-    liquidityChangePercentage: z.number().min(-100).max(1000).optional(),
-    volumeThreshold: z.number().positive().optional(),
-    priceImpactThreshold: z.number().min(0).max(100).optional(),
-    poolCountThreshold: z.number().positive().optional(),
-  }).optional(),
-  notificationMethods: z.array(z.enum(['email', 'push', 'sms'])).min(1).optional(),
+  condition: z
+    .object({
+      liquidityThreshold: z.number().positive().optional(),
+      liquidityChangePercentage: z.number().min(-100).max(1000).optional(),
+      volumeThreshold: z.number().positive().optional(),
+      priceImpactThreshold: z.number().min(0).max(100).optional(),
+      poolCountThreshold: z.number().positive().optional(),
+    })
+    .optional(),
+  notificationMethods: z
+    .array(z.enum(['email', 'push', 'sms']))
+    .min(1)
+    .optional(),
   isActive: z.boolean().optional(),
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
@@ -80,18 +85,22 @@ export const LiquidityRiskAssessmentSchema = z.object({
 // Pool comparison schema
 export const PoolComparisonSchema = z.object({
   poolIds: z.array(z.number().positive()).min(2).max(10),
-  metrics: z.array(z.enum(['liquidity', 'volume', 'fees', 'apr', 'priceImpact'])).default(['liquidity', 'volume']),
+  metrics: z
+    .array(z.enum(['liquidity', 'volume', 'fees', 'apr', 'priceImpact']))
+    .default(['liquidity', 'volume']),
 });
 
 // Liquidity monitoring schema
 export const LiquidityMonitoringSchema = z.object({
   coinIds: z.array(z.number().positive()).min(1).max(50),
   interval: z.enum(['1m', '5m', '15m', '1h']).default('5m'),
-  alertThresholds: z.object({
-    liquidityDropPercentage: z.number().min(0).max(100).default(20),
-    volumeDropPercentage: z.number().min(0).max(100).default(30),
-    priceImpactThreshold: z.number().min(0).max(100).default(10),
-  }).optional(),
+  alertThresholds: z
+    .object({
+      liquidityDropPercentage: z.number().min(0).max(100).default(20),
+      volumeDropPercentage: z.number().min(0).max(100).default(30),
+      priceImpactThreshold: z.number().min(0).max(100).default(10),
+    })
+    .optional(),
 });
 
 // Parameter schemas

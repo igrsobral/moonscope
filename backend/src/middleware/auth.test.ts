@@ -44,11 +44,15 @@ describe('Authentication Middleware', () => {
       }
 
       // Create a test route with authentication middleware
-      app.get('/test-auth', {
-        preHandler: [authenticateMiddleware],
-      }, async (request) => {
-        return { success: true, user: request.user };
-      });
+      app.get(
+        '/test-auth',
+        {
+          preHandler: [authenticateMiddleware],
+        },
+        async request => {
+          return { success: true, user: request.user };
+        }
+      );
 
       const response = await app.inject({
         method: 'GET',
@@ -130,15 +134,19 @@ describe('Authentication Middleware', () => {
       }
 
       // Create a test route with optional authentication middleware
-      app.get('/test-optional-auth', {
-        preHandler: [optionalAuthMiddleware],
-      }, async (request) => {
-        return { 
-          success: true, 
-          authenticated: !!request.user,
-          user: request.user 
-        };
-      });
+      app.get(
+        '/test-optional-auth',
+        {
+          preHandler: [optionalAuthMiddleware],
+        },
+        async request => {
+          return {
+            success: true,
+            authenticated: !!request.user,
+            user: request.user,
+          };
+        }
+      );
 
       const response = await app.inject({
         method: 'GET',

@@ -35,13 +35,16 @@ export class WhaleJobProcessor {
   async processJob(job: Job<WhaleJobData>): Promise<void> {
     const { type, coinId, contractAddress, network, options = {} } = job.data;
 
-    this.logger.info({
-      jobId: job.id,
-      type,
-      coinId,
-      contractAddress,
-      network
-    }, 'Processing whale tracking job');
+    this.logger.info(
+      {
+        jobId: job.id,
+        type,
+        coinId,
+        contractAddress,
+        network,
+      },
+      'Processing whale tracking job'
+    );
 
     try {
       switch (type) {
@@ -57,19 +60,24 @@ export class WhaleJobProcessor {
           throw new Error(`Unknown whale job type: ${type}`);
       }
 
-      this.logger.info({
-        jobId: job.id,
-        type,
-        coinId
-      }, 'Successfully completed whale tracking job');
-
+      this.logger.info(
+        {
+          jobId: job.id,
+          type,
+          coinId,
+        },
+        'Successfully completed whale tracking job'
+      );
     } catch (error) {
-      this.logger.error({
-        jobId: job.id,
-        type,
-        coinId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to process whale tracking job');
+      this.logger.error(
+        {
+          jobId: job.id,
+          type,
+          coinId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to process whale tracking job'
+      );
       throw error;
     }
   }
@@ -91,10 +99,13 @@ export class WhaleJobProcessor {
         network
       );
 
-      this.logger.info({
-        coinId,
-        processedCount: transactions.length
-      }, 'Processed whale transactions');
+      this.logger.info(
+        {
+          coinId,
+          processedCount: transactions.length,
+        },
+        'Processed whale transactions'
+      );
 
       // Trigger alerts for significant whale movements
       for (const transaction of transactions) {
@@ -110,13 +121,15 @@ export class WhaleJobProcessor {
           });
         }
       }
-
     } catch (error) {
-      this.logger.error({
-        coinId,
-        contractAddress,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to process whale transactions');
+      this.logger.error(
+        {
+          coinId,
+          contractAddress,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to process whale transactions'
+      );
       throw error;
     }
   }
@@ -124,56 +137,66 @@ export class WhaleJobProcessor {
   /**
    * Analyze whale impact on price movements
    */
-  private async analyzeWhaleImpact(
-    coinId: number,
-    timeframe: '1h' | '24h' | '7d'
-  ): Promise<void> {
+  private async analyzeWhaleImpact(coinId: number, timeframe: '1h' | '24h' | '7d'): Promise<void> {
     try {
       // Get whale movement analysis
       const analysis = await this.whaleTrackingService.analyzeWhaleMovements(coinId, timeframe);
 
-      this.logger.info({
-        coinId,
-        timeframe,
-        totalTransactions: analysis.totalTransactions,
-        totalVolume: analysis.totalVolume,
-        netFlow: analysis.netFlow,
-        priceImpact: analysis.priceImpact
-      }, 'Completed whale impact analysis');
-
-      // Check for significant whale activity patterns
-      if (analysis.totalVolume > 1000000) { // $1M+ in whale activity
-        this.logger.info({
+      this.logger.info(
+        {
           coinId,
           timeframe,
+          totalTransactions: analysis.totalTransactions,
           totalVolume: analysis.totalVolume,
-          netFlow: analysis.netFlow
-        }, 'Significant whale activity detected');
+          netFlow: analysis.netFlow,
+          priceImpact: analysis.priceImpact,
+        },
+        'Completed whale impact analysis'
+      );
+
+      // Check for significant whale activity patterns
+      if (analysis.totalVolume > 1000000) {
+        // $1M+ in whale activity
+        this.logger.info(
+          {
+            coinId,
+            timeframe,
+            totalVolume: analysis.totalVolume,
+            netFlow: analysis.netFlow,
+          },
+          'Significant whale activity detected'
+        );
 
         // Could trigger additional alerts or notifications here
         // For example, notify users about unusual whale activity
       }
 
       // Check for accumulation/distribution patterns
-      if (Math.abs(analysis.netFlow) > 500000) { // $500k+ net flow
+      if (Math.abs(analysis.netFlow) > 500000) {
+        // $500k+ net flow
         const pattern = analysis.netFlow > 0 ? 'accumulation' : 'distribution';
-        
-        this.logger.info({
-          coinId,
-          pattern,
-          netFlow: analysis.netFlow,
-          timeframe
-        }, `Strong whale ${pattern} pattern detected`);
+
+        this.logger.info(
+          {
+            coinId,
+            pattern,
+            netFlow: analysis.netFlow,
+            timeframe,
+          },
+          `Strong whale ${pattern} pattern detected`
+        );
 
         // Could trigger pattern-based alerts
       }
-
     } catch (error) {
-      this.logger.error({
-        coinId,
-        timeframe,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to analyze whale impact');
+      this.logger.error(
+        {
+          coinId,
+          timeframe,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to analyze whale impact'
+      );
       throw error;
     }
   }
@@ -181,11 +204,16 @@ export class WhaleJobProcessor {
   /**
    * Schedule whale tracking jobs for all active coins
    */
-  async scheduleWhaleTrackingJobs(coins: Array<{ id: number; address: string; network: string }>): Promise<void> {
+  async scheduleWhaleTrackingJobs(
+    coins: Array<{ id: number; address: string; network: string }>
+  ): Promise<void> {
     try {
-      this.logger.info({
-        coinCount: coins.length
-      }, 'Scheduling whale tracking jobs for active coins');
+      this.logger.info(
+        {
+          coinCount: coins.length,
+        },
+        'Scheduling whale tracking jobs for active coins'
+      );
 
       for (const coin of coins) {
         // Schedule whale transaction processing
@@ -196,7 +224,7 @@ export class WhaleJobProcessor {
           network: coin.network,
           options: {
             minUsdValue: 10000, // $10k minimum
-          }
+          },
         };
 
         // This would be called by the job scheduler
@@ -210,15 +238,20 @@ export class WhaleJobProcessor {
         // });
       }
 
-      this.logger.info({
-        coinCount: coins.length
-      }, 'Successfully scheduled whale tracking jobs');
-
+      this.logger.info(
+        {
+          coinCount: coins.length,
+        },
+        'Successfully scheduled whale tracking jobs'
+      );
     } catch (error) {
-      this.logger.error({
-        coinCount: coins.length,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, 'Failed to schedule whale tracking jobs');
+      this.logger.error(
+        {
+          coinCount: coins.length,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        'Failed to schedule whale tracking jobs'
+      );
       throw error;
     }
   }

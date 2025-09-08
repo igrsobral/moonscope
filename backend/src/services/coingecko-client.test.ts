@@ -16,13 +16,20 @@ vi.mock('./http-client.js', () => {
   return {
     HttpClient: vi.fn().mockImplementation(() => mockHttpClient),
     HttpError: class HttpError extends Error {
-      constructor(message: string, public statusCode: number, public responseBody?: string) {
+      constructor(
+        message: string,
+        public statusCode: number,
+        public responseBody?: string
+      ) {
         super(message);
         this.name = 'HttpError';
       }
     },
     RateLimitError: class RateLimitError extends Error {
-      constructor(message: string, public retryAfter?: number) {
+      constructor(
+        message: string,
+        public retryAfter?: number
+      ) {
         super(message);
         this.name = 'RateLimitError';
       }
@@ -74,7 +81,7 @@ describe('CoinGeckoClient', () => {
         apiKey: 'test-api-key-2',
         logger: mockLogger,
       });
-      
+
       expect(HttpClient).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: {
@@ -144,9 +151,7 @@ describe('CoinGeckoClient', () => {
         priceChangePercentage: '1h,24h,7d',
       });
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('vs_currency=eur')
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith(expect.stringContaining('vs_currency=eur'));
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('ids=bitcoin%2Cethereum')
       );
@@ -353,16 +358,12 @@ describe('CoinGeckoClient', () => {
     it('should fetch simple prices with additional data', async () => {
       mockHttpClient.get.mockResolvedValue(mockPriceData);
 
-      const result = await client.getSimplePrice(
-        ['bitcoin'],
-        ['usd', 'eur'],
-        {
-          includeMarketCap: true,
-          include24hrVol: true,
-          include24hrChange: true,
-          includeLastUpdatedAt: true,
-        }
-      );
+      const result = await client.getSimplePrice(['bitcoin'], ['usd', 'eur'], {
+        includeMarketCap: true,
+        include24hrVol: true,
+        include24hrChange: true,
+        includeLastUpdatedAt: true,
+      });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         expect.stringContaining('include_market_cap=true')

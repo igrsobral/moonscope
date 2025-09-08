@@ -1,5 +1,10 @@
 import { CoinGeckoClient } from './coingecko-client.js';
-import { MoralisClient, MoralisTokenPrice, MoralisTokenTransfer, MoralisChain } from './moralis-client.js';
+import {
+  MoralisClient,
+  MoralisTokenPrice,
+  MoralisTokenTransfer,
+  MoralisChain,
+} from './moralis-client.js';
 import { FastifyBaseLogger } from 'fastify';
 
 export interface ExternalApiConfig {
@@ -26,13 +31,13 @@ export interface MemeTokenData {
   marketCap: number;
   volume24h: number;
   priceChange24h: number;
-  
+
   // Moralis blockchain data
   contractAddress?: string;
   chain?: MoralisChain;
   tokenPrice?: MoralisTokenPrice;
   recentTransfers?: MoralisTokenTransfer[];
-  
+
   // Combined metrics
   riskScore?: number;
   liquidityScore?: number;
@@ -58,7 +63,7 @@ export class ExternalApiService {
 
   constructor(config: ExternalApiConfig) {
     this.logger = config.logger;
-    
+
     this.coinGeckoClient = new CoinGeckoClient({
       apiKey: config.coinGecko.apiKey,
       baseUrl: config.coinGecko.baseUrl,
@@ -80,7 +85,7 @@ export class ExternalApiService {
   async getTrendingMemeCoins(): Promise<MemeTokenData[]> {
     try {
       this.logger?.info('Fetching trending meme coins from CoinGecko');
-      
+
       const trendingData = await this.coinGeckoClient.getTrendingCoins();
       const memeTokens: MemeTokenData[] = [];
 
@@ -111,10 +116,13 @@ export class ExternalApiService {
             tokenData.priceChange24h = market.price_change_percentage_24h;
           }
         } catch (error) {
-          this.logger?.warn({
-            coinId: coin.item.id,
-            error: error instanceof Error ? error.message : String(error),
-          }, 'Failed to fetch market data for trending coin');
+          this.logger?.warn(
+            {
+              coinId: coin.item.id,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'Failed to fetch market data for trending coin'
+          );
         }
 
         memeTokens.push(tokenData);
@@ -123,9 +131,12 @@ export class ExternalApiService {
       this.logger?.info({ count: memeTokens.length }, 'Successfully fetched trending meme coins');
       return memeTokens;
     } catch (error) {
-      this.logger?.error({
-        error: error instanceof Error ? error.message : String(error),
-      }, 'Failed to fetch trending meme coins');
+      this.logger?.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to fetch trending meme coins'
+      );
       throw error;
     }
   }
@@ -133,11 +144,13 @@ export class ExternalApiService {
   /**
    * Get meme coins by category with pagination
    */
-  async getMemeTokensByCategory(options: {
-    page?: number;
-    perPage?: number;
-    sortBy?: 'market_cap_desc' | 'volume_desc' | 'price_change_24h_desc';
-  } = {}): Promise<MemeTokenData[]> {
+  async getMemeTokensByCategory(
+    options: {
+      page?: number;
+      perPage?: number;
+      sortBy?: 'market_cap_desc' | 'volume_desc' | 'price_change_24h_desc';
+    } = {}
+  ): Promise<MemeTokenData[]> {
     try {
       this.logger?.info({ options }, 'Fetching meme tokens by category');
 
@@ -160,12 +173,18 @@ export class ExternalApiService {
         priceChange24h: coin.price_change_percentage_24h,
       }));
 
-      this.logger?.info({ count: memeTokens.length }, 'Successfully fetched meme tokens by category');
+      this.logger?.info(
+        { count: memeTokens.length },
+        'Successfully fetched meme tokens by category'
+      );
       return memeTokens;
     } catch (error) {
-      this.logger?.error({
-        error: error instanceof Error ? error.message : String(error),
-      }, 'Failed to fetch meme tokens by category');
+      this.logger?.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to fetch meme tokens by category'
+      );
       throw error;
     }
   }
@@ -206,10 +225,12 @@ export class ExternalApiService {
         try {
           const [tokenPrice, recentTransfers] = await Promise.all([
             this.moralisClient.getTokenPrice(contractAddress, chain).catch(() => null),
-            this.moralisClient.getTokenTransfers(contractAddress, chain, {
-              limit: 10,
-              order: 'DESC',
-            }).catch(() => null),
+            this.moralisClient
+              .getTokenTransfers(contractAddress, chain, {
+                limit: 10,
+                order: 'DESC',
+              })
+              .catch(() => null),
           ]);
 
           if (tokenPrice) {
@@ -220,22 +241,28 @@ export class ExternalApiService {
             tokenData.recentTransfers = recentTransfers.result;
           }
         } catch (error) {
-          this.logger?.warn({
-            contractAddress,
-            chain,
-            error: error instanceof Error ? error.message : String(error),
-          }, 'Failed to fetch Moralis data for token');
+          this.logger?.warn(
+            {
+              contractAddress,
+              chain,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'Failed to fetch Moralis data for token'
+          );
         }
       }
 
       this.logger?.info({ tokenId: tokenData.id }, 'Successfully fetched enhanced token data');
       return tokenData;
     } catch (error) {
-      this.logger?.error({
-        coinGeckoId,
-        contractAddress,
-        error: error instanceof Error ? error.message : String(error),
-      }, 'Failed to fetch enhanced token data');
+      this.logger?.error(
+        {
+          coinGeckoId,
+          contractAddress,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to fetch enhanced token data'
+      );
       throw error;
     }
   }
@@ -271,10 +298,13 @@ export class ExternalApiService {
       try {
         tokenPrice = await this.moralisClient.getTokenPrice(contractAddress, chain);
       } catch (error) {
-        this.logger?.warn({
-          contractAddress,
-          error: error instanceof Error ? error.message : String(error),
-        }, 'Failed to fetch token price for whale transaction calculation');
+        this.logger?.warn(
+          {
+            contractAddress,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'Failed to fetch token price for whale transaction calculation'
+        );
       }
 
       const whaleTransactions: WhaleTransaction[] = [];
@@ -304,19 +334,25 @@ export class ExternalApiService {
         }
       }
 
-      this.logger?.info({
-        contractAddress,
-        totalTransfers: transfersResponse.result.length,
-        whaleTransactions: whaleTransactions.length,
-      }, 'Successfully detected whale transactions');
+      this.logger?.info(
+        {
+          contractAddress,
+          totalTransfers: transfersResponse.result.length,
+          whaleTransactions: whaleTransactions.length,
+        },
+        'Successfully detected whale transactions'
+      );
 
       return whaleTransactions;
     } catch (error) {
-      this.logger?.error({
-        contractAddress,
-        chain,
-        error: error instanceof Error ? error.message : String(error),
-      }, 'Failed to fetch whale transactions');
+      this.logger?.error(
+        {
+          contractAddress,
+          chain,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to fetch whale transactions'
+      );
       throw error;
     }
   }
@@ -344,14 +380,15 @@ export class ExternalApiService {
 
       // Filter for potential meme coins and fetch market data
       const memeKeywords = ['meme', 'doge', 'shib', 'pepe', 'floki', 'inu', 'moon', 'safe'];
-      const potentialMemeCoins = searchResults.coins.filter(coin => 
-        memeKeywords.some(keyword => 
-          coin.name.toLowerCase().includes(keyword) || 
-          coin.symbol.toLowerCase().includes(keyword)
+      const potentialMemeCoins = searchResults.coins.filter(coin =>
+        memeKeywords.some(
+          keyword =>
+            coin.name.toLowerCase().includes(keyword) || coin.symbol.toLowerCase().includes(keyword)
         )
       );
 
-      for (const coin of potentialMemeCoins.slice(0, 10)) { // Limit to 10 results
+      for (const coin of potentialMemeCoins.slice(0, 10)) {
+        // Limit to 10 results
         try {
           const marketData = await this.coinGeckoClient.getCoinsMarkets({
             ids: [coin.id],
@@ -372,20 +409,26 @@ export class ExternalApiService {
             });
           }
         } catch (error) {
-          this.logger?.warn({
-            coinId: coin.id,
-            error: error instanceof Error ? error.message : String(error),
-          }, 'Failed to fetch market data for search result');
+          this.logger?.warn(
+            {
+              coinId: coin.id,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'Failed to fetch market data for search result'
+          );
         }
       }
 
       this.logger?.info({ query, results: memeTokens.length }, 'Successfully searched meme coins');
       return memeTokens;
     } catch (error) {
-      this.logger?.error({
-        query,
-        error: error instanceof Error ? error.message : String(error),
-      }, 'Failed to search meme coins');
+      this.logger?.error(
+        {
+          query,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to search meme coins'
+      );
       throw error;
     }
   }

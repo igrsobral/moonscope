@@ -109,7 +109,12 @@ describe('RiskAssessmentService', () => {
         factors: {
           liquidity: { score: 80, value: 5000000, threshold: 100000 },
           holderDistribution: { score: 70, topHoldersPercentage: 30, holderCount: 5000 },
-          contractSecurity: { score: 85, isVerified: true, hasProxyContract: false, hasOwnershipRenounced: true },
+          contractSecurity: {
+            score: 85,
+            isVerified: true,
+            hasProxyContract: false,
+            hasOwnershipRenounced: true,
+          },
           socialMetrics: { score: 60, sentimentScore: 0.6, communitySize: 10000 },
         },
         timestamp: new Date(),
@@ -238,11 +243,7 @@ describe('RiskAssessmentService', () => {
       expect(result.confidence).toBeGreaterThan(0);
       expect(result.warnings).toBeInstanceOf(Array);
 
-      expect(mockCacheService.set).toHaveBeenCalledWith(
-        'risk:1',
-        result,
-        { ttl: 900 }
-      );
+      expect(mockCacheService.set).toHaveBeenCalledWith('risk:1', result, { ttl: 900 });
       expect(mockPrisma.riskAssessment.create).toHaveBeenCalled();
     });
 

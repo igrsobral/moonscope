@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 import fastifyRedis from '@fastify/redis';
 
-const redisPlugin: FastifyPluginAsync = async (fastify) => {
+const redisPlugin: FastifyPluginAsync = async fastify => {
   // Skip if already decorated (hot reload protection)
   if (fastify.hasDecorator('redis')) {
     fastify.log.info('Redis decorator already exists, skipping registration');
@@ -12,7 +12,7 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
   if (fastify.config.NODE_ENV === 'test' || fastify.config.NODE_ENV === 'development') {
     // In development/test, create mock Redis directly to avoid connection timeouts
     fastify.log.warn('Development/test mode: creating mock Redis instance...');
-    
+
     const mockRedis = {
       ping: async () => 'PONG',
       get: async () => null,
@@ -28,7 +28,7 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
       off: () => {},
       removeAllListeners: () => {},
     };
-    
+
     if (!fastify.hasDecorator('redis')) {
       fastify.decorate('redis', mockRedis as any);
     }
@@ -58,7 +58,7 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
       fastify.log.info('Redis ready to receive commands');
     });
 
-    fastify.redis.on('error', (error) => {
+    fastify.redis.on('error', error => {
       fastify.log.error({ error }, 'Redis connection error');
     });
 
@@ -72,7 +72,7 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
   }
 
   // Graceful shutdown
-  fastify.addHook('onClose', async (instance) => {
+  fastify.addHook('onClose', async instance => {
     if (instance.redis && typeof instance.redis.quit === 'function') {
       instance.log.info('Disconnecting from Redis...');
       try {
@@ -95,7 +95,7 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
       }
     } catch (error) {
       fastify.log.error({ error }, 'Redis health check failed');
-      
+
       if (fastify.config.NODE_ENV === 'production') {
         throw error;
       }

@@ -10,7 +10,7 @@ describe('WebSocket Routes', () => {
   beforeEach(async () => {
     app = await buildApp({ logger: false });
     await app.listen({ port: 0, host: '127.0.0.1' });
-    
+
     const address = app.server.address();
     const port = typeof address === 'object' && address ? address.port : 3000;
     wsUrl = `ws://127.0.0.1:${port}/ws`;
@@ -20,7 +20,7 @@ describe('WebSocket Routes', () => {
     await app.close();
   });
 
-  it('should establish WebSocket connection', (done) => {
+  it('should establish WebSocket connection', done => {
     const ws = new WebSocket(wsUrl);
 
     ws.on('open', () => {
@@ -32,17 +32,17 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should receive welcome message on connection', (done) => {
+  it('should receive welcome message on connection', done => {
     const ws = new WebSocket(wsUrl);
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: expect.objectContaining({
@@ -56,18 +56,18 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should handle ping messages', (done) => {
+  it('should handle ping messages', done => {
     const ws = new WebSocket(wsUrl);
     let messageCount = 0;
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       messageCount++;
-      
+
       if (messageCount === 1) {
         // Skip welcome message
         const pingMessage = {
@@ -78,7 +78,7 @@ describe('WebSocket Routes', () => {
       }
 
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: { type: 'pong' },
@@ -89,18 +89,18 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should handle subscription messages', (done) => {
+  it('should handle subscription messages', done => {
     const ws = new WebSocket(wsUrl);
     let messageCount = 0;
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       messageCount++;
-      
+
       if (messageCount === 1) {
         // Skip welcome message
         const subscribeMessage = {
@@ -114,7 +114,7 @@ describe('WebSocket Routes', () => {
       }
 
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: expect.objectContaining({
@@ -129,18 +129,18 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should handle unsubscription messages', (done) => {
+  it('should handle unsubscription messages', done => {
     const ws = new WebSocket(wsUrl);
     let messageCount = 0;
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       messageCount++;
-      
+
       if (messageCount === 1) {
         // Skip welcome message, send subscribe first
         const subscribeMessage = {
@@ -162,7 +162,7 @@ describe('WebSocket Routes', () => {
       }
 
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: expect.objectContaining({
@@ -177,18 +177,18 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should handle authentication failure', (done) => {
+  it('should handle authentication failure', done => {
     const ws = new WebSocket(wsUrl);
     let messageCount = 0;
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       messageCount++;
-      
+
       if (messageCount === 1) {
         // Skip welcome message
         const authMessage = {
@@ -202,7 +202,7 @@ describe('WebSocket Routes', () => {
       }
 
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: expect.objectContaining({
@@ -216,18 +216,18 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should handle invalid JSON messages', (done) => {
+  it('should handle invalid JSON messages', done => {
     const ws = new WebSocket(wsUrl);
     let messageCount = 0;
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       messageCount++;
-      
+
       if (messageCount === 1) {
         // Skip welcome message
         ws.send('invalid json');
@@ -235,7 +235,7 @@ describe('WebSocket Routes', () => {
       }
 
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: expect.objectContaining({
@@ -249,18 +249,18 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should handle unknown message types', (done) => {
+  it('should handle unknown message types', done => {
     const ws = new WebSocket(wsUrl);
     let messageCount = 0;
 
-    ws.on('message', (data) => {
+    ws.on('message', data => {
       messageCount++;
-      
+
       if (messageCount === 1) {
         // Skip welcome message
         const unknownMessage = {
@@ -272,7 +272,7 @@ describe('WebSocket Routes', () => {
       }
 
       const message = JSON.parse(data.toString());
-      
+
       expect(message).toMatchObject({
         type: 'price_update',
         data: expect.objectContaining({
@@ -286,14 +286,14 @@ describe('WebSocket Routes', () => {
       done();
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
 
-  it('should track connections in websocket manager', (done) => {
+  it('should track connections in websocket manager', done => {
     const initialConnectionCount = app.websocketManager.connections.size;
-    
+
     const ws = new WebSocket(wsUrl);
 
     ws.on('open', () => {
@@ -312,7 +312,7 @@ describe('WebSocket Routes', () => {
       }, 100);
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       done(error);
     });
   });
