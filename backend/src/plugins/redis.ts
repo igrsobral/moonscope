@@ -3,46 +3,47 @@ import fp from 'fastify-plugin';
 import fastifyRedis from '@fastify/redis';
 
 const redisPlugin: FastifyPluginAsync = async (fastify) => {
-  // Check if redis decorator already exists (hot reload protection)
+  // Skip if already decorated (hot reload protection)
   if (fastify.hasDecorator('redis')) {
     fastify.log.info('Redis decorator already exists, skipping registration');
     return;
   }
 
-  try {
-    await fastify.register(fastifyRedis, {
-      url: fastify.config.REDIS_URL,
-    });
-
-    // Test connection
-    await fastify.redis.ping();
-    fastify.log.info('Redis connected successfully');
-  } catch (error) {
-    fastify.log.error({ error }, 'Failed to connect to Redis');
+  if (fastify.config.NODE_ENV === 'test' || fastify.config.NODE_ENV === 'development') {
+    // In development/test, create mock Redis directly to avoid connection timeouts
+    fastify.log.warn('Development/test mode: creating mock Redis instance...');
     
-    if (fastify.config.NODE_ENV === 'test' || fastify.config.NODE_ENV === 'development') {
-      fastify.log.warn('Redis connection failed, creating mock Redis instance...');
-      
-      // Create a mock Redis instance for development/testing
-      const mockRedis = {
-        ping: async () => 'PONG',
-        get: async () => null,
-        set: async () => 'OK',
-        del: async () => 1,
-        exists: async () => 0,
-        expire: async () => 1,
-        ttl: async () => -1,
-        keys: async () => [],
-        flushall: async () => 'OK',
-        quit: async () => 'OK',
-        on: () => {},
-        off: () => {},
-        removeAllListeners: () => {},
-      };
-      
+    const mockRedis = {
+      ping: async () => 'PONG',
+      get: async () => null,
+      set: async () => 'OK',
+      del: async () => 1,
+      exists: async () => 0,
+      expire: async () => 1,
+      ttl: async () => -1,
+      keys: async () => [],
+      flushall: async () => 'OK',
+      quit: async () => 'OK',
+      on: () => {},
+      off: () => {},
+      removeAllListeners: () => {},
+    };
+    
+    if (!fastify.hasDecorator('redis')) {
       fastify.decorate('redis', mockRedis as any);
-      fastify.log.info('Mock Redis instance created for development/testing');
-    } else {
+    }
+    fastify.log.info('Mock Redis instance created for development/testing');
+  } else {
+    try {
+      await fastify.register(fastifyRedis, {
+        url: fastify.config.REDIS_URL,
+      });
+
+      // Test connection
+      await fastify.redis.ping();
+      fastify.log.info('Redis connected successfully');
+    } catch (error) {
+      fastify.log.error({ error }, 'Failed to connect to Redis');
       throw error;
     }
   }
@@ -104,5 +105,4 @@ const redisPlugin: FastifyPluginAsync = async (fastify) => {
 
 export default fp(redisPlugin, {
   name: 'redis',
-  dependencies: ['env'],
 });

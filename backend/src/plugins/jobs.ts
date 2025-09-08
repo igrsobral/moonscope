@@ -139,5 +139,5 @@ const jobsPlugin: FastifyPluginAsync = async (fastify) => {
 
 export default fp(jobsPlugin, {
   name: 'jobs',
-  dependencies: ['database', 'redis', 'queue', 'external-api', 'websocket', 'realtime'],
+  dependencies: ['database', 'redis', 'queue', 'external-api', 'realtime'],
 });
