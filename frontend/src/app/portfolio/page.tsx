@@ -5,6 +5,10 @@ import { EditHoldingDialog } from '@/components/portfolio/edit-holding-dialog';
 import { PortfolioAnalyticsChart } from '@/components/portfolio/portfolio-analytics-chart';
 import { PortfolioExporter } from '@/components/portfolio/portfolio-export';
 import { PortfolioHoldingsList } from '@/components/portfolio/portfolio-holdings-list';
+import { PortfolioMetrics } from '@/components/portfolio/portfolio-metrics';
+import { PortfolioComparison } from '@/components/portfolio/portfolio-comparison';
+import { PortfolioExportDialog } from '@/components/portfolio/portfolio-export-dialog';
+import { PortfolioLeaderboard } from '@/components/portfolio/portfolio-leaderboard';
 import { PortfolioOverview } from '@/components/portfolio/portfolio-overview';
 import { PortfolioShareDialog } from '@/components/portfolio/portfolio-share-dialog';
 import { LoadingState } from '@/components/ui/loading';
@@ -104,13 +108,18 @@ export default function PortfolioPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="holdings">Holdings</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div></div>
+            <PortfolioExportDialog portfolioData={portfolioData} />
+          </div>
           <PortfolioOverview
             portfolioData={portfolioData}
             totalValue={portfolioMetrics.totalValue}
@@ -132,7 +141,29 @@ export default function PortfolioPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
+          <PortfolioMetrics portfolioData={portfolioData} />
           <PortfolioAnalyticsChart portfolioData={portfolioData} />
+          <PortfolioComparison portfolioData={portfolioData} />
+        </TabsContent>
+
+        <TabsContent value="leaderboard" className="space-y-6">
+          <PortfolioLeaderboard
+            currentUserRank={Math.floor(Math.random() * 50) + 10}
+            currentUserStats={{
+              id: 'current-user',
+              username: 'You',
+              portfolioValue: portfolioData.reduce((sum, holding) => sum + holding.currentValue, 0),
+              profitLoss: portfolioData.reduce((sum, holding) => sum + holding.profitLoss, 0),
+              profitLossPercentage:
+                portfolioData.length > 0
+                  ? portfolioData.reduce((sum, holding) => sum + holding.profitLossPercentage, 0) /
+                    portfolioData.length
+                  : 0,
+              holdingsCount: portfolioData.length,
+              topCoin: portfolioData.length > 0 ? (portfolioData[0].coin?.symbol ?? 'N/A') : 'N/A',
+              joinedDate: new Date().toISOString().split('T')[0],
+            }}
+          />
         </TabsContent>
       </Tabs>
 

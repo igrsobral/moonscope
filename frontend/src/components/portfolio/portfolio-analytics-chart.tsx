@@ -10,7 +10,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Portfolio } from '@/types';
-import { BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
+import {
+  BarChart3,
+  PieChart as PieChartIcon,
+  TrendingUp,
+  Activity,
+  Grid3X3,
+  Target,
+} from 'lucide-react';
 import { useState } from 'react';
 import {
   Bar,
@@ -23,6 +30,8 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
@@ -57,9 +66,9 @@ export function PortfolioAnalyticsChart({
   portfolioData,
   historicalData = [],
 }: PortfolioAnalyticsChartProps) {
-  const [chartType, setChartType] = useState<'performance' | 'allocation' | 'comparison'>(
-    'performance'
-  );
+  const [chartType, setChartType] = useState<
+    'performance' | 'allocation' | 'comparison' | 'volatility' | 'correlation' | 'risk-return'
+  >('performance');
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
   const totalValue = portfolioData.reduce((sum, holding) => sum + holding.currentValue, 0);
@@ -78,6 +87,31 @@ export function PortfolioAnalyticsChart({
     profitLoss: holding.profitLoss,
     profitLossPercentage: holding.profitLossPercentage,
   }));
+
+  // Volatility data for each holding
+  const volatilityData = portfolioData.map(holding => ({
+    name: holding.coin?.symbol || 'Unknown',
+    volatility: Math.abs(holding.profitLossPercentage) * 0.3 + Math.random() * 10, // Mock volatility
+    returns: holding.profitLossPercentage,
+    allocation: totalValue > 0 ? (holding.currentValue / totalValue) * 100 : 0,
+  }));
+
+  // Risk-return scatter data
+  const riskReturnData = portfolioData.map(holding => ({
+    name: holding.coin?.symbol || 'Unknown',
+    risk: Math.abs(holding.profitLossPercentage) * 0.3 + Math.random() * 10,
+    return: holding.profitLossPercentage,
+    size: holding.currentValue,
+  }));
+
+  // Correlation matrix data (mock)
+  const correlationData = portfolioData.slice(0, 5).map((holding, i) => {
+    const row: any = { name: holding.coin?.symbol || 'Unknown' };
+    portfolioData.slice(0, 5).forEach((other, j) => {
+      row[other.coin?.symbol || 'Unknown'] = i === j ? 1 : (Math.random() - 0.5) * 2;
+    });
+    return row;
+  });
 
   // Generate mock historical data if not provided
   const mockHistoricalData =
@@ -133,7 +167,7 @@ export function PortfolioAnalyticsChart({
     <div className="space-y-6">
       {/* Chart Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={chartType === 'performance' ? 'default' : 'outline'}
             size="sm"
@@ -157,6 +191,30 @@ export function PortfolioAnalyticsChart({
           >
             <BarChart3 className="mr-2 h-4 w-4" />
             Comparison
+          </Button>
+          <Button
+            variant={chartType === 'volatility' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setChartType('volatility')}
+          >
+            <Activity className="mr-2 h-4 w-4" />
+            Volatility
+          </Button>
+          <Button
+            variant={chartType === 'correlation' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setChartType('correlation')}
+          >
+            <Grid3X3 className="mr-2 h-4 w-4" />
+            Correlation
+          </Button>
+          <Button
+            variant={chartType === 'risk-return' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setChartType('risk-return')}
+          >
+            <Target className="mr-2 h-4 w-4" />
+            Risk vs Return
           </Button>
         </div>
 
@@ -288,6 +346,121 @@ export function PortfolioAnalyticsChart({
                   <Bar dataKey="current" fill="#82ca9d" name="Current Value" />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Volatility Chart */}
+      {chartType === 'volatility' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Volatility Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={volatilityData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      name === 'volatility' ? `${value.toFixed(2)}%` : `${value.toFixed(2)}%`,
+                      name === 'volatility' ? 'Volatility' : 'Returns',
+                    ]}
+                  />
+                  <Legend />
+                  <Bar dataKey="volatility" fill="#ff7c7c" name="Volatility (%)" />
+                  <Bar dataKey="returns" fill="#82ca9d" name="Returns (%)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Risk-Return Scatter Plot */}
+      {chartType === 'risk-return' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk vs Return Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart data={riskReturnData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    type="number"
+                    dataKey="risk"
+                    name="Risk"
+                    unit="%"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey="return"
+                    name="Return"
+                    unit="%"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      `${value.toFixed(2)}%`,
+                      name === 'return' ? 'Return' : 'Risk',
+                    ]}
+                    labelFormatter={label => `Asset: ${label}`}
+                  />
+                  <Scatter dataKey="return" fill="#8884d8" name="Assets" />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Correlation Matrix */}
+      {chartType === 'correlation' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Asset Correlation Matrix</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-6 gap-2 text-sm">
+                <div></div>
+                {correlationData.map(item => (
+                  <div key={item.name} className="text-center font-medium">
+                    {item.name}
+                  </div>
+                ))}
+                {correlationData.map((row, i) => (
+                  <>
+                    <div key={`row-${i}`} className="font-medium">
+                      {row.name}
+                    </div>
+                    {correlationData.map((col, j) => {
+                      const correlation = row[col.name];
+                      const intensity = Math.abs(correlation);
+                      const isPositive = correlation > 0;
+                      return (
+                        <div
+                          key={`cell-${i}-${j}`}
+                          className="flex h-8 w-8 items-center justify-center rounded text-xs font-medium text-white"
+                          style={{
+                            backgroundColor: isPositive
+                              ? `rgba(34, 197, 94, ${intensity})`
+                              : `rgba(239, 68, 68, ${intensity})`,
+                          }}
+                        >
+                          {correlation.toFixed(2)}
+                        </div>
+                      );
+                    })}
+                  </>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>

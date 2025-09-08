@@ -1,6 +1,10 @@
 export { PortfolioOverview } from './portfolio-overview';
 export { PortfolioHoldingsList } from './portfolio-holdings-list';
 export { PortfolioAnalyticsChart } from './portfolio-analytics-chart';
+export { PortfolioMetrics } from './portfolio-metrics';
+export { PortfolioComparison } from './portfolio-comparison';
+export { PortfolioExportDialog } from './portfolio-export-dialog';
+export { PortfolioLeaderboard } from './portfolio-leaderboard';
 export { AddHoldingDialog } from './add-holding-dialog';
 export { EditHoldingDialog } from './edit-holding-dialog';
 export { PortfolioShareDialog } from './portfolio-share-dialog';
