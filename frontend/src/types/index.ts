@@ -160,6 +160,8 @@ export interface Alert {
   condition: AlertCondition;
   notificationMethods: ('email' | 'push' | 'sms')[];
   isActive: boolean;
+  name?: string;
+  description?: string;
   lastTriggered?: string;
   createdAt: string;
 }
@@ -215,4 +217,158 @@ export interface TrendingCoin {
   priceChange24h: number;
   volumeChange24h: number;
   socialMentions: number;
+}
+
+// Analytics specific types
+export interface MarketOverviewData {
+  totalMarketCap: number;
+  totalVolume24h: number;
+  activeCoins: number;
+  marketCapChange24h: number;
+  volumeChange24h: number;
+  topGainers: TrendingCoin[];
+  topLosers: TrendingCoin[];
+  mostActive: TrendingCoin[];
+}
+
+export interface WhaleMovementData {
+  recentTransactions: WhaleTransaction[];
+  topWhales: {
+    address: string;
+    totalValue: number;
+    transactionCount: number;
+    coins: string[];
+  }[];
+  marketImpact: {
+    priceImpactTransactions: WhaleTransaction[];
+    totalImpactValue: number;
+  };
+  statistics: {
+    totalTransactions24h: number;
+    totalValue24h: number;
+    averageTransactionSize: number;
+    uniqueWhales: number;
+  };
+}
+
+export interface LiquidityData {
+  overview: {
+    totalLiquidity: number;
+    liquidityChange24h: number;
+    averageLiquidity: number;
+    lowLiquidityCoins: number;
+  };
+  chartData: {
+    timestamp: string;
+    totalLiquidity: number;
+    averageLiquidity: number;
+    coinCount: number;
+  }[];
+  topPools: {
+    coinId: number;
+    coinSymbol: string;
+    coinName: string;
+    dex: string;
+    liquidity: number;
+    volume24h: number;
+    apy: number;
+    riskScore: number;
+  }[];
+  liquidityDistribution: {
+    range: string;
+    count: number;
+    percentage: number;
+  }[];
+  riskAnalysis: {
+    highRisk: number;
+    mediumRisk: number;
+    lowRisk: number;
+  };
+}
+
+export interface CorrelationData {
+  correlationMatrix: {
+    coinA: string;
+    coinB: string;
+    correlation: number;
+    significance: number;
+  }[];
+  topCorrelations: {
+    positive: {
+      coinA: string;
+      coinB: string;
+      correlation: number;
+      priceChangeA: number;
+      priceChangeB: number;
+    }[];
+    negative: {
+      coinA: string;
+      coinB: string;
+      correlation: number;
+      priceChangeA: number;
+      priceChangeB: number;
+    }[];
+  };
+  marketSegments: {
+    segment: string;
+    coins: string[];
+    avgCorrelation: number;
+    performance24h: number;
+  }[];
+  statistics: {
+    avgCorrelation: number;
+    strongCorrelations: number;
+    weakCorrelations: number;
+    negativeCorrelations: number;
+  };
+}
+
+export interface SentimentData {
+  overview: {
+    overallSentiment: number;
+    sentimentChange24h: number;
+    totalMentions24h: number;
+    mentionsChange24h: number;
+    influencerMentions: number;
+    trendingCoins: number;
+  };
+  sentimentTrends: {
+    timestamp: string;
+    sentiment: number;
+    mentions: number;
+    positiveRatio: number;
+    negativeRatio: number;
+  }[];
+  platformBreakdown: {
+    platform: 'twitter' | 'reddit' | 'telegram';
+    sentiment: number;
+    mentions: number;
+    engagement: number;
+    topHashtags: string[];
+  }[];
+  topSentimentCoins: {
+    positive: {
+      coinSymbol: string;
+      coinName: string;
+      sentiment: number;
+      mentions: number;
+      priceChange24h: number;
+    }[];
+    negative: {
+      coinSymbol: string;
+      coinName: string;
+      sentiment: number;
+      mentions: number;
+      priceChange24h: number;
+    }[];
+  };
+  sentimentDistribution: {
+    range: string;
+    count: number;
+    percentage: number;
+  }[];
+  keywordAnalysis: {
+    bullish: { keyword: string; count: number; sentiment: number }[];
+    bearish: { keyword: string; count: number; sentiment: number }[];
+  };
 }
