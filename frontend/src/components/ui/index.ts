@@ -65,3 +65,5 @@ export {
 export { Label } from './label';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 export { Checkbox } from './checkbox';
+export { Switch } from './switch';
+export { Textarea } from './textarea';
