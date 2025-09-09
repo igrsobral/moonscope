@@ -334,7 +334,7 @@ export function LiquidityAnalysisCharts() {
                         fill="#8884d8"
                         dataKey="count"
                       >
-                        {liquidityData.liquidityDistribution.map((entry, index) => (
+                        {liquidityData.liquidityDistribution.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>

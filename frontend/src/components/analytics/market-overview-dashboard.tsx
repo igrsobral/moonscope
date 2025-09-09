@@ -187,19 +187,16 @@ export function MarketOverviewDashboard() {
           title="Top Gainers"
           coins={marketData.topGainers}
           type="gainers"
-          timeFrame={timeFrame}
         />
         <TrendingCoinsWidget
           title="Top Losers"
           coins={marketData.topLosers}
           type="losers"
-          timeFrame={timeFrame}
         />
         <TrendingCoinsWidget
           title="Most Active"
           coins={marketData.mostActive}
           type="active"
-          timeFrame={timeFrame}
         />
       </div>
     </div>
