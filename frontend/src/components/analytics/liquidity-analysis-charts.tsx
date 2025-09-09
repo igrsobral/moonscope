@@ -150,11 +150,7 @@ export function LiquidityAnalysisCharts() {
     return null;
   };
 
-  const getRiskColor = (riskScore: number) => {
-    if (riskScore >= 70) return 'text-red-600';
-    if (riskScore >= 40) return 'text-yellow-600';
-    return 'text-green-600';
-  };
+
 
   const getRiskBadgeVariant = (riskScore: number) => {
     if (riskScore >= 70) return 'destructive';

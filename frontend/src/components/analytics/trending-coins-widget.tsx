@@ -12,10 +12,9 @@ interface TrendingCoinsWidgetProps {
   title: string;
   coins: TrendingCoin[];
   type: 'gainers' | 'losers' | 'active';
-  timeFrame: string;
 }
 
-export function TrendingCoinsWidget({ title, coins, type, timeFrame }: TrendingCoinsWidgetProps) {
+export function TrendingCoinsWidget({ title, coins, type }: TrendingCoinsWidgetProps) {
   const getIcon = () => {
     switch (type) {
       case 'gainers':
