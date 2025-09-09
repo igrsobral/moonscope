@@ -1,9 +1,12 @@
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Analytics - MemeAnalyzer',
-  description: 'Advanced analytics and insights for meme coin markets.',
-};
+'use client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  MarketOverviewDashboard,
+  WhaleMovementTracker,
+  LiquidityAnalysisCharts,
+  CrossCoinCorrelationAnalysis,
+  MarketSentimentOverview,
+} from '@/components/analytics';
 
 export default function AnalyticsPage() {
   return (
@@ -15,12 +18,35 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-8 text-center">
-        <h2 className="mb-2 text-xl font-semibold">Coming Soon</h2>
-        <p className="text-muted-foreground">
-          Advanced analytics features will be implemented in the next tasks.
-        </p>
-      </div>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Market Overview</TabsTrigger>
+          <TabsTrigger value="whales">Whale Tracking</TabsTrigger>
+          <TabsTrigger value="liquidity">Liquidity Analysis</TabsTrigger>
+          <TabsTrigger value="correlation">Correlation</TabsTrigger>
+          <TabsTrigger value="sentiment">Sentiment</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <MarketOverviewDashboard />
+        </TabsContent>
+
+        <TabsContent value="whales" className="space-y-6">
+          <WhaleMovementTracker />
+        </TabsContent>
+
+        <TabsContent value="liquidity" className="space-y-6">
+          <LiquidityAnalysisCharts />
+        </TabsContent>
+
+        <TabsContent value="correlation" className="space-y-6">
+          <CrossCoinCorrelationAnalysis />
+        </TabsContent>
+
+        <TabsContent value="sentiment" className="space-y-6">
+          <MarketSentimentOverview />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
