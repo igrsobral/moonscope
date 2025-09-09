@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
 import { LoadingState } from '@/components/ui/loading';
 import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
@@ -183,21 +183,9 @@ export function MarketOverviewDashboard() {
 
       {/* Trending Coins Sections */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <TrendingCoinsWidget
-          title="Top Gainers"
-          coins={marketData.topGainers}
-          type="gainers"
-        />
-        <TrendingCoinsWidget
-          title="Top Losers"
-          coins={marketData.topLosers}
-          type="losers"
-        />
-        <TrendingCoinsWidget
-          title="Most Active"
-          coins={marketData.mostActive}
-          type="active"
-        />
+        <TrendingCoinsWidget title="Top Gainers" coins={marketData.topGainers} type="gainers" />
+        <TrendingCoinsWidget title="Top Losers" coins={marketData.topLosers} type="losers" />
+        <TrendingCoinsWidget title="Most Active" coins={marketData.mostActive} type="active" />
       </div>
     </div>
   );

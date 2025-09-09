@@ -9,16 +9,12 @@ import { LoadingState } from '@/components/ui/loading';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
 } from 'recharts';
 import {
   Heart,

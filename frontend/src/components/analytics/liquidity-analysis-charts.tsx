@@ -150,8 +150,6 @@ export function LiquidityAnalysisCharts() {
     return null;
   };
 
-
-
   const getRiskBadgeVariant = (riskScore: number) => {
     if (riskScore >= 70) return 'destructive';
     if (riskScore >= 40) return 'secondary';
